@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import QByteArray, QObject, QStandardPaths, Signal, Qt
+from PySide6.QtCore import QByteArray, QObject, QStandardPaths, Signal, Qt, QUrl
 from PySide6.QtGui import QImage
 from PySide6.QtNetwork import (
     QNetworkAccessManager,
@@ -111,7 +111,11 @@ class TileFetcher(QObject):
             self._start_download(source, x, y, z)
 
     def _start_download(self, source: TileSource, x: int, y: int, z: int) -> None:
-        req = QNetworkRequest(source.url(x, y, z))
+        # QNetworkRequest's documented constructor takes QUrl.  Relying on
+        # PySide's implicit str conversion enters binding code just as the
+        # native network backend is being created; keep this path identical
+        # to geocode.py and explicit on every Qt/Windows build.
+        req = QNetworkRequest(QUrl(source.url(x, y, z)))
         req.setRawHeader(b"User-Agent", _USER_AGENT)
         req.setAttribute(QNetworkRequest.Attribute.RedirectPolicyAttribute,
                          QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy)
