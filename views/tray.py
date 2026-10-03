@@ -1620,6 +1620,273 @@ class PartsPanel(QWidget):
             parts=sum(ln["qty"] for ln in lines)), 4000)
 
 
+class OutlinerPanel(QWidget):
+    """Whole-model hierarchy for groups and component instances.
+
+    Unlike :class:`PartsPanel`, which is a one-level cut-list workspace for
+    one assembly, this tree follows every nested placement in the document.
+    Selection travels both ways between the tree and viewport; nested rows
+    open their ancestors so the real child becomes the editable selection.
+    """
+
+    def __init__(self, window) -> None:
+        super().__init__()
+        from PySide6.QtWidgets import (QAbstractItemView, QTreeWidget,
+                                       QTreeWidgetItem, QVBoxLayout)
+        self._window = window
+        self._updating = False
+        self._items: dict[int, object] = {}
+        self._paths: dict[int, tuple] = {}
+        self.setMinimumWidth(0)
+        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(8, 6, 8, 8)
+        self.search = QLineEdit()
+        self.search.setPlaceholderText(tr("Search model…"))
+        self.search.setClearButtonEnabled(True)
+        self.search.setMinimumWidth(0)
+        self.search.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        self.search.textChanged.connect(self._apply_filter)
+        lay.addWidget(self.search)
+        self.tree = QTreeWidget()
+        self.tree.setColumnCount(3)
+        self.tree.setHeaderLabels([tr("Name"), tr("Visible"), tr("Lock")])
+        self.tree.setRootIsDecorated(True)
+        self.tree.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.tree.setEditTriggers(QAbstractItemView.EditKeyPressed
+                                  | QAbstractItemView.SelectedClicked)
+        self.tree.setColumnWidth(0, 150)
+        self.tree.setColumnWidth(1, 52)
+        self.tree.setColumnWidth(2, 52)
+        self.tree.setMinimumWidth(0)
+        self.tree.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        self.tree.setMinimumHeight(220)
+        self.tree.itemChanged.connect(self._on_item_changed)
+        self.tree.itemSelectionChanged.connect(self._on_selection_changed)
+        self.tree.itemDoubleClicked.connect(self._on_double_click)
+        self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tree.customContextMenuRequested.connect(self._on_context_menu)
+        lay.addWidget(self.tree)
+        hint = QLabel(tr(
+            "Double-click a row to edit it. Locked objects stay visible "
+            "but cannot be picked in the model."))
+        hint.setWordWrap(True)
+        hint.setMinimumWidth(0)
+        hint.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        lay.addWidget(hint)
+        self.refresh()
+
+    def _scene(self):
+        return self._window.viewport.scene
+
+    def _expanded(self) -> set[str]:
+        return {getattr(item.data(0, Qt.UserRole), "uid", "")
+                for item in self._items.values() if item.isExpanded()}
+
+    def refresh(self) -> None:
+        from PySide6.QtWidgets import QTreeWidgetItem
+        expanded = self._expanded()
+        first_fill = not self._items
+        self._updating = True
+        self.tree.blockSignals(True)
+        self.tree.clear()
+        self._items.clear()
+        self._paths.clear()
+
+        def add(group, parent, path) -> None:
+            item = QTreeWidgetItem(parent, [group.name, "", ""])
+            item.setData(0, Qt.UserRole, group)
+            item.setFlags(item.flags() | Qt.ItemIsEditable
+                          | Qt.ItemIsUserCheckable)
+            item.setCheckState(1, Qt.Unchecked if group.hidden else Qt.Checked)
+            item.setCheckState(2, Qt.Checked if getattr(group, "locked", False)
+                               else Qt.Unchecked)
+            kind = tr("Component") if group.is_component() else tr("Group")
+            item.setToolTip(0, kind)
+            self._items[id(group)] = item
+            self._paths[id(group)] = path + (group,)
+            for child in getattr(group, "children", None) or ():
+                add(child, item, path + (group,))
+            uid = getattr(group, "uid", "")
+            item.setExpanded(first_fill or uid in expanded)
+
+        for group in self._scene().groups:
+            add(group, self.tree, ())
+        self.tree.blockSignals(False)
+        self._updating = False
+        self._sync_selection()
+        self._apply_filter(self.search.text())
+
+    def _sync_selection(self) -> None:
+        selected = self._scene().selection
+        self._updating = True
+        self.tree.blockSignals(True)
+        for item in self._items.values():
+            item.setSelected(item.data(0, Qt.UserRole) in selected)
+        self.tree.blockSignals(False)
+        self._updating = False
+
+    def _apply_filter(self, text: str) -> None:
+        needle = text.strip().casefold()
+
+        def visit(item) -> bool:
+            child_hit = any(visit(item.child(i))
+                            for i in range(item.childCount()))
+            own = not needle or needle in item.text(0).casefold()
+            show = own or child_hit
+            item.setHidden(not show)
+            if needle and child_hit:
+                item.setExpanded(True)
+            return show
+
+        for i in range(self.tree.topLevelItemCount()):
+            visit(self.tree.topLevelItem(i))
+
+    def _selected_groups(self) -> list:
+        return [item.data(0, Qt.UserRole) for item in self.tree.selectedItems()
+                if item.data(0, Qt.UserRole) is not None]
+
+    @staticmethod
+    def _path_available(path: tuple) -> bool:
+        return not any(g.hidden or getattr(g, "locked", False) for g in path)
+
+    def _leave_if_context(self, groups) -> None:
+        open_groups = {level["group"] for level in
+                       getattr(self._scene(), "_edit_stack", ()) or ()}
+        if any(g in open_groups for g in groups):
+            self._window.viewport.end_group_edit()
+
+    def _open_parent_path(self, path: tuple) -> None:
+        """Put the viewport in the context that owns ``path[-1]``."""
+        vp = self._window.viewport
+        wanted = path[:-1]
+        current = tuple(level["group"]
+                        for level in getattr(vp.scene, "_edit_stack", ()) or ())
+        if current == wanted:
+            return
+        vp.end_group_edit()
+        for ancestor in wanted:
+            vp.begin_group_edit(ancestor)
+
+    def _on_selection_changed(self) -> None:
+        if self._updating:
+            return
+        groups = self._selected_groups()
+        scene = self._scene()
+        if not groups:
+            scene.selection.clear()
+            scene.bump_view()
+            self._window.viewport.update()
+            return
+        path = self._paths[id(groups[0])]
+        if not self._path_available(path):
+            scene.selection.clear()
+            scene.bump_view()
+            self._window.viewport.update()
+            return
+        self._updating = True
+        self._open_parent_path(path)
+        # One viewport edit context cannot expose children of different
+        # parents at once. Keep only siblings of the first selected row.
+        parent_path = path[:-1]
+        groups = [g for g in groups
+                  if self._paths[id(g)][:-1] == parent_path
+                  and self._path_available(self._paths[id(g)])]
+        scene.selection.clear()
+        scene.selection.update(groups)
+        scene.bump_view()
+        self._window.viewport.update()
+        self._updating = False
+
+    def _on_double_click(self, item, column) -> None:
+        if column != 0:
+            return
+        group = item.data(0, Qt.UserRole)
+        if group is None or not self._path_available(self._paths[id(group)]):
+            return
+        path = self._paths[id(group)]
+        self._updating = True
+        self._open_parent_path(path)
+        self._window.viewport.begin_group_edit(group)
+        self._updating = False
+        self.refresh()
+
+    def _on_item_changed(self, item, column) -> None:
+        if self._updating:
+            return
+        group = item.data(0, Qt.UserRole)
+        if group is None:
+            return
+        history = self._window.viewport.history
+        if column == 0:
+            name = item.text(0).strip()
+            if name and name != group.name:
+                from core.history import RenameGroupCommand
+                history.execute(RenameGroupCommand(group, name))
+        elif column == 1:
+            hidden = item.checkState(1) != Qt.Checked
+            if hidden != group.hidden:
+                from core.history import HideCommand
+                if hidden:
+                    self._leave_if_context([group])
+                history.execute(HideCommand([group], hidden=hidden))
+        elif column == 2:
+            locked = item.checkState(2) == Qt.Checked
+            if locked != bool(getattr(group, "locked", False)):
+                from core.history import LockGroupsCommand
+                if locked:
+                    self._leave_if_context([group])
+                history.execute(LockGroupsCommand([group], locked=locked))
+        self._window.viewport.update()
+        self.refresh()
+
+    def _on_context_menu(self, pos) -> None:
+        item = self.tree.itemAt(pos)
+        groups = self._selected_groups()
+        if item is not None and item.data(0, Qt.UserRole) not in groups:
+            self.tree.setCurrentItem(item)
+            groups = self._selected_groups()
+        if not groups:
+            return
+        menu = QMenu(self)
+        if len(groups) == 1:
+            menu.addAction(tr("Rename…"), lambda: self.tree.editItem(item, 0))
+        hidden = all(g.hidden for g in groups)
+        menu.addAction(tr("Show") if hidden else tr("Hide"),
+                       lambda: self._set_hidden(groups, not hidden))
+        locked = all(getattr(g, "locked", False) for g in groups)
+        menu.addAction(tr("Unlock") if locked else tr("Lock"),
+                       lambda: self._set_locked(groups, not locked))
+        menu.addSeparator()
+        menu.addAction(tr("Zoom Selection"), self._zoom_selection)
+        menu.exec(self.tree.viewport().mapToGlobal(pos))
+
+    def _set_hidden(self, groups, hidden: bool) -> None:
+        from core.history import HideCommand
+        if hidden:
+            self._leave_if_context(groups)
+        self._window.viewport.history.execute(HideCommand(groups, hidden))
+        self._window.viewport.update()
+        self.refresh()
+
+    def _set_locked(self, groups, locked: bool) -> None:
+        from core.history import LockGroupsCommand
+        if locked:
+            self._leave_if_context(groups)
+        self._window.viewport.history.execute(LockGroupsCommand(groups, locked))
+        self._window.viewport.update()
+        self.refresh()
+
+    def _zoom_selection(self) -> None:
+        groups = [g for g in self._selected_groups() if not g.hidden]
+        if not groups:
+            return
+        scene = self._scene()
+        scene.selection.clear()
+        scene.selection.update(groups)
+        self._window._on_zoom_selection()
+
+
 class MaterialsPanel(QWidget):
     """Swatch palette: pick a colour/texture to paint with."""
 
@@ -3882,6 +4149,7 @@ class Tray(QDockWidget):
                          | QDockWidget.DockWidgetClosable)
 
         self.entity_info = EntityInfoPanel(window)
+        self.outliner = OutlinerPanel(window)
         self.materials = MaterialsPanel(window)
         self.components = ComponentsPanel(window)
         self.parts = PartsPanel(window)
@@ -3892,6 +4160,7 @@ class Tray(QDockWidget):
         # was drowning.
         self.setWidget(_scrolled([
             (tr("Entity info"), self.entity_info),
+            (tr("Outliner"), self.outliner),
             (tr("Layers"), self.layers),
             (tr("Scenes"), self.scenes),
             (tr("Materials"), self.materials),
@@ -3912,6 +4181,7 @@ class Tray(QDockWidget):
             timer.timeout.connect(self.materials.refresh_in_model)
         timer.start(300)
         self.layers.refresh()
+        self.outliner.refresh()
         self.scenes.refresh()
         self.components.refresh_in_model()
         self.parts.refresh()
