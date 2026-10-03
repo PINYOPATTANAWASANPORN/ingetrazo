@@ -601,6 +601,21 @@ def load_into(scene, path: Path, progress=None) -> None:
             gc.enable()
 
 
+def load_scene(path: Path, progress=None):
+    """Build and return a complete :class:`~core.scene.Scene` from ``path``.
+
+    Unlike :func:`load_into`, this never mutates a caller-owned scene.  The
+    window uses it on a worker thread, then adopts the finished scene on the
+    UI thread.  A malformed or partially readable document therefore cannot
+    erase the drawing that is already open.
+    """
+    from core.scene import Scene
+
+    scene = Scene()
+    load_into(scene, path, progress=progress)
+    return scene
+
+
 #: Entities left out of the document being opened because a coordinate
 #: is not a number (NaN / inf) — counted per load, reported on the scene.
 _dropped_nonfinite = [0]

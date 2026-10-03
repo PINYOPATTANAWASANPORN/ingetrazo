@@ -92,3 +92,103 @@ def test_the_loader_reports_progress(tmp_path):
     assert any("groups" in t.lower() for _f, t in seen)
     assert len(back.groups) == 3
     igz.load_into(Scene(), path)                      # no callback: as before
+
+
+def test_native_document_builds_on_worker_and_reports_on_ui_thread(
+        tmp_path, monkeypatch):
+    """A native open keeps Qt's event loop free while geometry is rebuilt."""
+    from PySide6.QtCore import QThread
+    from views.main_window import MainWindow
+
+    path = tmp_path / "worker.igz"
+    source = Scene()
+    source.mesh.add_face([
+        QVector3D(0, 0, 0), QVector3D(1, 0, 0),
+        QVector3D(1, 1, 0), QVector3D(0, 1, 0),
+    ])
+    igz.save_scene(source, path)
+
+    worker_threads = []
+    progress_threads = []
+    load_scene = igz.load_scene
+
+    def track_load(*args, **kwargs):
+        worker_threads.append(
+            QThread.currentThread() != QApplication.instance().thread())
+        progress = kwargs.get("progress")
+
+        def track_progress(fraction, text):
+            progress_threads.append(
+                QThread.currentThread() == QApplication.instance().thread())
+            if progress is not None:
+                progress(fraction, text)
+
+        kwargs["progress"] = track_progress
+        return load_scene(*args, **kwargs)
+
+    monkeypatch.setattr(igz, "load_scene", track_load)
+    win = MainWindow()
+    try:
+        seen_on_ui = []
+        loaded, error = win._load_igz_threaded(
+            path,
+            lambda *_: seen_on_ui.append(
+                QThread.currentThread() == QApplication.instance().thread()))
+        assert error is None
+        assert len(loaded.faces) == 1
+        assert worker_threads == [True]
+        # The wrapper's callback executes on the worker; the UI callback is
+        # relayed through a queued Qt connection.
+        assert progress_threads and not any(progress_threads)
+        assert seen_on_ui and all(seen_on_ui)
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_failed_native_open_keeps_the_current_drawing(
+        tmp_path, monkeypatch):
+    """A corrupt file is rejected before the live Scene is changed."""
+    from PySide6.QtWidgets import QMessageBox
+    from views.main_window import MainWindow
+
+    bad = tmp_path / "broken.igz"
+    bad.write_text("not json", encoding="utf-8")
+    monkeypatch.setattr(QMessageBox, "critical", lambda *args: QMessageBox.Ok)
+
+    win = MainWindow()
+    try:
+        scene = win.viewport.scene
+        scene.mesh.add_edge(QVector3D(0, 0, 0), QVector3D(2, 0, 0))
+        scene.version += 1
+        original_mesh = scene.mesh
+        original_version = scene.version
+
+        assert win.open_path(bad) is False
+        assert win.viewport.scene is scene
+        assert scene.mesh is original_mesh
+        assert len(scene.edges) == 1
+        assert scene.version == original_version
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_adopting_a_loaded_scene_keeps_scene_identity_and_rebinds_dimensions():
+    from core.dimension import Dimension
+
+    live = Scene()
+    loaded = Scene()
+    loaded.mesh.add_edge(QVector3D(0, 0, 0), QVector3D(1, 0, 0))
+    dimension = Dimension(
+        QVector3D(0, 0, 0), QVector3D(1, 0, 0), QVector3D(0, 1, 0))
+    dimension.bind(loaded)
+    loaded.dimensions.append(dimension)
+
+    identity = id(live)
+    live.replace_contents_from(loaded)
+
+    assert id(live) == identity
+    assert len(live.edges) == 1
+    assert live.dimensions == [dimension]
+    assert dimension._scene is live

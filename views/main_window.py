@@ -4426,13 +4426,13 @@ class MainWindow(QMainWindow):
         # seconds with nothing on screen, «feeling of freeze». Small ones
         # never show it (the dialog waits 400 ms before appearing).
         dlg, cb = self._import_progress(tr("Opening {name}…", name=path.name))
-        try:
-            igz_format.load_into(self.viewport.scene,
-                                 slot if recovered else path, progress=cb)
-        except Exception as exc:  # noqa: BLE001 - surface any IO/parse error to the user
+        loaded, exc = self._load_igz_threaded(
+            slot if recovered else path, cb)
+        if exc is not None:
             dlg.close()
             QMessageBox.critical(self, tr("Open failed"), str(exc))
             return False
+        self.viewport.scene.replace_contents_from(loaded)
         dlg.close()
         self.viewport.history.clear()
         self.viewport.reset_texture_cache()
@@ -4486,6 +4486,65 @@ class MainWindow(QMainWindow):
         self._update_title()
         self.settle_heap()
         return True
+
+    def _load_igz_threaded(self, path, cb):
+        """Build a native document off the UI thread.
+
+        The nested event loop keeps ``open_path`` synchronous for callers while
+        the window, its delayed progress dialog, and operating-system messages
+        remain responsive.  The returned scene is not installed until loading
+        has completed successfully.
+        """
+        from PySide6.QtCore import QEventLoop, QObject, QThread, Qt, Signal
+
+        result = {}
+
+        class _Worker(QObject):
+            progressed = Signal(float, str)
+            # The large result stays in the shared result slot; the queued
+            # signal carries only completion state back to the UI thread.
+            finished = Signal(object)
+
+            def run(self):
+                try:
+                    result["scene"] = igz_format.load_scene(
+                        path,
+                        progress=lambda f, t: self.progressed.emit(f, t))
+                    self.finished.emit(None)
+                except Exception as exc:  # noqa: BLE001 - reported by caller
+                    self.finished.emit(exc)
+
+        # Completed worker threads have no useful window lifetime; arrange
+        # their QObject cleanup as part of completion.
+        thread = QThread()
+        worker = _Worker()
+        worker.moveToThread(thread)
+        loop = QEventLoop()
+
+        class _Relay(QObject):
+            def on_progress(self, fraction, text):
+                cb(fraction, text)
+
+            def on_finished(self, exc):
+                result["exc"] = exc
+                loop.quit()
+
+        relay = _Relay(self)
+        worker.progressed.connect(relay.on_progress, Qt.QueuedConnection)
+        worker.finished.connect(relay.on_finished, Qt.QueuedConnection)
+        worker.finished.connect(worker.deleteLater)
+        worker.finished.connect(thread.quit)
+        thread.started.connect(worker.run)
+        thread.start()
+        loop.exec()
+        thread.wait()
+        relay.deleteLater()
+        thread.deleteLater()
+        # Empty the closure-owned dict before the worker QObject is eventually
+        # destroyed, so the finished document has only its intended owner.
+        scene = result.pop("scene", None)
+        exc = result.pop("exc", None)
+        return scene, exc
 
     #: Young-generation threshold: how many net allocations between
     #: collector passes. Python's default (2000) made the incremental
