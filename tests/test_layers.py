@@ -28,6 +28,73 @@ def test_entities_default_to_layer_zero():
     assert scene.entity_visible(f) and scene.entity_selectable(e)
 
 
+def test_active_layer_round_trips_and_rejects_hidden_or_locked_layers(tmp_path):
+    scene = Scene()
+    scene.layers.append(Layer("Muros"))
+    scene.layers.append(Layer("Bloqueado", locked=True))
+    scene.layers.append(Layer("Oculto", visible=False))
+
+    assert scene.set_active_layer("Muros")
+    assert scene.active_layer == "Muros"
+    assert not scene.set_active_layer("Bloqueado")
+    assert not scene.set_active_layer("Oculto")
+    assert scene.active_layer == "Muros"
+
+    path = tmp_path / "active-layer.igz"
+    igz.save_scene(scene, path)
+    restored = Scene()
+    igz.load_into(restored, path)
+    assert restored.active_layer == "Muros"
+
+
+def test_active_layer_is_stamped_on_new_history_geometry():
+    from core.history import AddEdgeCommand, AddFaceCommand, History
+
+    scene = Scene()
+    scene.layers.append(Layer("Muros"))
+    assert scene.set_active_layer("Muros")
+    history = History(scene)
+    history.execute(AddEdgeCommand(V(0, 0), V(1, 0)))
+    history.execute(AddFaceCommand([V(2, 0), V(3, 0), V(3, 1), V(2, 1)]))
+
+    assert layer_of(scene.mesh.edges[0]) == "Muros"
+    assert all(layer_of(edge) == "Muros" for edge in scene.mesh.edges)
+    assert layer_of(scene.mesh.faces[0]) == "Muros"
+
+
+def test_active_layer_is_stamped_on_new_groups_and_annotations():
+    from core.dimension import Dimension
+    from core.group import Group
+    from core.history import (AddDimensionCommand, AddTextLabelCommand,
+                              History, InsertGroupCommand)
+    from core.mesh import Mesh
+    from core.textlabel import TextLabel
+
+    scene = Scene()
+    scene.layers.append(Layer("Anotaciones"))
+    assert scene.set_active_layer("Anotaciones")
+    history = History(scene)
+    group = Group(Mesh())
+    dim = Dimension(V(0, 0), V(1, 0), V(0, 1))
+    label = TextLabel(V(0, 0), V(1, 1), "Nota")
+    history.execute(InsertGroupCommand(group))
+    history.execute(AddDimensionCommand(dim))
+    history.execute(AddTextLabelCommand(label))
+
+    assert all(layer_of(entity) == "Anotaciones"
+               for entity in (group, dim, label))
+
+
+def test_active_layer_is_not_purged_when_empty():
+    from core.purge import unused_layers
+
+    scene = Scene()
+    scene.layers.append(Layer("Siguiente"))
+    assert scene.set_active_layer("Siguiente")
+
+    assert "Siguiente" not in [layer.name for layer in unused_layers(scene)]
+
+
 def test_hidden_layer_filters_render_views():
     scene = Scene()
     f1 = _slab(scene, 0)
@@ -249,6 +316,43 @@ def test_layers_tray_assigns_and_releases_annotations():
         panel._on_delete()
         assert scene.layer("Anotaciones") is None
         assert layer_of(dim) == DEFAULT_LAYER and layer_of(lab) == DEFAULT_LAYER
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_layers_tray_rename_updates_nested_entities_active_layer_and_scenes():
+    import os
+    from PySide6.QtWidgets import QApplication
+    from core.group import Group
+    from core.mesh import Mesh
+    from core.saved_views import SavedView
+    from views.main_window import MainWindow
+
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    if QApplication.instance() is None:
+        QApplication([])
+    win = MainWindow()
+    try:
+        scene = win.viewport.scene
+        scene.layers.append(Layer("Muros"))
+        scene.active_layer = "Muros"
+        nested = Group(Mesh(), name="interior")
+        nested.mesh.add_face([V(0, 0), V(1, 0), V(1, 1), V(0, 1)])
+        parent = Group(Mesh(), name="edificio")
+        parent.children.append(nested)
+        scene.groups.append(parent)
+        assign_layer(nested, "Muros")
+        assign_layer(nested.mesh.faces[0], "Muros")
+        scene.saved_views.append(SavedView("Planta", hidden_layers=["Muros"]))
+
+        panel = win.tray.layers
+        panel._rename(scene.layer("Muros"), "Muros", "Arquitectura")
+
+        assert scene.active_layer == "Arquitectura"
+        assert layer_of(nested) == "Arquitectura"
+        assert layer_of(nested.mesh.faces[0]) == "Arquitectura"
+        assert scene.saved_views[0].hidden_layers == ["Arquitectura"]
     finally:
         win._saved_version = win.viewport.scene.version
         win.close()

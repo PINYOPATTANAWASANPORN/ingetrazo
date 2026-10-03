@@ -65,6 +65,7 @@ from tools.paint import PaintTool
 
 from core.paths import app_root
 from core.units import fmt_area, fmt_len
+from views.numeric_locale import use_ascii_numeric_locale
 
 _TEX_DIR = app_root() / "resources" / "textures"
 #: RAL Classic — the paint standard a drawing can be specified in. Its names
@@ -352,6 +353,7 @@ class BaseMapPanel(QWidget):
         self._lat_label = QLabel(tr("Latitude:"))
         grid.addWidget(self._lat_label, 3, 0)
         self._lat = QDoubleSpinBox()
+        use_ascii_numeric_locale(self._lat)
         self._lat.setRange(-85.0, 85.0)
         self._lat.setDecimals(6)
         self._lat.setValue(-12.046400)
@@ -360,6 +362,7 @@ class BaseMapPanel(QWidget):
         self._lon_label = QLabel(tr("Longitude:"))
         grid.addWidget(self._lon_label, 4, 0)
         self._lon = QDoubleSpinBox()
+        use_ascii_numeric_locale(self._lon)
         self._lon.setRange(-180.0, 180.0)
         self._lon.setDecimals(6)
         self._lon.setValue(-77.042800)
@@ -372,6 +375,7 @@ class BaseMapPanel(QWidget):
         zbox = QHBoxLayout(zrow)
         zbox.setContentsMargins(0, 0, 0, 0)
         self._utm_zone = QSpinBox()
+        use_ascii_numeric_locale(self._utm_zone)
         self._utm_zone.setRange(1, 60)
         self._utm_zone.editingFinished.connect(self._sync_ll_from_utm)
         zbox.addWidget(self._utm_zone)
@@ -388,6 +392,7 @@ class BaseMapPanel(QWidget):
         self._utm_e_label = QLabel(tr("UTM E:"))
         grid.addWidget(self._utm_e_label, 6, 0)
         self._utm_e = QDoubleSpinBox()
+        use_ascii_numeric_locale(self._utm_e)
         self._utm_e.setRange(100000.0, 900000.0)
         self._utm_e.setDecimals(2)
         self._utm_e.setGroupSeparatorShown(True)
@@ -397,6 +402,7 @@ class BaseMapPanel(QWidget):
         self._utm_n_label = QLabel(tr("UTM N:"))
         grid.addWidget(self._utm_n_label, 7, 0)
         self._utm_n = QDoubleSpinBox()
+        use_ascii_numeric_locale(self._utm_n)
         self._utm_n.setRange(0.0, 10000000.0)
         self._utm_n.setDecimals(2)
         self._utm_n.setGroupSeparatorShown(True)
@@ -417,6 +423,7 @@ class BaseMapPanel(QWidget):
         self._north_label = QLabel(tr("North:"))
         grid.addWidget(self._north_label, 8, 0)
         self._north = QDoubleSpinBox()
+        use_ascii_numeric_locale(self._north)
         self._north.setRange(-180.0, 180.0)
         self._north.setDecimals(2)
         self._north.setSingleStep(1.0)
@@ -441,6 +448,7 @@ class BaseMapPanel(QWidget):
 
         grid.addWidget(QLabel(tr("Zoom:")), 10, 0)
         self._zoom = QSpinBox()
+        use_ascii_numeric_locale(self._zoom)
         self._zoom.setRange(1, 21)
         self._zoom.setValue(16)
         self._zoom.valueChanged.connect(self._on_zoom_changed)
@@ -3296,11 +3304,13 @@ class LayersPanel(QWidget):
         lay = QVBoxLayout(self)
         lay.setContentsMargins(8, 6, 8, 8)
         self.tree = QTreeWidget()
-        self.tree.setColumnCount(3)
-        self.tree.setHeaderLabels([tr("Name"), tr("Visible"), tr("Lock")])
+        self.tree.setColumnCount(4)
+        self.tree.setHeaderLabels([tr("Name"), tr("Active"), tr("Visible"),
+                                   tr("Lock")])
         self.tree.setRootIsDecorated(False)
         self.tree.setColumnWidth(0, 120)
         self.tree.setColumnWidth(1, 52)
+        self.tree.setColumnWidth(2, 52)
         self.tree.itemChanged.connect(self._on_item_changed)
         lay.addWidget(self.tree)
         row = QHBoxLayout()
@@ -3318,6 +3328,9 @@ class LayersPanel(QWidget):
                                  "highlighted in the list (also: Entity "
                                  "info ▸ Layer, or right-click ▸ Layer)"))
         assign_btn.clicked.connect(self._on_assign)
+        active_btn = QPushButton(tr("Set active"))
+        active_btn.setToolTip(tr("New geometry is drawn on this layer."))
+        active_btn.clicked.connect(self._on_set_active)
         # A flow, not a row: the four buttons wrap when the tray is narrow
         # instead of setting the whole right-hand dock area's minimum width.
         row = FlowLayout(spacing=4)
@@ -3325,6 +3338,7 @@ class LayersPanel(QWidget):
         row.addWidget(del_btn)
         row.addWidget(purge_btn)
         row.addWidget(assign_btn)
+        row.addWidget(active_btn)
         lay.addLayout(row)
         self.refresh()
 
@@ -3335,15 +3349,19 @@ class LayersPanel(QWidget):
         self._updating = True
         self.tree.clear()
         for ly in self._window.viewport.scene.layers:
-            item = QTreeWidgetItem([ly.name, "", ""])
+            active = ly.name == getattr(self._window.viewport.scene,
+                                        "active_layer", None)
+            item = QTreeWidgetItem([ly.name, "●" if active else "", "", ""])
             item.setData(0, Qt.UserRole, ly.name)
             flags = item.flags() | Qt.ItemIsUserCheckable
             if ly.name != DEFAULT_LAYER:
                 flags |= Qt.ItemIsEditable
             item.setFlags(flags)
-            item.setCheckState(1, Qt.Checked if ly.visible else Qt.Unchecked)
-            item.setCheckState(2, Qt.Checked if ly.locked else Qt.Unchecked)
+            item.setCheckState(2, Qt.Checked if ly.visible else Qt.Unchecked)
+            item.setCheckState(3, Qt.Checked if ly.locked else Qt.Unchecked)
             self.tree.addTopLevelItem(item)
+            if active:
+                self.tree.setCurrentItem(item)
         fit_rows(self.tree, max_rows=12)
         self._updating = False
 
@@ -3367,20 +3385,37 @@ class LayersPanel(QWidget):
             self.refresh()
             self._touch()
             return
-        ly.visible = item.checkState(1) == Qt.Checked
-        ly.locked = item.checkState(2) == Qt.Checked
+        ly.visible = item.checkState(2) == Qt.Checked
+        ly.locked = item.checkState(3) == Qt.Checked
+        if ly.name == getattr(scene, "active_layer", None) \
+                and (not ly.visible or ly.locked):
+            from core.layers import DEFAULT_LAYER
+            scene.active_layer = DEFAULT_LAYER
         if not ly.visible or ly.locked:
             self._prune_selection(ly.name)
         self._touch()
 
     def _rename(self, ly, old_name: str, new_name: str) -> None:
         from core.layers import layer_of, assign_layer
+        from core.purge import iter_groups, iter_meshes
         scene = self._scene()
         ly.name = new_name
-        for ent in list(scene.mesh.faces) + list(scene.mesh.edges) \
-                + list(scene.groups):
+        if getattr(scene, "active_layer", None) == old_name:
+            scene.active_layer = new_name
+        for mesh in iter_meshes(scene):
+            for ent in list(mesh.faces) + list(mesh.edges):
+                if layer_of(ent) == old_name:
+                    assign_layer(ent, new_name)
+        tagged = list(iter_groups(scene.groups)) \
+            + list(getattr(scene, "dimensions", []) or []) \
+            + list(getattr(scene, "text_labels", []) or []) \
+            + list(getattr(scene, "image_planes", []) or [])
+        for ent in tagged:
             if layer_of(ent) == old_name:
                 assign_layer(ent, new_name)
+        for view in getattr(scene, "saved_views", []) or []:
+            view.hidden_layers = [new_name if name == old_name else name
+                                  for name in view.hidden_layers]
 
     def _prune_selection(self, name: str) -> None:
         from core.layers import layer_of
@@ -3400,6 +3435,20 @@ class LayersPanel(QWidget):
         scene.layers.append(Layer(f"{base} {n}"))
         self.refresh()
         self._touch()
+
+    def _on_set_active(self) -> None:
+        scene = self._scene()
+        item = self.tree.currentItem()
+        if item is None:
+            return
+        name = item.data(0, Qt.UserRole)
+        if scene.set_active_layer(name):
+            self._window.statusBar().showMessage(
+                tr("Active layer: {layer}", layer=name), 2500)
+            self._touch()
+        else:
+            self._window.statusBar().showMessage(
+                tr("Choose a visible, unlocked layer."), 3000)
 
     def _on_delete(self) -> None:
         from core.layers import DEFAULT_LAYER, layer_of, assign_layer
@@ -3429,6 +3478,11 @@ class LayersPanel(QWidget):
             if layer_of(ent) == name:
                 assign_layer(ent, DEFAULT_LAYER)
         scene.layers.remove(ly)
+        if getattr(scene, "active_layer", None) == name:
+            scene.active_layer = DEFAULT_LAYER
+        for view in getattr(scene, "saved_views", []) or []:
+            view.hidden_layers = [hidden for hidden in view.hidden_layers
+                                  if hidden != name]
         self.refresh()
         self._touch()
 

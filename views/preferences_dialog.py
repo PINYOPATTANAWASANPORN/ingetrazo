@@ -36,6 +36,7 @@ from PySide6.QtWidgets import (
 
 from core.i18n import LANGUAGE_NAMES as _LANGUAGE_NAMES
 from core.i18n import available_languages, current_language, tr
+from views.numeric_locale import use_ascii_numeric_locale
 
 
 #: The import dialogs' unit vocabularies (must match the dialogs in
@@ -96,6 +97,7 @@ class PreferencesDialog(QDialog):
                                   != "0")
         row.addWidget(self._autosave)
         self._autosave_min = QSpinBox()
+        use_ascii_numeric_locale(self._autosave_min)
         self._autosave_min.setRange(1, 60)
         self._autosave_min.setSuffix(" " + tr("min"))
         try:
@@ -115,6 +117,7 @@ class PreferencesDialog(QDialog):
         form.addRow("", self._backup)
 
         self._undo_steps = QSpinBox()
+        use_ascii_numeric_locale(self._undo_steps)
         self._undo_steps.setRange(0, 5000)
         self._undo_steps.setSpecialValueText(tr("unlimited"))
         self._undo_steps.setValue(int(st.value("general/undo_steps", 200)))
@@ -149,6 +152,7 @@ class PreferencesDialog(QDialog):
 
         from tools.walkthrough import look_sensitivity
         self._look_sens = QSpinBox()
+        use_ascii_numeric_locale(self._look_sens)
         self._look_sens.setRange(1, 100)
         self._look_sens.setValue(look_sensitivity())
         self._look_sens.setToolTip(tr(
@@ -201,6 +205,7 @@ class PreferencesDialog(QDialog):
         self._ndof_on.setChecked(nd.enabled)
         form.addRow("", self._ndof_on)
         self._ndof_speed = QSpinBox()
+        use_ascii_numeric_locale(self._ndof_speed)
         self._ndof_speed.setRange(25, 400)
         self._ndof_speed.setSingleStep(25)
         self._ndof_speed.setSuffix(" %")
@@ -314,6 +319,7 @@ class PreferencesDialog(QDialog):
             current.get("length", "m"))))
         form.addRow(tr("Length unit"), self._unit)
         self._decimals = QSpinBox()
+        use_ascii_numeric_locale(self._decimals)
         self._decimals.setRange(0, 6)
         self._decimals.setValue(int(current.get("precision", 2)))
         form.addRow(tr("Decimals"), self._decimals)

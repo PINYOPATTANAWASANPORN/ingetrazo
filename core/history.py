@@ -306,6 +306,10 @@ class AddEdgeCommand(Command):
             return
         self.edge = m.add_edge(self.a, self.b)
         self._owned = True
+        active_layer = getattr(scene, "active_layer", None)
+        if active_layer:
+            from core.layers import assign_layer
+            assign_layer(self.edge, active_layer)
         self._stamp(self.edge)
         scene.version += 1
 
@@ -558,6 +562,7 @@ class AddFaceCommand(Command):
     def do(self, scene) -> None:
         m = scene.mesh
         if self.face is None:
+            before_edges = set(m.edges)
             holes = (
                 [list(loop) for loop in self.preset_holes]
                 if self.preset_holes else None
@@ -565,6 +570,16 @@ class AddFaceCommand(Command):
             self.face = m.add_face(self.vertices, holes)
             if self.attrs:
                 self.face.attrs.update(self.attrs)
+            # A pasted face carries its source tag explicitly. Fresh drawing
+            # inherits the active layer, as do only the boundary edges this
+            # command had to create (never pre-existing shared edges).
+            if not (self.attrs and "layer" in self.attrs):
+                active_layer = getattr(scene, "active_layer", None)
+                if active_layer:
+                    from core.layers import assign_layer
+                    assign_layer(self.face, active_layer)
+                    for edge in set(m.edges) - before_edges:
+                        assign_layer(edge, active_layer)
         else:
             m.relink_face(self.face)  # redo
 
@@ -1121,6 +1136,10 @@ class AddDimensionCommand(Command):
     def do(self, scene) -> None:
         if hasattr(self.dimension, "bind"):
             self.dimension.bind(scene)
+        active_layer = getattr(scene, "active_layer", None)
+        if active_layer and getattr(self.dimension, "layer", None) is None:
+            from core.layers import assign_layer
+            assign_layer(self.dimension, active_layer)
         scene.dimensions.append(self.dimension)
         scene.version += 1
 
@@ -1159,6 +1178,10 @@ class AddTextLabelCommand(Command):
         self.label = label
 
     def do(self, scene) -> None:
+        active_layer = getattr(scene, "active_layer", None)
+        if active_layer and getattr(self.label, "layer", None) is None:
+            from core.layers import assign_layer
+            assign_layer(self.label, active_layer)
         scene.text_labels.append(self.label)
         scene.version += 1
 
@@ -3090,6 +3113,10 @@ class InsertGroupCommand(Command):
                         carry_axes(self.group, inv)
         else:
             owner = scene.groups
+        active_layer = getattr(scene, "active_layer", None)
+        if active_layer and getattr(self.group, "layer", None) is None:
+            from core.layers import assign_layer
+            assign_layer(self.group, active_layer)
         owner.append(self.group)
         self._owner = owner
         scene.selection.clear()

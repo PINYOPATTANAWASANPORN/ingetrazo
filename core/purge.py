@@ -97,6 +97,11 @@ def layers_held_by_scenes(scene) -> set[str]:
 def unused_layers(scene) -> list:
     """The :class:`core.layers.Layer` objects a purge would remove."""
     keep = used_layers(scene) | layers_held_by_scenes(scene)
+    # The active tag is a deliberate modelling choice even before it holds
+    # geometry; purging it would silently send the next drawing to Layer 0.
+    active = getattr(scene, "active_layer", None)
+    if active:
+        keep.add(active)
     return [ly for ly in getattr(scene, "layers", None) or ()
             if ly.name != DEFAULT_LAYER and ly.name not in keep]
 
