@@ -946,6 +946,13 @@ class MainWindow(QMainWindow):
         invert_action.triggered.connect(self._on_invert_selection)
         edit_menu.addAction(invert_action)
 
+        # A direct filter over the current editing context.  The existing
+        # right-click commands grow from a seed selection; this menu also
+        # works when nothing is selected, which is essential in a busy model.
+        self._select_by_menu = QMenu(tr("Select By"), edit_menu)
+        self._select_by_menu.aboutToShow.connect(self._fill_select_by_menu)
+        edit_menu.addMenu(self._select_by_menu)
+
         edit_menu.addSeparator()
 
         group_action = QAction(tr("Make Group"), self)
@@ -3940,6 +3947,77 @@ class MainWindow(QMainWindow):
         self.viewport.notify_scene_changed()
         self.statusBar().showMessage(
             tr("Selection inverted ({n} entities)", n=n), 2500)
+
+    def _fill_select_by_menu(self) -> None:
+        """Build Edit ▸ Select By from the live model.
+
+        Layers and materials are document data, so rebuilding on open keeps
+        imported and newly-created values in sync without another refresh
+        signal or stale QAction objects.
+        """
+        from core.select_ops import (by_layer, by_material,
+                                     context_entities, entity_material_key)
+        menu = self._select_by_menu
+        menu.clear()
+
+        types = menu.addMenu(tr("Type"))
+        for key, label in (("faces", tr("Faces")),
+                           ("edges", tr("Edges")),
+                           ("groups", tr("Groups")),
+                           ("components", tr("Components")),
+                           ("dimensions", tr("Dimensions"))):
+            types.addAction(label, lambda _c=False, k=key:
+                            self._select_by_type(k))
+
+        layers = menu.addMenu(tr("Tag / Layer"))
+        scene = self.viewport.scene
+        for layer in scene.layers:
+            act = layers.addAction(layer.name)
+            act.setEnabled(layer.visible and not layer.locked)
+            act.triggered.connect(
+                lambda _c=False, name=layer.name:
+                self._apply_selection_filter(by_layer(scene, name)))
+
+        materials = menu.addMenu(tr("Material"))
+        keys = []
+        for entity in context_entities(scene):
+            if not isinstance(entity, (Face, Group)):
+                continue
+            key = entity_material_key(entity)
+            if key not in keys:
+                keys.append(key)
+        for key in sorted(keys, key=self._material_filter_label):
+            materials.addAction(
+                self._material_filter_label(key),
+                lambda _c=False, k=key:
+                self._apply_selection_filter(by_material(scene, k)))
+        materials.setEnabled(bool(keys))
+
+    def _select_by_type(self, kind: str) -> None:
+        from core.select_ops import by_type
+        self._apply_selection_filter(by_type(self.viewport.scene, kind))
+
+    def _apply_selection_filter(self, entities) -> None:
+        scene = self.viewport.scene
+        scene.select(entities)
+        self.viewport.notify_scene_changed()
+        self.viewport.update()
+        self.statusBar().showMessage(
+            tr("{n} entities selected", n=len(scene.selection)), 2500)
+
+    @staticmethod
+    def _material_filter_label(key) -> str:
+        if key is None:
+            return tr("Default Material")
+        if key[0] == "mat":
+            return str(key[1])
+        _kind, color, path = key
+        if path:
+            return Path(path).stem
+        if color is not None:
+            rgb = tuple(round(255 * c) for c in color[:3])
+            return tr("Color {r}, {g}, {b}", r=rgb[0], g=rgb[1], b=rgb[2])
+        return tr("Default Material")
 
     # ---- Undo / redo --------------------------------------------------------
     def _on_undo(self) -> None:

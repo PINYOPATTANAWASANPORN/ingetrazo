@@ -14,6 +14,70 @@ from core.layers import layer_of
 from core.mesh import Edge, Face
 
 
+def context_entities(scene) -> list:
+    """Entities a selection command may take in the current edit context.
+
+    This deliberately mirrors :meth:`Scene.invert_selection`: hidden and
+    locked entities stay out, and opening a group limits the command to that
+    group's geometry and immediate children.
+    """
+    groups = _context_groups(scene)
+    show_hidden = bool(scene.show_hidden_geometry)
+    out = [e for e in scene.edges
+           if scene.entity_selectable(e)
+           and (show_hidden or not getattr(e, "hidden", False))]
+    out += [f for f in scene.faces if scene.entity_selectable(f)]
+    out += [g for g in groups if scene.entity_selectable(g)]
+    out += [d for d in getattr(scene, "dimensions", ())
+            if scene.entity_selectable(d)]
+    return out
+
+
+def by_type(scene, kind: str) -> list:
+    """Select one familiar entity kind from the current context."""
+    from core.dimension import Dimension
+    from core.group import Group
+    tests = {
+        "faces": lambda e: isinstance(e, Face),
+        "edges": lambda e: isinstance(e, Edge),
+        "groups": lambda e: isinstance(e, Group) and not e.is_component(),
+        "components": lambda e: isinstance(e, Group) and e.is_component(),
+        "dimensions": lambda e: isinstance(e, Dimension),
+    }
+    test = tests.get(kind)
+    return [e for e in context_entities(scene) if test and test(e)]
+
+
+def entity_material_key(entity):
+    """Hashable paint identity for a face or group placement."""
+    attrs = (entity.attrs if isinstance(entity, Face)
+             else getattr(entity, "material", None)) or {}
+    if attrs.get("mat"):
+        return ("mat", attrs["mat"])
+    color = attrs.get("color")
+    tex = attrs.get("texture")
+    path = tex.get("path") if isinstance(tex, dict) else None
+    if color is None and path is None:
+        return None
+    col = tuple(round(float(c), 4) for c in color) if color else None
+    return ("paint", col, path)
+
+
+def by_material(scene, key) -> list:
+    """Faces and group/component placements carrying *key*."""
+    return [e for e in context_entities(scene)
+            if (isinstance(e, Face) or _is_group(e))
+            and entity_material_key(e) == key]
+
+
+def by_layer(scene, name: str) -> list:
+    """Every taggable, selectable entity on *name* in this context."""
+    return [e for e in context_entities(scene)
+            if (isinstance(e, (Face, Edge)) or _is_group(e)
+                or hasattr(e, "layer"))
+            and layer_of(e) == name]
+
+
 def all_connected(entities) -> list:
     """Everything physically connected to *entities* — the whole solid —
     walked through shared vertices (the classic triple click)."""
@@ -84,16 +148,7 @@ def material_key(face):
     it has one, otherwise its colour and texture image. ``None`` = unpainted
     (the default material, which is a material too — the usual convention
     selects all the unpainted faces from an unpainted one)."""
-    attrs = getattr(face, "attrs", None) or {}
-    if attrs.get("mat"):
-        return ("mat", attrs["mat"])
-    color = attrs.get("color")
-    tex = attrs.get("texture")
-    path = tex.get("path") if isinstance(tex, dict) else None
-    if color is None and path is None:
-        return None
-    col = tuple(round(float(c), 4) for c in color) if color else None
-    return ("paint", col, path)
+    return entity_material_key(face)
 
 
 def same_material(scene, entities) -> list:
