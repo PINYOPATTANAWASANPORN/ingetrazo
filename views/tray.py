@@ -3311,8 +3311,8 @@ _TAGGABLE = (Face, Edge, Group, Dimension, TextLabel)
 
 
 class EntityInfoPanel(QWidget):
-    """Facts about the current selection, plus the one thing an Entity
-    Info panel lets you CHANGE here: the layer (its Tag field). Rafael
+    """Facts about the current selection, plus its editable name, material
+    and layer (Tag). Rafael
     went looking for it exactly here — «debo de tener que ir a las
     propiedades del objeto… no sé cómo cambiarlo de aquí» (2026-09-16,
     39:00) — and found only the Layers panel's button, which he did not
@@ -3353,14 +3353,26 @@ class EntityInfoPanel(QWidget):
         row.addWidget(self._layer_caption)
         row.addWidget(self._layer_box, 1)
         lay.addLayout(row)
+        material_row = QHBoxLayout()
+        self._material_caption = QLabel(tr("Material:"))
+        self._material_box = QComboBox()
+        self._material_box.setToolTip(tr(
+            "The material on the selected faces and objects — picking one "
+            "applies it to the whole selection"))
+        self._material_box.currentIndexChanged.connect(
+            self._on_material_picked)
+        material_row.addWidget(self._material_caption)
+        material_row.addWidget(self._material_box, 1)
+        lay.addLayout(material_row)
         # A steady height. Selecting something used to resize this panel —
         # one line for nothing, two for an edge, four and a layer row for a
         # face — and everything below it (layers, scenes, the materials
         # library) slid up and down with every click (Marco, 23-09, four
-        # screenshots). The layer row keeps its place when hidden, and the
-        # text keeps room for the four lines a face or a solid shows.
+        # screenshots). The property rows keep their places when hidden, and
+        # the text keeps room for the four lines a face or a solid shows.
         for w in (self._layer_caption, self._layer_box,
-                  self._name_caption, self._name_edit):
+                  self._name_caption, self._name_edit,
+                  self._material_caption, self._material_box):
             pol = w.sizePolicy()
             pol.setRetainSizeWhenHidden(True)
             w.setSizePolicy(pol)
@@ -3372,12 +3384,15 @@ class EntityInfoPanel(QWidget):
         self._layer_box.hide()
         self._name_caption.hide()
         self._name_edit.hide()
+        self._material_caption.hide()
+        self._material_box.hide()
 
     def refresh(self) -> None:
         sel = list(self._window.viewport.scene.selection)
         self._label.setText(self._describe(sel))
         self._refresh_name(sel)
         self._refresh_layer(sel)
+        self._refresh_material(sel)
 
     # ---- Name field ---------------------------------------------------------
     def _refresh_name(self, sel: list) -> None:
@@ -3451,6 +3466,91 @@ class EntityInfoPanel(QWidget):
         self._window.statusBar().showMessage(
             tr("{n} entities moved to '{layer}'", n=len(targets), layer=name),
             2500)
+
+    # ---- Material field ----------------------------------------------------
+    @staticmethod
+    def _entity_material_state(entity):
+        attrs = (entity.attrs if isinstance(entity, Face)
+                 else getattr(entity, "material", None)) or {}
+        name = attrs.get("mat")
+        if name:
+            return ("named", name)
+        if any(attrs.get(key) is not None
+               for key in ("color", "texture", "opacity")):
+            return ("custom", None)
+        return ("default", None)
+
+    def _refresh_material(self, sel: list) -> None:
+        targets = [e for e in sel if isinstance(e, (Face, Group))]
+        show = bool(targets)
+        self._material_caption.setVisible(show)
+        self._material_box.setVisible(show)
+        if not show:
+            return
+        scene = self._window.viewport.scene
+        states = {self._entity_material_state(e) for e in targets}
+        self._updating = True
+        try:
+            self._material_box.clear()
+            if len(states) > 1:
+                self._material_box.addItem(tr("(several)"), None)
+            elif next(iter(states))[0] == "custom":
+                self._material_box.addItem(tr("(custom material)"), None)
+            self._material_box.addItem(tr("Default Material"), "")
+            for name in sorted(scene.materials, key=str.casefold):
+                self._material_box.addItem(name, name)
+            if len(states) == 1:
+                kind, value = next(iter(states))
+                wanted = (value if kind == "named"
+                          else "" if kind == "default" else None)
+                if wanted is not None:
+                    idx = self._material_box.findData(wanted)
+                    self._material_box.setCurrentIndex(max(idx, 0))
+            else:
+                self._material_box.setCurrentIndex(0)
+        finally:
+            self._updating = False
+
+    def _on_material_picked(self, _index: int) -> None:
+        if self._updating:
+            return
+        data = self._material_box.currentData()
+        # ``None`` belongs to the mixed/custom explanatory rows.
+        if data is None:
+            return
+        scene = self._window.viewport.scene
+        faces = [e for e in scene.selection if isinstance(e, Face)]
+        groups = [e for e in scene.selection if isinstance(e, Group)]
+        if not faces and not groups:
+            return
+
+        material = scene.materials.get(data) if data else None
+        stamp = material.face_attrs() if material is not None else {}
+        from core.history import (CompoundCommand, SetFaceColorCommand,
+                                  SetFaceMaterialTagCommand,
+                                  SetFaceOpacityCommand,
+                                  SetFaceTextureCommand,
+                                  SetGroupMaterialCommand)
+        commands = []
+        if faces:
+            commands.extend([
+                SetFaceColorCommand(faces, stamp.get("color")),
+                SetFaceTextureCommand(faces, stamp.get("texture")),
+                SetFaceOpacityCommand(faces, stamp.get("opacity")),
+                SetFaceMaterialTagCommand(
+                    faces, material.name if material is not None else None,
+                    material),
+            ])
+        commands.extend(SetGroupMaterialCommand(g, stamp or None)
+                        for g in groups)
+        self._window.viewport.history.execute(CompoundCommand(commands))
+        self._window.viewport.notify_scene_changed()
+        self._window.viewport.update()
+        label = (material.name if material is not None
+                 else tr("Default Material"))
+        self._window.statusBar().showMessage(
+            tr("Material '{material}' applied to {n} entities",
+               material=label, n=len(faces) + len(groups)), 2500)
 
     def _describe(self, sel: list) -> str:
         if not sel:
