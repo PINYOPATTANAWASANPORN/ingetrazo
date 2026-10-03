@@ -48,7 +48,8 @@ def _bind(vp):
                  "_nearby_group_edges", "_snap_scene",
                  "_selection_box_points", "_group_obb",
                  "_billboard_snap_edges", "_billboard_quad",
-                 "_instance_chunk", "_shift_instance_entry",
+                 "_instance_chunk", "_instance_pick_chunk",
+                 "_shift_instance_entry",
                  "_placements", "_expand_placements", "_owner_of",
                  "_context_placements"):
         setattr(vp, name, getattr(Viewport, name).__get__(vp))
@@ -182,6 +183,39 @@ def test_instance_groups_pick_through_transformed_chunks():
     assert grp is g2
     f, grp = vp.pick_face_any(0.5, 0.5)
     assert grp is g1
+
+
+def test_instances_share_prototype_triangle_arrays_in_the_pick_index():
+    """Picking many copies keeps one local triangle payload, not one
+    transformed v0/e1/e2 allocation per placement."""
+    from PySide6.QtGui import QMatrix4x4
+    from core.group import Group
+    from core.mesh import Mesh
+
+    scene = Scene()
+    proto = Mesh()
+    proto.add_face([V(0, 0), V(1, 0), V(1, 1), V(0, 1)])
+    for i in range(12):
+        group = Group(proto, name=f"copy {i}")
+        group.xform = QMatrix4x4()
+        group.xform.translate(i * 2.0, 0.0, 0.0)
+        scene.groups.append(group)
+    scene.version += 1
+
+    vp = _bind(_VP(scene))
+    idx = vp._pick_index(near="all")
+    spans = idx.own_spans
+    assert len(spans) == 12
+    assert len({id(span[1]) for span in spans}) == 1  # shared v0
+    assert len({id(span[2]) for span in spans}) == 1  # shared e1
+    assert len({id(span[3]) for span in spans}) == 1  # shared e2
+    assert not getattr(vp, "_inst_chunks", {})        # no render payloads
+
+    # Full-geometry consumers may flatten on demand without changing the
+    # compact cached index.
+    flat = Viewport._pick_flat(idx)
+    assert len(flat.tri_v0) == 12 * len(spans[0][1])
+    assert idx.own_spans is spans
 
 
 def test_selected_group_offers_its_box_corners_to_the_snap_engine():
