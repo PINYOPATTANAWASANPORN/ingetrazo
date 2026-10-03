@@ -12,11 +12,13 @@ from views import prompts as _prompts
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import Qt, QSettings, QEvent, QCoreApplication, QTimer
+from PySide6.QtCore import (Qt, QSettings, QEvent, QCoreApplication, QTimer,
+                            QSignalBlocker)
 from PySide6.QtGui import QAction, QActionGroup, QKeySequence, QVector3D
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
+    QComboBox,
     QLabel,
     QMainWindow,
     QMenu,
@@ -550,6 +552,27 @@ class MainWindow(QMainWindow):
             btn.setMenu(menu)
             panels_tb.addWidget(btn)
             self._icon_actions.append((btn, key))
+
+        # Active Tag belongs in the always-visible modelling controls.  A
+        # compact selector here avoids making users open/scroll the Layers
+        # tray, while preserving the status bar's scarce hint space on a
+        # 1366-pixel screen.
+        panels_tb.addSeparator()
+        self._active_tag_label = QLabel(tr("Tag:"), panels_tb)
+        theme_style(self._active_tag_label, "color:{muted}; padding:0 2px 0 4px;")
+        self._active_tag_combo = QComboBox(panels_tb)
+        self._active_tag_combo.setObjectName("active_tag_combo")
+        self._active_tag_combo.setMinimumWidth(80)
+        self._active_tag_combo.setMaximumWidth(140)
+        self._active_tag_combo.setToolTip(tr(
+            "Active tag — new geometry is created on this tag."))
+        self._active_tag_combo.currentIndexChanged.connect(
+            self._on_active_tag_changed)
+        panels_tb.addWidget(self._active_tag_label)
+        panels_tb.addWidget(self._active_tag_combo)
+        self.viewport.sceneVersionChanged.connect(
+            lambda _v: self._refresh_active_tag_combo())
+        self._refresh_active_tag_combo()
 
         # Terrain profile dock (Track G, G4) — hidden until requested.
         from views.profile_panel import ProfileDock
@@ -2233,6 +2256,50 @@ class MainWindow(QMainWindow):
             lambda text: self._queue_status_text("measurement", text))
         self.viewport.coordinateChanged.connect(
             lambda text: self._queue_status_text("coordinate", text))
+
+    def _refresh_active_tag_combo(self) -> None:
+        """Mirror document tags without emitting a user change.
+
+        Hidden and locked tags remain visible so the selector explains why
+        they cannot become active; their rows are disabled.  The Layers
+        panel remains the place to change those states.
+        """
+        combo = getattr(self, "_active_tag_combo", None)
+        if combo is None:
+            return
+        scene = self.viewport.scene
+        current = getattr(scene, "active_layer", None)
+        with QSignalBlocker(combo):
+            combo.clear()
+            selected = -1
+            for i, layer in enumerate(scene.layers):
+                if not layer.visible:
+                    shown = tr("{name} (hidden)", name=layer.name)
+                elif layer.locked:
+                    shown = tr("{name} (locked)", name=layer.name)
+                else:
+                    shown = layer.name
+                combo.addItem(shown, layer.name)
+                item = combo.model().item(i)
+                if item is not None:
+                    item.setEnabled(layer.visible and not layer.locked)
+                if layer.name == current:
+                    selected = i
+            combo.setCurrentIndex(selected)
+
+    def _on_active_tag_changed(self, index: int) -> None:
+        combo = getattr(self, "_active_tag_combo", None)
+        if combo is None or index < 0:
+            return
+        name = combo.itemData(index)
+        scene = self.viewport.scene
+        if name and scene.set_active_layer(name):
+            scene.version += 1
+            self.viewport.notify_scene_changed()
+            self.statusBar().showMessage(
+                tr("Active tag: {tag}", tag=name), 2500)
+        else:
+            self._refresh_active_tag_combo()
 
     _VCB_IDLE_STYLE = (
         "color:#0F141B; background:#FFFFFF; border:1px solid #9aa3ad;"
