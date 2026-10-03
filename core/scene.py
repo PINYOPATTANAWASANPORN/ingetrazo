@@ -606,6 +606,26 @@ class Scene:
         self.units = {"length": "m", "precision": 2}
         self.plugin_data = {}
 
+    def replace_contents_from(self, other: "Scene") -> None:
+        """Adopt a fully built scene while preserving this object's identity.
+
+        Viewport tools and panels keep a reference to the live ``Scene``.
+        Replacing that object would leave those references stale, so document
+        opening swaps its state instead.  Dimensions are rebound because their
+        live vertex anchors retain an explicit scene reference.
+        """
+        if other is self:
+            return
+        # Cache keys and sceneVersionChanged consumers rely on this counter
+        # moving forward.  A freshly loaded temporary Scene starts at 1; using
+        # that value repeatedly would make per-version normal/triangle caches
+        # accept entities from the document that was just closed.
+        next_version = max(self.version + 1, other.version)
+        self.__dict__ = other.__dict__.copy()
+        self.version = next_version
+        for dimension in self.dimensions:
+            dimension.bind(self)
+
     # ---- Queries ------------------------------------------------------------
     def iter_world_faces(self):
         """Every visible face with the matrix that maps it to WORLD space:
