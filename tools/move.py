@@ -249,6 +249,7 @@ class MoveTool(Tool):
         self._base_segments: list = []         # wireframe for the copy preview
         self._autofold_faces: list[Face] = []  # faces touched by loose vertices
         self._fold_segments: list = []          # predicted live Autofold edges
+        self._fold_face_count = 0               # warped faces represented above
         self._last: dict | None = None         # the copy just made, for "3x" / "/3"
         # Rotation grips (issue #115): the group they sit on, the grips,
         # the one under the cursor, and — once one is taken — the Rotate
@@ -494,11 +495,18 @@ class MoveTool(Tool):
             # COPY as a wireframe at the cursor offset.
             d = self.hover_point - self.grab
             segments.extend((a + d, b + d) for a, b in self._base_segments)
-        elif self._fold_segments:
-            # The real face is still intact during the drag.  Show the exact
-            # internal edges Autofold will create when this move is committed.
-            segments.extend(self._fold_segments)
         return segments
+
+    def autofold_preview_lines(self):
+        """The topology Autofold will add when the current move lands.
+
+        These are deliberately separate from :meth:`rubber_band_lines` so the
+        viewport can present the move vector in its inference/axis colour and
+        the future mesh edges as a distinct dashed overlay.  Keeping the two
+        channels separate also leaves measurement logic with one unambiguous
+        move segment.
+        """
+        return list(self._fold_segments)
 
     def value_label(self):
         if self._grip_rot is not None:
@@ -629,11 +637,53 @@ class MoveTool(Tool):
         viewport.update()
 
     def draw_overlay(self, viewport, painter) -> None:
-        """The red rotation grips — the «+» marks on the box."""
-        if self._grip_rot is not None or not self._grips:
+        """Autofold inference plus the red rotation grips on group boxes."""
+        if self._grip_rot is not None:
             return
+
         from PySide6.QtCore import QPointF
-        from PySide6.QtGui import QColor, QPen
+        from PySide6.QtGui import QColor, QFont, QPen
+
+        # Autofold is a topology change, not merely a travel guide.  Draw its
+        # predicted edges in a stable violet dash regardless of the current
+        # axis snap, and name the consequence beside the cursor before commit.
+        # The real face remains unsplit until the second click.
+        if self._fold_segments:
+            fold = QColor(167, 93, 214, 245)
+            halo = QPen(QColor(255, 255, 255, 210), 4.5, Qt.DashLine)
+            halo.setDashPattern([5.0, 3.0])
+            pen = QPen(fold, 2.4, Qt.DashLine)
+            pen.setDashPattern([5.0, 3.0])
+            for a, b in self._fold_segments:
+                segment = viewport._segment_to_pixels(a, b)
+                if segment is None:
+                    continue
+                p0, p1 = QPointF(*segment[0]), QPointF(*segment[1])
+                painter.setPen(halo)
+                painter.drawLine(p0, p1)
+                painter.setPen(pen)
+                painter.drawLine(p0, p1)
+
+            anchor = viewport._world_to_pixel(
+                self.hover_point if self.hover_point is not None
+                else self._fold_segments[0][1])
+            if anchor is not None:
+                text = tr(
+                    "Autofold: {edges} fold edges across {faces} faces",
+                    edges=len(self._fold_segments),
+                    faces=self._fold_face_count,
+                )
+                font = QFont()
+                font.setPointSize(9)
+                font.setBold(True)
+                painter.setFont(font)
+                painter.setPen(QPen(QColor(255, 255, 255, 235), 3.0))
+                painter.drawText(QPointF(anchor[0] + 13, anchor[1] + 18), text)
+                painter.setPen(QPen(fold, 1.0))
+                painter.drawText(QPointF(anchor[0] + 12, anchor[1] + 17), text)
+
+        if not self._grips:
+            return
         red = QColor(220, 40, 40)
         for i, (pos, _c, _n) in enumerate(self._grips):
             p = viewport._world_to_pixel(pos)
@@ -810,10 +860,19 @@ class MoveTool(Tool):
     def _refresh_fold_preview(self) -> None:
         """Predict folds for the currently warped incident faces only."""
         self._fold_segments = []
+        self._fold_face_count = 0
         if self._copy:
             return
+        seen = set()
         for face in self._autofold_faces:
-            self._fold_segments.extend(preview_fold_edges(face))
+            segments = preview_fold_edges(face)
+            if segments:
+                self._fold_face_count += 1
+            for a, b in segments:
+                key = tuple(sorted((_key(a), _key(b))))
+                if key not in seen:
+                    seen.add(key)
+                    self._fold_segments.append((a, b))
 
     def _revert_preview(self, viewport) -> None:
         """Undo the live deformation, returning geometry to its grab-time spot."""
@@ -832,12 +891,14 @@ class MoveTool(Tool):
                     im.origin = im.origin + step
             self._preview_delta = QVector3D(0.0, 0.0, 0.0)
             self._fold_segments = []
+            self._fold_face_count = 0
             return
         if self._preview_delta.length() < 1e-12:
             return
         self._shift(viewport, -self._preview_delta)
         self._preview_delta = QVector3D(0.0, 0.0, 0.0)
         self._fold_segments = []
+        self._fold_face_count = 0
 
     def _end_freeze(self, viewport) -> None:
         end = getattr(viewport, "end_groups_preview", None)
@@ -903,5 +964,6 @@ class MoveTool(Tool):
         self._base_segments = []
         self._autofold_faces = []
         self._fold_segments = []
+        self._fold_face_count = 0
         self._vp_preview = False
         self._copy = False      # the Ctrl modifier arms ONE operation
