@@ -343,7 +343,8 @@ def test_the_selection_box_follows_a_moved_group():
     top, _ = _tree()
     scene.groups.append(top)
     vp = _VP(scene)
-    for name in ("_group_chunk", "_instance_chunk", "_shift_instance_entry",
+    for name in ("_group_chunk", "_instance_chunk", "_instance_pick_chunk",
+                 "_shift_instance_entry",
                  "_group_obb", "_group_fp", "_shift_chunk",
                  "_append_textured_face", "_shaded_color", "_shade_factor",
                  "_newell_of", "_area_of", "_tris_of", "_normal_of"):

@@ -3446,7 +3446,8 @@ class Viewport(QOpenGLWidget):
     #: Per-document caches keyed by ``id()`` of the document's groups,
     #: meshes and placements — the render/pick chunks and what hangs off
     #: them. Nothing but the document boundary makes them all stale at once.
-    _DOCUMENT_CACHES = ("_group_chunks", "_inst_chunks", "_fp_memo",
+    _DOCUMENT_CACHES = ("_group_chunks", "_inst_chunks", "_inst_pick_chunks",
+                        "_fp_memo",
                         "_proto_wrappers", "_proto_draw", "_faceme_cache",
                         "_proto_pts_store", "_container_obb", "_placement_frames",
                         "_pick_live",
@@ -8174,6 +8175,68 @@ class Viewport(QOpenGLWidget):
         cache[id(group)] = entry
         return entry
 
+    def _instance_pick_chunk(self, group):
+        """Small pick payload for a component placement.
+
+        Triangle arrays stay in the prototype's local coordinates and are
+        shared by every sibling instance.  A ray is transformed into that
+        local frame in :meth:`_ray_hits`; only the much smaller hard-edge
+        array and world bounding box are kept per placement.  The old route
+        called :meth:`_instance_chunk` and duplicated every transformed
+        triangle array (plus all render buffers) for every copy merely to
+        make it clickable.
+        """
+        import numpy as np
+        from core.group import effective_material
+        base = self._group_chunk(
+            _proto_wrapper(self, group.mesh, effective_material(group)))
+        xf = group.xform
+        key = (base["uid"], tuple(xf.data()))
+        cache = getattr(self, "_inst_pick_chunks", None)
+        if cache is None:
+            cache = self._inst_pick_chunks = {}
+        cur = cache.get(id(group))
+        if cur is not None and cur["ikey"] == key:
+            return cur
+
+        matrix = np.array(xf.data(), dtype=np.float64).reshape(4, 4, order="F")
+        linear, translate = matrix[:3, :3], matrix[:3, 3]
+        try:
+            inverse = np.linalg.inv(linear)
+        except np.linalg.LinAlgError:
+            inverse = np.linalg.pinv(linear)
+
+        raw_edges = np.frombuffer(base["edges"], np.float32).reshape(-1, 3)
+        world_edges = (raw_edges.astype(np.float64) @ linear.T + translate)
+        world_edges = world_edges.astype(np.float32).tobytes()
+        bbox = base.get("bbox")
+        if bbox is not None:
+            corners = np.array([(x, y, z)
+                                for x in (bbox[0][0], bbox[1][0])
+                                for y in (bbox[0][1], bbox[1][1])
+                                for z in (bbox[0][2], bbox[1][2])])
+            placed = corners @ linear.T + translate
+            bbox = (tuple(float(v) for v in placed.min(axis=0)),
+                    tuple(float(v) for v in placed.max(axis=0)))
+        det = float(np.linalg.det(linear))
+        cur = {
+            "ikey": key,
+            "uid": next(_chunk_uid),
+            "rev": (cur["rev"] + 1) if cur is not None else 0,
+            "faces": base["faces"],
+            "areas": base["areas"] * (abs(det) ** (2.0 / 3.0)),
+            "v0": base["v0"], "e1": base["e1"], "e2": base["e2"],
+            "tri_ent": base["tri_ent"],
+            "edges": world_edges,
+            "bbox": bbox,
+            # Forward and inverse linear maps plus translation.  Stored as
+            # one object in an own-span, so every triangle array above stays
+            # the exact same NumPy object across sibling instances.
+            "_pick_xform": (linear, translate, inverse),
+        }
+        cache[id(group)] = cur
+        return cur
+
     def _shift_instance_entry(self, entry, d: QVector3D) -> None:
         """Translate a cached instance chunk in place (Move drag fast path)."""
         import numpy as np
@@ -9130,7 +9193,9 @@ class Viewport(QOpenGLWidget):
                     gsel = gsnap and id(g) in tocables
                     if not (gvis or gsnap):
                         continue
-                    chunk = self._group_chunk(g)
+                    chunk = (self._instance_pick_chunk(g)
+                             if getattr(g, "xform", None) is not None
+                             else self._group_chunk(g))
                     if not (chunk["faces"] or chunk["edges"]):
                         continue          # nothing in it to pick or snap to
                     # Note the `or edges`: a group of nothing but lines and arcs
@@ -9188,7 +9253,13 @@ class Viewport(QOpenGLWidget):
                     b_area.append(chunk["areas"])
                     b_vis.append(np.full(n, gvis, dtype=bool))
                     b_sel.append(np.full(n, gsel, dtype=bool))
-                    if chunk["v0"] is not None and id(g) in lazy_set:
+                    if (chunk["v0"] is not None
+                            and chunk.get("_pick_xform") is not None):
+                        b_own.append((chunk.get("bbox"), chunk["v0"],
+                                      chunk["e1"], chunk["e2"],
+                                      chunk["tri_ent"], off,
+                                      chunk["_pick_xform"]))
+                    elif chunk["v0"] is not None and id(g) in lazy_set:
                         b_own.append((chunk.get("bbox"), chunk["v0"],
                                       chunk["e1"], chunk["e2"],
                                       chunk["tri_ent"], off))
@@ -9258,8 +9329,8 @@ class Viewport(QOpenGLWidget):
                     tents.append(block["te"] + offset)
                     tri_spans += [(bb, len(tris) + s, n)
                                   for bb, s, n in block.get("spans", ())]
-                own_spans = [(bb, a, b, c, te, o + offset)
-                             for bb, a, b, c, te, o in block.get("own", ())]
+                own_spans = [span[:5] + (span[5] + offset,) + span[6:]
+                             for span in block.get("own", ())]
 
         gedge_a = gedge_b = gedge_gi = gedge_sel = None
         gedge_groups: list = []
@@ -9358,7 +9429,14 @@ class Viewport(QOpenGLWidget):
         from types import SimpleNamespace
         parts = ([(idx.tri_v0, idx.tri_e1, idx.tri_e2, idx.tri_ent)]
                  if idx.tri_v0 is not None else [])
-        parts += [(a, b, c, te + o) for _bb, a, b, c, te, o in own]
+        for span in own:
+            _bb, a, b, c, te, off = span[:6]
+            if len(span) == 7:
+                linear, translate, _inverse = span[6]
+                a = a @ linear.T + translate
+                b = b @ linear.T
+                c = c @ linear.T
+            parts.append((a, b, c, te + off))
         flat = SimpleNamespace(**vars(idx))
         flat.tri_v0 = np.concatenate([p[0] for p in parts])
         flat.tri_e1 = np.concatenate([p[1] for p in parts])
@@ -9447,21 +9525,32 @@ class Viewport(QOpenGLWidget):
                 e1 = idx.tri_e1[s0:s0 + n]
                 e2 = idx.tri_e2[s0:s0 + n]
                 te = idx.tri_ent[s0:s0 + n]
-            else:
+            elif len(span) == 6:
                 bb, v0, e1, e2, te_local, eoff = span
                 if not len(v0):
                     continue
                 if bb is not None and not _ray_aabb(o3, d3, bb[0], bb[1]):
                     continue
                 te = te_local + eoff
-            p = np.cross(d, e2)
+            ray_o, ray_d = o, d
+            if len(span) == 7:
+                bb, v0, e1, e2, te_local, eoff, xform = span
+                if not len(v0):
+                    continue
+                if bb is not None and not _ray_aabb(o3, d3, bb[0], bb[1]):
+                    continue
+                _linear, translate, inverse = xform
+                ray_o = (o - translate) @ inverse.T
+                ray_d = d @ inverse.T
+                te = te_local + eoff
+            p = np.cross(ray_d, e2)
             det = np.einsum("ij,ij->i", e1, p)
             ok = np.abs(det) > 1e-6
             inv = np.where(ok, 1.0 / np.where(ok, det, 1.0), 0.0)
-            s = o - v0
+            s = ray_o - v0
             u = np.einsum("ij,ij->i", s, p) * inv
             q = np.cross(s, e1)
-            v = (q @ d) * inv
+            v = (q @ ray_d) * inv
             t = np.einsum("ij,ij->i", e2, q) * inv
             hit = (ok & (u >= 0.0) & (u <= 1.0) & (v >= 0.0) & (u + v <= 1.0)
                    & (t > 1e-6) & ent_mask[te])

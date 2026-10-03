@@ -67,6 +67,7 @@ def _lazy(v, on, cap=None):
     v._pick_near_memo = None
     v._pick_live = None
     getattr(v, "_inst_chunks", {}).clear()
+    getattr(v, "_inst_pick_chunks", {}).clear()
     v._hover_hits_cache = None
 
 
@@ -108,7 +109,7 @@ def test_only_the_placements_near_the_cursor_are_baked(vp):
     vp.pick_face_any(x, y)
     live = vp._pick_live
     assert 0 < len(live) < 24
-    baked = [k for k in getattr(vp, "_inst_chunks", {})]
+    baked = [k for k in getattr(vp, "_inst_pick_chunks", {})]
     assert len(baked) <= len(live)
 
 
