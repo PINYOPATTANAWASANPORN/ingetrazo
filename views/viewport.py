@@ -1099,6 +1099,12 @@ class Viewport(QOpenGLWidget):
         # running app); GL textures are cached per tile, keyed by (source, x,y,z).
         self._tile_fetcher = None
         self._tile_textures: dict = {}
+        # A paint must only draw.  In particular, creating Qt's native HTTPS
+        # backend while an OpenGL context is current crashed in ntdll on an
+        # AMD Windows driver (#327).  Missing tiles schedule one event-loop
+        # callback; that callback starts the network work after paintGL has
+        # returned and the context is no longer inside a driver callback.
+        self._tile_requests_scheduled = False
         self._last_coordinate = ""      # so the label only repaints on change
         self._tile_quad_vao = None
         self._tile_quad_vbo = None
@@ -3400,6 +3406,43 @@ class Viewport(QOpenGLWidget):
             self.tilesChanged.emit()
             self.update()
 
+    def _schedule_tile_requests(self) -> None:
+        """Start missing tile requests after the current GL paint returns."""
+        if self._tile_requests_scheduled:
+            return
+        self._tile_requests_scheduled = True
+        QTimer.singleShot(0, self._request_missing_tiles)
+
+    def _request_missing_tiles(self) -> None:
+        """Fetch the current layer's missing images outside ``paintGL``.
+
+        Cache hits are copied into the layer immediately and repaint once;
+        network misses are delivered later by :meth:`_on_tile_ready`.
+        Reading the current scene here also makes a callback queued just before
+        a source/location change harmless.
+        """
+        self._tile_requests_scheduled = False
+        layer = getattr(self.scene, "tile_layer", None)
+        datum = getattr(self.scene, "georef", None)
+        if layer is None or datum is None or not getattr(layer, "visible", False):
+            return
+        try:
+            tiles = layer.flat_tiles(datum)
+        except Exception:
+            return
+        fetcher = self._ensure_tile_fetcher()
+        cached = False
+        for x, y in tiles:
+            key = (x, y, layer.zoom)
+            if key in layer.images:
+                continue
+            image = fetcher.request(layer.source, x, y, layer.zoom)
+            if image is not None:
+                layer.images[key] = image
+                cached = True
+        if cached:
+            self.update()
+
     #: Per-document caches keyed by ``id()`` of the document's groups,
     #: meshes and placements — the render/pick chunks and what hangs off
     #: them. Nothing but the document boundary makes them all stale at once.
@@ -3546,12 +3589,12 @@ class Viewport(QOpenGLWidget):
             return self._tile_textures[key]
         img = layer.images.get((x, y, z))
         if img is None:
-            # Cache hit returns the image synchronously; a miss returns None and
-            # starts an async download (see _on_tile_ready).
-            img = self._ensure_tile_fetcher().request(layer.source, x, y, z)
-            if img is None:
-                return None
-            layer.images[(x, y, z)] = img
+            # Do not initialize QtNetwork or start HTTPS from inside paintGL.
+            # On Windows/AMD that native backend transition could crash while
+            # the GL driver callback was active (#327).  The queued callback
+            # runs when this paint has returned.
+            self._schedule_tile_requests()
+            return None
         if self._tex_budget <= 0:
             self._tex_deferred = True     # too many this frame — next frame
             return None
