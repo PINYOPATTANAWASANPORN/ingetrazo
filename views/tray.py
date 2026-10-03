@@ -4118,6 +4118,9 @@ class LayersPanel(QWidget):
     def _touch(self) -> None:
         scene = self._scene()
         scene.version += 1
+        sync = getattr(self._window, "_refresh_active_tag_combo", None)
+        if sync is not None:
+            sync()
         self._window.viewport.update()
 
 

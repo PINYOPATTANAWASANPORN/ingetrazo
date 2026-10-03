@@ -95,6 +95,75 @@ def test_active_layer_is_not_purged_when_empty():
     assert "Siguiente" not in [layer.name for layer in unused_layers(scene)]
 
 
+def test_toolbar_active_tag_switches_and_explains_unavailable_tags():
+    """The drawing tag is always reachable without opening the Layers tray."""
+    import os
+    from PySide6.QtWidgets import QApplication
+    from views.main_window import MainWindow
+
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    if QApplication.instance() is None:
+        QApplication([])
+    win = MainWindow()
+    try:
+        scene = win.viewport.scene
+        scene.layers.extend([
+            Layer("Muros"),
+            Layer("Oculto", visible=False),
+            Layer("Bloqueado", locked=True),
+        ])
+        win._refresh_active_tag_combo()
+        combo = win._active_tag_combo
+
+        assert combo.itemData(combo.currentIndex()) == DEFAULT_LAYER
+        assert combo.findText("Oculto (hidden)") >= 0
+        assert combo.findText("Bloqueado (locked)") >= 0
+        assert not combo.model().item(combo.findData("Oculto")).isEnabled()
+        assert not combo.model().item(combo.findData("Bloqueado")).isEnabled()
+
+        before = scene.version
+        combo.setCurrentIndex(combo.findData("Muros"))
+        assert scene.active_layer == "Muros"
+        assert scene.version == before + 1
+        assert "Muros" in win.statusBar().currentMessage()
+
+        from core.history import AddEdgeCommand
+        win.viewport.history.execute(AddEdgeCommand(V(10, 0), V(11, 0)))
+        assert layer_of(scene.mesh.edges[-1]) == "Muros"
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_layers_panel_active_tag_change_syncs_the_status_selector():
+    import os
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QApplication
+    from views.main_window import MainWindow
+
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    if QApplication.instance() is None:
+        QApplication([])
+    win = MainWindow()
+    try:
+        scene = win.viewport.scene
+        scene.layers.append(Layer("Estructura"))
+        panel = win.tray.layers
+        panel.refresh()
+        item = next(panel.tree.topLevelItem(i)
+                    for i in range(panel.tree.topLevelItemCount())
+                    if panel.tree.topLevelItem(i).data(0, Qt.UserRole)
+                    == "Estructura")
+        panel.tree.setCurrentItem(item)
+        panel._on_set_active()
+
+        combo = win._active_tag_combo
+        assert combo.itemData(combo.currentIndex()) == "Estructura"
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
 def test_hidden_layer_filters_render_views():
     scene = Scene()
     f1 = _slab(scene, 0)
