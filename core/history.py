@@ -866,6 +866,43 @@ class LockGroupsCommand(Command):
         scene.version += 1
 
 
+class ReorderGroupCommand(Command):
+    """Move one group within its current Outliner level.
+
+    Reordering siblings changes document organization only.  Geometry and
+    placement stay untouched, and the exact previous index is retained for
+    undo.  Reparenting is deliberately a separate operation because crossing
+    coordinate frames requires a transform conversion.
+    """
+
+    def __init__(self, owner: list, group: Group, index: int) -> None:
+        self.owner = owner
+        self.group = group
+        self.index = int(index)
+        self._old_index: Optional[int] = None
+
+    @staticmethod
+    def _move(owner: list, group: Group, index: int) -> None:
+        if group not in owner:
+            return
+        owner.remove(group)
+        owner.insert(max(0, min(index, len(owner))), group)
+
+    def do(self, scene) -> None:
+        if self.group not in self.owner:
+            return
+        if self._old_index is None:
+            self._old_index = self.owner.index(self.group)
+        self._move(self.owner, self.group, self.index)
+        scene.version += 1
+
+    def undo(self, scene) -> None:
+        if self._old_index is None:
+            return
+        self._move(self.owner, self.group, self._old_index)
+        scene.version += 1
+
+
 class SetFaceColorCommand(Command):
     """Paint a set of faces with an RGB colour (or clear it with ``None``),
     stored in each face's ``attrs["color"]`` — the first user-facing use of the

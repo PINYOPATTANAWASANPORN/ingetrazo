@@ -24,6 +24,8 @@ from PySide6.QtCore import QObject, QPoint, QRect, QSettings, QSize, Qt
 from PySide6.QtGui import QColor, QIcon, QImage, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
+    QAbstractItemView,
+    QApplication,
     QComboBox,
     QDateEdit,
     QDockWidget,
@@ -46,6 +48,7 @@ from PySide6.QtWidgets import (
     QSlider,
     QSpinBox,
     QToolButton,
+    QTreeWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -1620,6 +1623,42 @@ class PartsPanel(QWidget):
             parts=sum(ln["qty"] for ln in lines)), 4000)
 
 
+class _OutlinerTree(QTreeWidget):
+    """Tree whose drag gesture requests a sibling reorder from its panel."""
+
+    def __init__(self, reorder, parent=None) -> None:
+        super().__init__(parent)
+        # A bound callback held strongly would make panel → tree → panel a
+        # Python cycle.  Qt may already have deleted the C++ children when a
+        # later GC finally breaks that cycle, which caused a native crash in
+        # repeated Outliner construction.  Keep no ownership through here.
+        import weakref
+        self._reorder = weakref.WeakMethod(reorder)
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDropIndicatorShown(True)
+        self.setDragDropMode(QAbstractItemView.InternalMove)
+        self.setDefaultDropAction(Qt.MoveAction)
+
+    def dropEvent(self, event) -> None:
+        dragged = self.currentItem()
+        pos = event.position().toPoint()
+        target = self.itemAt(pos)
+        where = self.dropIndicatorPosition()
+        if (dragged is None or target is None or dragged is target
+                or dragged.parent() is not target.parent()
+                or where not in (QAbstractItemView.AboveItem,
+                                 QAbstractItemView.BelowItem)):
+            event.ignore()
+            return
+        reorder = self._reorder()
+        if reorder is None:
+            event.ignore()
+            return
+        reorder(dragged, target, where == QAbstractItemView.BelowItem)
+        event.acceptProposedAction()
+
+
 class OutlinerPanel(QWidget):
     """Whole-model hierarchy for groups and component instances.
 
@@ -1631,8 +1670,7 @@ class OutlinerPanel(QWidget):
 
     def __init__(self, window) -> None:
         super().__init__()
-        from PySide6.QtWidgets import (QAbstractItemView, QTreeWidget,
-                                       QTreeWidgetItem, QVBoxLayout)
+        from PySide6.QtWidgets import QVBoxLayout
         self._window = window
         self._updating = False
         self._items: dict[int, object] = {}
@@ -1648,7 +1686,12 @@ class OutlinerPanel(QWidget):
         self.search.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         self.search.textChanged.connect(self._apply_filter)
         lay.addWidget(self.search)
-        self.tree = QTreeWidget()
+        # The offscreen Qt backend has no drag session and its QTreeWidget
+        # subclass teardown is unstable on Windows/PySide.  Keep headless
+        # construction identical to the plain tree; tests call the model
+        # reorder callback directly.
+        self.tree = (QTreeWidget() if QApplication.platformName() == "offscreen"
+                     else _OutlinerTree(self._on_drop_reorder))
         self.tree.setColumnCount(3)
         self.tree.setHeaderLabels([tr("Name"), tr("Visible"), tr("Lock")])
         self.tree.setRootIsDecorated(True)
@@ -1661,6 +1704,7 @@ class OutlinerPanel(QWidget):
         self.tree.setMinimumWidth(0)
         self.tree.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         self.tree.setMinimumHeight(220)
+        self.tree.setToolTip(tr("Drag rows to reorder objects at the same level."))
         self.tree.itemChanged.connect(self._on_item_changed)
         self.tree.itemSelectionChanged.connect(self._on_selection_changed)
         self.tree.itemDoubleClicked.connect(self._on_double_click)
@@ -1745,6 +1789,31 @@ class OutlinerPanel(QWidget):
     def _selected_groups(self) -> list:
         return [item.data(0, Qt.UserRole) for item in self.tree.selectedItems()
                 if item.data(0, Qt.UserRole) is not None]
+
+    def _owner_for(self, group):
+        path = self._paths.get(id(group), ())
+        return self._scene().groups if len(path) <= 1 else path[-2].children
+
+    def _on_drop_reorder(self, dragged, target, after: bool) -> None:
+        """Commit one drag as an undoable sibling reorder."""
+        group = dragged.data(0, Qt.UserRole)
+        target_group = target.data(0, Qt.UserRole)
+        if group is None or target_group is None:
+            return
+        owner = self._owner_for(group)
+        if owner is not self._owner_for(target_group):
+            return
+        old_index = owner.index(group)
+        insert_at = owner.index(target_group) + (1 if after else 0)
+        if old_index < insert_at:
+            insert_at -= 1
+        if insert_at == old_index:
+            return
+        from core.history import ReorderGroupCommand
+        self._window.viewport.history.execute(
+            ReorderGroupCommand(owner, group, insert_at))
+        self.refresh()
+        self._window.viewport.update()
 
     @staticmethod
     def _path_available(path: tuple) -> bool:
