@@ -5,7 +5,7 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 
 from core.group import Group
-from core.history import History, LockGroupsCommand
+from core.history import History, LockGroupsCommand, ReorderGroupCommand
 from core.scene import Scene
 from formats import igz
 from views.tray import OutlinerPanel
@@ -118,3 +118,50 @@ def test_locked_ancestor_blocks_selecting_a_nested_row():
     panel._items[id(leaf)].setSelected(True)
     assert not scene._edit_stack
     assert not scene.selection
+
+
+def test_reorder_command_moves_siblings_and_undoes_at_both_levels():
+    scene, room, chair, leaf, tree = _model()
+    other = Group(name="Table")
+    room.children.append(other)
+    history = History(scene)
+
+    history.execute(ReorderGroupCommand(scene.groups, tree, 0))
+    assert scene.groups == [tree, room]
+    history.undo()
+    assert scene.groups == [room, tree]
+    history.redo()
+    assert scene.groups == [tree, room]
+
+    history.execute(ReorderGroupCommand(room.children, other, 0))
+    assert room.children == [other, chair]
+    assert chair.children == [leaf]
+    history.undo()
+    assert room.children == [chair, other]
+
+
+def test_outliner_drop_reorders_only_siblings():
+    scene, room, chair, leaf, tree = _model()
+    table = Group(name="Table")
+    scene.groups.append(table)
+    panel = OutlinerPanel(_Window(scene))
+
+    panel._on_drop_reorder(panel._items[id(table)],
+                           panel._items[id(room)], after=False)
+    assert scene.groups == [table, room, tree]
+    panel._window.viewport.history.undo()
+    assert scene.groups == [room, tree, table]
+
+    panel.refresh()
+    panel._on_drop_reorder(panel._items[id(room)],
+                           panel._items[id(tree)], after=True)
+    assert scene.groups == [tree, room, table]
+    panel._window.viewport.history.undo()
+    assert scene.groups == [room, tree, table]
+
+    # A cross-level drop must not silently change coordinate frames.
+    panel.refresh()
+    panel._on_drop_reorder(panel._items[id(tree)],
+                           panel._items[id(leaf)], after=False)
+    assert scene.groups == [room, tree, table]
+    assert chair.children == [leaf]
