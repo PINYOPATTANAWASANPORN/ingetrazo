@@ -66,6 +66,47 @@ def test_polygon_commits_hexagon():
     assert any((v - V(1, 1, 0)).x() > 1.99 for v in f.vertices)
 
 
+def test_segments_typed_after_a_ring_rebuild_it_in_one_undo_step():
+    for tool_cls, initial, rebuilt in (
+            (CircleTool, 24, 10), (PolygonTool, 6, 8)):
+        scene = Scene()
+        vp = _VP(scene)
+        tool = tool_cls()
+        tool.on_click(_ctx(vp, V(1, 2, 3)))
+        tool.on_hover(_ctx(vp, V(3, 2, 3)))
+        tool.on_click(_ctx(vp, V(3, 2, 3)))
+        assert len(scene.mesh.faces[0].vertices) == initial
+        assert len(vp.history.undo_stack) == 1
+
+        assert tool.on_segments_value(vp, rebuilt)
+        assert len(scene.mesh.faces) == 1
+        assert len(scene.mesh.faces[0].vertices) == rebuilt
+        assert len(vp.history.undo_stack) == 1
+        # The original radius and orientation survive the rebuild.
+        assert any((v - V(3, 2, 3)).length() < 1e-5
+                   for v in scene.mesh.faces[0].vertices)
+
+        assert vp.history.undo()
+        assert scene.mesh.faces == []
+        assert vp.history.redo()
+        assert len(scene.mesh.faces[0].vertices) == rebuilt
+
+
+def test_segments_do_not_rebuild_a_ring_after_the_next_one_starts():
+    scene = Scene()
+    vp = _VP(scene)
+    tool = CircleTool()
+    tool.on_click(_ctx(vp, V(0, 0)))
+    tool.on_hover(_ctx(vp, V(1, 0)))
+    tool.on_click(_ctx(vp, V(1, 0)))
+    original = scene.mesh.faces[0]
+
+    tool.on_click(_ctx(vp, V(4, 0)))
+    assert tool.on_segments_value(vp, 12)
+    assert original in scene.mesh.faces
+    assert len(original.vertices) == 24
+
+
 def test_circle_radius_via_vcb():
     scene = Scene()
     vp = _VP(scene)

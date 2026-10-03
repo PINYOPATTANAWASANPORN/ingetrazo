@@ -71,26 +71,38 @@ class _RadialTool(AxisMagnet, PlaneLock, Tool):
         self.hover_point: QVector3D | None = None
         self.work_plane: tuple[QVector3D, QVector3D] | None = None
         self._viewport = None
+        # Identity and construction frame of the last committed ring.  A
+        # trailing ``Ns`` may replace it only while it is the latest command.
+        self._last_cmd = None
+        self._last_params = None
 
     # ---- Lifecycle ----------------------------------------------------------
     def on_activate(self, viewport) -> None:
         self._reset()
+        self._last_cmd = None
+        self._last_params = None
 
     def on_deactivate(self, viewport) -> None:
         self._reset()
         self.hover_point = None
+        self._last_cmd = None
+        self._last_params = None
 
     # ---- Spatial input ------------------------------------------------------
     def on_click(self, ctx: ToolContext) -> None:
         self.note_plane(ctx.viewport)
         if self.start_point is None:
+            # Once the next ring starts, ``Ns`` belongs to its preview.
+            self._last_cmd = None
+            self._last_params = None
             self.start_point = ctx.world
             if self.work_plane is None:
                 self.work_plane = self.locked_work_plane(ctx.world)
             return
         pts = self._points(self.start_point, ctx.world)
         if pts:
-            self._commit(ctx.viewport, pts)
+            self._commit(ctx.viewport, pts,
+                         self._ring_params(self.start_point, ctx.world))
 
     def on_hover(self, ctx: ToolContext) -> None:
         self.note_plane(ctx.viewport)
@@ -100,11 +112,17 @@ class _RadialTool(AxisMagnet, PlaneLock, Tool):
         ctx.viewport.update()
 
     def on_segments_value(self, viewport, n: int) -> bool:
-        """The classic "24s": the side count, typed at any moment."""
+        """The classic "24s": change the preview or rebuild the last ring."""
         n = int(n)
         if n < 3:
             return False
         self.sides = n
+        cmd, params = self._last_cmd, self._last_params
+        stack = getattr(getattr(viewport, "history", None), "undo_stack", None)
+        if cmd is not None and params is not None and stack and stack[-1] is cmd:
+            viewport.history.undo()
+            self._commit(viewport,
+                         self._points_from_params(params, self.sides), params)
         viewport.flash_status(tr("{n} sides", n=n))
         viewport.update()
         return True
@@ -135,7 +153,7 @@ class _RadialTool(AxisMagnet, PlaneLock, Tool):
         rim = self.start_point + (u * math.cos(ang) + v * math.sin(ang)) * value
         pts = self._points(self.start_point, rim)
         if pts:
-            self._commit(viewport, pts)
+            self._commit(viewport, pts, self._ring_params(self.start_point, rim))
         return True
 
     def on_cancel(self, viewport) -> None:
@@ -197,20 +215,28 @@ class _RadialTool(AxisMagnet, PlaneLock, Tool):
         return [self.start_point, self.hover_point]
 
     def _points(self, center: QVector3D, rim: QVector3D) -> list[QVector3D]:
+        params = self._ring_params(center, rim)
+        return self._points_from_params(params, self.sides) if params else []
+
+    def _ring_params(self, center: QVector3D, rim: QVector3D):
+        """Capture a ring independently of the transient drawing plane."""
         u, v = self._axes()
         d = rim - center
         du, dv = QVector3D.dotProduct(d, u), QVector3D.dotProduct(d, v)
         r = math.hypot(du, dv)
         if r < 1e-6:
-            return []
+            return None
         a0 = math.atan2(dv, du)  # one vertex toward the cursor
-        out = []
-        for k in range(self.sides):
-            a = a0 + 2.0 * math.pi * k / self.sides
-            out.append(center + (u * math.cos(a) + v * math.sin(a)) * r)
-        return out
+        return (QVector3D(center), QVector3D(u), QVector3D(v), r, a0)
 
-    def _commit(self, viewport, pts: list[QVector3D]) -> None:
+    @staticmethod
+    def _points_from_params(params, sides: int) -> list[QVector3D]:
+        center, u, v, r, a0 = params
+        return [center + (u * math.cos(a0 + 2.0 * math.pi * k / sides)
+                          + v * math.sin(a0 + 2.0 * math.pi * k / sides)) * r
+                for k in range(sides)]
+
+    def _commit(self, viewport, pts: list[QVector3D], params=None) -> None:
         n = len(pts)
         segments = [(pts[i], pts[(i + 1) % n]) for i in range(n)]
         # The outline is drawn (a 24-segment circle reads round). What hides is
@@ -238,6 +264,8 @@ class _RadialTool(AxisMagnet, PlaneLock, Tool):
         cmd = build_add_edges(
             viewport.scene, segments, detect_faces=False, extra=extra)
         viewport.history.execute(cmd)
+        self._last_cmd = cmd
+        self._last_params = params
         self._reset()
         viewport.update()
 
