@@ -1496,6 +1496,37 @@ def fold_nonplanar_faces(mesh, tolerance: float = _PLANAR_TOLERANCE) -> list:
     return folded
 
 
+def preview_fold_edges(face, tolerance: float = _PLANAR_TOLERANCE) -> list:
+    """Return the fold segments Autofold would add to ``face``.
+
+    Move deforms the real shared vertices while the cursor is moving, but it
+    must not split the real mesh until the user commits.  Build a tiny isolated
+    copy of this one face and run the production Autofold operation on it so
+    the preview uses exactly the same triangulation and coplanar-piece merging
+    as the eventual command.  Edges shared by two resulting pieces are the
+    internal folds; the original boundary edges have only one incident face.
+    """
+    pts = list(face.vertices)
+    for hole in face.holes:
+        pts += list(hole)
+    if len(pts) <= 3 or is_planar(pts, tolerance):
+        return []
+
+    # Local import avoids the mesh -> topology import used by add_face.
+    from core.mesh import Mesh
+
+    scratch = Mesh()
+    copy = scratch.add_face(
+        [QVector3D(v) for v in face.vertices],
+        [[QVector3D(v) for v in hole] for hole in face.holes],
+    )
+    copy.attrs = dict(face.attrs)
+    if not fold_nonplanar_faces(scratch, tolerance):
+        return []
+    return [(QVector3D(edge.a), QVector3D(edge.b))
+            for edge in scratch.edges if len(edge.faces) == 2]
+
+
 def prune_collinear_orphan_edges(mesh) -> list:
     """Remove edges that bound no face and lie collinearly over another edge — the
     unwelded collinear overlaps that leave a duplicate 'division line'. Returns

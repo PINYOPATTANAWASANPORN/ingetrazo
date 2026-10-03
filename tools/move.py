@@ -40,7 +40,7 @@ from core.history import (AddEdgeCommand, AddFaceCommand, CompoundCommand,
                           MoveDimensionsCommand, MoveTextLabelsCommand,
                           MoveVerticesCommand)
 from core.textlabel import TextLabel
-from core.topology import _key
+from core.topology import _key, preview_fold_edges
 from tools.base import Tool, ToolContext
 from core.units import fmt_len
 
@@ -247,6 +247,8 @@ class MoveTool(Tool):
         self._sel_faces: list = []             # loose geometry copy mode duplicates
         self._sel_edges: list = []
         self._base_segments: list = []         # wireframe for the copy preview
+        self._autofold_faces: list[Face] = []  # faces touched by loose vertices
+        self._fold_segments: list = []          # predicted live Autofold edges
         self._last: dict | None = None         # the copy just made, for "3x" / "/3"
         # Rotation grips (issue #115): the group they sit on, the grips,
         # the one under the cursor, and — once one is taken — the Rotate
@@ -354,6 +356,11 @@ class MoveTool(Tool):
             # preview then moves these identities directly, so dragging through
             # (or onto) a coincident vertex never drags the innocent one along.
             self._verts = verts
+            touched = set()
+            for vertex in verts:
+                touched.update(vertex.faces())
+            self._autofold_faces = list(touched)
+            self._fold_segments = []
             self._vp_preview = False
             if (self._groups and not self._verts and not self._positions):
                 # Groups-only drag: viewport-side preview — the caches
@@ -487,6 +494,10 @@ class MoveTool(Tool):
             # COPY as a wireframe at the cursor offset.
             d = self.hover_point - self.grab
             segments.extend((a + d, b + d) for a, b in self._base_segments)
+        elif self._fold_segments:
+            # The real face is still intact during the drag.  Show the exact
+            # internal edges Autofold will create when this move is committed.
+            segments.extend(self._fold_segments)
         return segments
 
     def value_label(self):
@@ -794,6 +805,15 @@ class MoveTool(Tool):
             return
         self._shift(viewport, step)
         self._preview_delta = target_delta
+        self._refresh_fold_preview()
+
+    def _refresh_fold_preview(self) -> None:
+        """Predict folds for the currently warped incident faces only."""
+        self._fold_segments = []
+        if self._copy:
+            return
+        for face in self._autofold_faces:
+            self._fold_segments.extend(preview_fold_edges(face))
 
     def _revert_preview(self, viewport) -> None:
         """Undo the live deformation, returning geometry to its grab-time spot."""
@@ -811,11 +831,13 @@ class MoveTool(Tool):
                 for im in self._images:
                     im.origin = im.origin + step
             self._preview_delta = QVector3D(0.0, 0.0, 0.0)
+            self._fold_segments = []
             return
         if self._preview_delta.length() < 1e-12:
             return
         self._shift(viewport, -self._preview_delta)
         self._preview_delta = QVector3D(0.0, 0.0, 0.0)
+        self._fold_segments = []
 
     def _end_freeze(self, viewport) -> None:
         end = getattr(viewport, "end_groups_preview", None)
@@ -879,5 +901,7 @@ class MoveTool(Tool):
         self._sel_faces = []
         self._sel_edges = []
         self._base_segments = []
+        self._autofold_faces = []
+        self._fold_segments = []
         self._vp_preview = False
         self._copy = False      # the Ctrl modifier arms ONE operation
