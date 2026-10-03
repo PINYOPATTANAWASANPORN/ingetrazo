@@ -465,7 +465,9 @@ class AsistentePanel(QWidget):
         if encoded is None:
             self._append(tr("Could not read the image."), "err")
             return
-        name = path.rsplit("/", 1)[-1]
+        # Qt returns native separators: ``\`` on Windows and ``/`` on Unix.
+        # Keep paths out of the chip and the message sent to the model.
+        name = path.replace("\\", "/").rsplit("/", 1)[-1]
         self._foto = (*encoded, name)
         self._foto_chip.setText("📷 " + name)
         self._foto_chip.setVisible(True)
