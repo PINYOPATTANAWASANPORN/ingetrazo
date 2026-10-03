@@ -837,6 +837,35 @@ class HideEdgesCommand(HideCommand):
         super().__init__(edges, hidden=hidden)
 
 
+class LockGroupsCommand(Command):
+    """Lock or unlock model containers as one undoable operation.
+
+    A locked group remains rendered and listed in the Outliner, but model
+    picking and selection tools ignore it.  Locking also removes the object
+    from the current selection so transform tools cannot retain a stale
+    handle to it.
+    """
+
+    def __init__(self, groups, locked: bool = True) -> None:
+        from core.group import Group
+        self._groups = [g for g in groups if isinstance(g, Group)]
+        self._locked = bool(locked)
+        self._prev: list[bool] = []
+
+    def do(self, scene) -> None:
+        self._prev = [bool(getattr(g, "locked", False)) for g in self._groups]
+        for group in self._groups:
+            group.locked = self._locked
+            if self._locked:
+                scene.selection.discard(group)
+        scene.version += 1
+
+    def undo(self, scene) -> None:
+        for group, previous in zip(self._groups, self._prev):
+            group.locked = previous
+        scene.version += 1
+
+
 class SetFaceColorCommand(Command):
     """Paint a set of faces with an RGB colour (or clear it with ``None``),
     stored in each face's ``attrs["color"]`` — the first user-facing use of the

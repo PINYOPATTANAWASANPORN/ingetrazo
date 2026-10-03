@@ -248,7 +248,12 @@ class Scene:
         if self._face_hidden(entity) and not self.show_hidden_geometry:
             return False
         visible, locked = self._layer_state(entity)
-        return visible and not locked
+        # Object locking belongs to model containers. Reference images have
+        # their own lock route (including a special right-click escape hatch)
+        # and must not be swallowed here.
+        from core.group import Group
+        object_locked = isinstance(entity, Group) and bool(entity.locked)
+        return visible and not locked and not object_locked
 
     def groups_by_uid(self) -> dict:
         """``uid → group`` over the whole tree (nested placements too)."""

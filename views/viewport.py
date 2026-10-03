@@ -2512,6 +2512,8 @@ class Viewport(QOpenGLWidget):
                 # Hide on an object takes its whole subtree along, and a
                 # hidden child stays hidden inside a visible parent.
                 proxy.hidden = hidden or bool(child.hidden)
+                proxy.locked = (bool(getattr(node, "locked", False))
+                                or bool(getattr(child, "locked", False)))
                 proxy.material = getattr(child, "material", None)
                 if child is ctx:
                     # The group being edited, reached as a nested placement:
