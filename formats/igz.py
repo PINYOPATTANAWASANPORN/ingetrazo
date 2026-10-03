@@ -344,6 +344,9 @@ def save_scene(scene, path: Path) -> dict:
     if layers is not None and (len(layers) > 1 or any(
             not ly.visible or ly.locked for ly in layers)):
         payload["layers"] = [ly.to_dict() for ly in layers]
+    active_layer = getattr(scene, "active_layer", None)
+    if active_layer and active_layer != "Layer 0":
+        payload["active_layer"] = active_layer
     views = getattr(scene, "saved_views", None)
     if views:
         payload["saved_views"] = [v.to_dict() for v in views]
@@ -678,12 +681,16 @@ def _load_into_inner(scene, path: Path, progress=None) -> None:
 
     tick(0.35, "Building geometry…")
     _load_mesh(scene.mesh, payload)
+    from core.layers import DEFAULT_LAYER
     raw_layers = payload.get("layers")
     if raw_layers:
-        from core.layers import DEFAULT_LAYER, Layer
+        from core.layers import Layer
         scene.layers = [Layer.from_dict(r) for r in raw_layers]
         if not any(ly.name == DEFAULT_LAYER for ly in scene.layers):
             scene.layers.insert(0, Layer(DEFAULT_LAYER))
+    active_layer = payload.get("active_layer", DEFAULT_LAYER)
+    scene.active_layer = (active_layer if scene.layer(active_layer) is not None
+                          else DEFAULT_LAYER)
     raw_tiles = payload.get("tile_layer")
     if raw_tiles:
         from georef.tiles import TileLayer

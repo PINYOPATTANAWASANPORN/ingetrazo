@@ -57,7 +57,7 @@ def _dedup(positions: list[QVector3D]) -> list[QVector3D]:
     return out
 
 
-def gather_targets(ctx: ToolContext):
+def gather_targets(ctx: ToolContext, prefer_vertex: bool = False):
     """What a transform tool acts on: ``(groups, positions)``. EVERY selected
     (or hovered) group transforms as a unit — a mixed selection carries the
     groups AND the loose geometry together (rotating a whole drawing used to
@@ -67,6 +67,18 @@ def gather_targets(ctx: ToolContext):
     viewport = ctx.viewport
     entities = list(viewport.scene.selection)
     if not entities:
+        if prefer_vertex:
+            pick_vertex = getattr(viewport, "pick_vertex", None)
+            point = (pick_vertex(ctx.screen.x(), ctx.screen.y())
+                     if pick_vertex is not None else None)
+            # ``pick_vertex`` also sees corners inside groups. Only a vertex
+            # belonging to the mesh of the current edit context is loose
+            # geometry that Move may deform directly; group corners continue
+            # to select and move their whole group below.
+            vertex = (viewport.scene.mesh.vertex_at(point)
+                      if point is not None else None)
+            if vertex is not None:
+                return [], [QVector3D(vertex.position)]
         group = viewport.pick_group(ctx.screen.x(), ctx.screen.y())
         if group is not None:
             return [group], []
@@ -624,7 +636,9 @@ class MoveTool(Tool):
 
     # ---- Internals ----------------------------------------------------------
     def _gather(self, ctx: ToolContext):
-        return gather_targets(ctx)
+        # Near a loose corner, Move edits that one vertex. Away from a corner
+        # the normal edge/face/group pick below retains its existing meaning.
+        return gather_targets(ctx, prefer_vertex=True)
 
     def _gather_copy_entities(self, ctx: ToolContext) -> None:
         """The faces/edges copy mode duplicates, and the wireframe segments

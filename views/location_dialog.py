@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
 )
 
 from core.i18n import tr
+from views.numeric_locale import use_ascii_numeric_locale
 from views.theme import style as theme_style
 from georef.datum import utm_forward, utm_inverse, zone_for_lon
 from georef.geocode import Geocoder, IpLocator
@@ -313,12 +314,14 @@ class LocationDialog(QDialog):
         coords.setContentsMargins(0, 0, 0, 0)
         coords.addWidget(QLabel(tr("Lat:")))
         self._lat_box = QDoubleSpinBox()
+        use_ascii_numeric_locale(self._lat_box)
         self._lat_box.setRange(-85.0, 85.0)
         self._lat_box.setDecimals(6)
         self._lat_box.editingFinished.connect(self._on_coords_typed)
         coords.addWidget(self._lat_box)
         coords.addWidget(QLabel(tr("Lon:")))
         self._lon_box = QDoubleSpinBox()
+        use_ascii_numeric_locale(self._lon_box)
         self._lon_box.setRange(-180.0, 180.0)
         self._lon_box.setDecimals(6)
         self._lon_box.editingFinished.connect(self._on_coords_typed)
@@ -333,6 +336,7 @@ class LocationDialog(QDialog):
         utm.setContentsMargins(0, 0, 0, 0)
         utm.addWidget(QLabel(tr("Zone:")))
         self._zone_box = QSpinBox()
+        use_ascii_numeric_locale(self._zone_box)
         self._zone_box.setRange(1, 60)
         self._zone_box.editingFinished.connect(self._on_utm_typed)
         utm.addWidget(self._zone_box)
@@ -343,6 +347,7 @@ class LocationDialog(QDialog):
         utm.addWidget(self._hemi_box)
         utm.addWidget(QLabel(tr("E:")))
         self._east_box = QDoubleSpinBox()
+        use_ascii_numeric_locale(self._east_box)
         self._east_box.setRange(100000.0, 900000.0)
         self._east_box.setDecimals(2)
         self._east_box.setGroupSeparatorShown(True)
@@ -350,6 +355,7 @@ class LocationDialog(QDialog):
         utm.addWidget(self._east_box)
         utm.addWidget(QLabel(tr("N:")))
         self._north_box = QDoubleSpinBox()
+        use_ascii_numeric_locale(self._north_box)
         self._north_box.setRange(0.0, 10000000.0)
         self._north_box.setDecimals(2)
         self._north_box.setGroupSeparatorShown(True)

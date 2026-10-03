@@ -4669,6 +4669,8 @@ class MainWindow(QMainWindow):
         italic_check.setChecked(bool(params.get("italic", False)))
         form.addRow(tr("Italic:"), italic_check)
         height_spin = QDoubleSpinBox()
+        from views.numeric_locale import use_ascii_numeric_locale
+        use_ascii_numeric_locale(height_spin)
         height_spin.setRange(0.001, 1000.0)
         height_spin.setDecimals(3)
         height_spin.setSingleStep(0.05)
@@ -4676,6 +4678,7 @@ class MainWindow(QMainWindow):
         height_spin.setSuffix(" m")
         form.addRow(tr("Height:"), height_spin)
         depth_spin = QDoubleSpinBox()
+        use_ascii_numeric_locale(depth_spin)
         depth_spin.setRange(0.0, 1000.0)
         depth_spin.setDecimals(3)
         depth_spin.setSingleStep(0.01)

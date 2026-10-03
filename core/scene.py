@@ -66,6 +66,9 @@ class Scene:
         __import__("core.layers", fromlist=["Layer"]).Layer(
             __import__("core.layers", fromlist=["DEFAULT_LAYER"]).DEFAULT_LAYER)
     ])
+    # The tag assigned to newly drawn model geometry. Older documents have no
+    # stored value and therefore continue to draw on Layer 0.
+    active_layer: str = "Layer 0"
     # Named materials (core.materials.Material), name → Material. The
     # registry gives identity to paint recipes; faces keep their baked
     # attrs (color/texture) as the render truth and optionally carry
@@ -188,6 +191,18 @@ class Scene:
             if ly.name == name:
                 return ly
         return None
+
+    def set_active_layer(self, name: str) -> bool:
+        """Make an existing, visible and unlocked layer active.
+
+        Drawing into a hidden or locked tag would create geometry the user
+        cannot immediately see or edit, so that state is rejected.
+        """
+        ly = self.layer(name)
+        if ly is None or not ly.visible or ly.locked:
+            return False
+        self.active_layer = name
+        return True
 
     def _layer_state(self, entity) -> tuple[bool, bool]:
         """(visible, locked) of the layer ``entity`` carries; unknown layer
