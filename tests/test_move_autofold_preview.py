@@ -37,6 +37,30 @@ class _Vp:
     def pick_face(self, x, y):
         return None
 
+    def _segment_to_pixels(self, a, b):
+        return ((a.x(), a.y()), (b.x(), b.y()))
+
+    def _world_to_pixel(self, point):
+        return (point.x(), point.y())
+
+
+class _Painter:
+    def __init__(self):
+        self.lines = []
+        self.texts = []
+
+    def setPen(self, pen):
+        pass
+
+    def setFont(self, font):
+        pass
+
+    def drawLine(self, a, b):
+        self.lines.append((a, b))
+
+    def drawText(self, point, text):
+        self.texts.append(text)
+
 
 def _ctx(vp, point):
     return ToolContext(viewport=vp, world=QVector3D(point),
@@ -59,9 +83,11 @@ def test_corner_drag_previews_the_same_single_fold_that_commit_creates():
     tool.on_hover(_ctx(vp, V(2, 2, 1)))
 
     assert len(scene.mesh.faces) == 1  # preview never edits real topology
-    preview = tool.rubber_band_lines()
-    assert len(preview) == 2           # move vector + one predicted fold
-    predicted = {_key(p) for p in preview[1]}
+    assert len(tool.rubber_band_lines()) == 1  # move vector keeps snap colour
+    preview = tool.autofold_preview_lines()
+    assert len(preview) == 1           # topology gets its own visual channel
+    assert tool._fold_face_count == 1
+    predicted = {_key(p) for p in preview[0]}
 
     tool.on_click(_ctx(vp, V(2, 2, 1)))
     folds = [edge for edge in scene.mesh.edges if len(edge.faces) == 2]
@@ -74,6 +100,25 @@ def test_corner_drag_previews_the_same_single_fold_that_commit_creates():
     assert len(scene.mesh.faces[0].vertices) == 4
 
 
+def test_autofold_overlay_draws_distinct_dashed_edge_and_consequence_label():
+    scene = _square_scene()
+    vp = _Vp(scene, V(2, 2))
+    tool = MoveTool()
+
+    tool.on_click(_ctx(vp, V(2, 2)))
+    tool.on_hover(_ctx(vp, V(2, 2, 1)))
+    painter = _Painter()
+    tool.draw_overlay(vp, painter)
+
+    # Each predicted fold gets a white halo and a violet dashed stroke.
+    assert len(painter.lines) == 2
+    # The same two-pass treatment keeps the label legible on any model.
+    assert len(painter.texts) == 2
+    assert painter.texts[0] == painter.texts[1]
+    assert "Autofold" in painter.texts[0]
+    assert "1" in painter.texts[0]
+
+
 def test_in_plane_corner_drag_does_not_preview_or_create_a_fold():
     scene = _square_scene()
     vp = _Vp(scene, V(2, 2))
@@ -82,6 +127,8 @@ def test_in_plane_corner_drag_does_not_preview_or_create_a_fold():
     tool.on_click(_ctx(vp, V(2, 2)))
     tool.on_hover(_ctx(vp, V(3, 3)))
     assert len(tool.rubber_band_lines()) == 1  # move vector only
+    assert tool.autofold_preview_lines() == []
+    assert tool._fold_face_count == 0
 
     tool.on_click(_ctx(vp, V(3, 3)))
     assert len(scene.mesh.faces) == 1
@@ -117,12 +164,15 @@ def test_moving_a_pentagon_edge_previews_folds_and_cancel_restores_it():
     tool.on_click(_ctx(vp, V(4, 4)))
     tool.on_hover(_ctx(vp, V(4, 4, 1.5)))
     assert len(scene.mesh.faces) == 1
-    assert len(tool.rubber_band_lines()) > 1
+    assert len(tool.rubber_band_lines()) == 1
+    assert tool.autofold_preview_lines()
+    assert tool._fold_face_count == 1
 
     tool.on_cancel(vp)
     assert len(scene.mesh.faces) == 1
     assert all(abs(vertex.z()) < 1e-9 for vertex in face.vertices)
     assert tool.rubber_band_lines() == []
+    assert tool.autofold_preview_lines() == []
     assert vp.history.undo_stack == []
 
 
@@ -137,7 +187,7 @@ def test_moving_a_pentagon_edge_commits_only_planar_pieces():
 
     tool.on_click(_ctx(vp, V(4, 4)))
     tool.on_hover(_ctx(vp, V(4, 4, 1.5)))
-    predicted = len(tool.rubber_band_lines()) - 1
+    predicted = len(tool.autofold_preview_lines())
     tool.on_click(_ctx(vp, V(4, 4, 1.5)))
 
     assert len(scene.mesh.faces) > 1
