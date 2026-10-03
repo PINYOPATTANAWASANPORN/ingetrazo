@@ -3364,6 +3364,45 @@ class EntityInfoPanel(QWidget):
         material_row.addWidget(self._material_caption)
         material_row.addWidget(self._material_box, 1)
         lay.addLayout(material_row)
+        # World-axis position and bounding size for one or several model
+        # objects.  Three compact columns fit the narrow tray and make the
+        # multi-selection rule visible: position is the common box centre,
+        # size is the common box extent.
+        self._transform_box = QWidget()
+        transform = QGridLayout(self._transform_box)
+        transform.setContentsMargins(0, 2, 0, 0)
+        transform.setHorizontalSpacing(4)
+        self._position_spins = []
+        self._size_spins = []
+        for row_no, (caption, labels, target, handler) in enumerate((
+                (tr("Position"), ("X", "Y", "Z"), self._position_spins,
+                 self._on_position_edited),
+                (tr("Size"), ("W", "D", "H"), self._size_spins,
+                 self._on_size_edited))):
+            transform.addWidget(QLabel(caption), row_no * 2, 0, 1, 3)
+            for axis, label in enumerate(labels):
+                cell = QWidget()
+                cell_lay = QHBoxLayout(cell)
+                cell_lay.setContentsMargins(0, 0, 0, 0)
+                cell_lay.setSpacing(2)
+                cell_lay.addWidget(QLabel(label))
+                spin = QDoubleSpinBox()
+                use_ascii_numeric_locale(spin)
+                spin.setKeyboardTracking(False)
+                spin.setDecimals(3)
+                spin.setRange(-1e9 if row_no == 0 else 1e-6, 1e9)
+                spin.setMinimumWidth(54)
+                spin.editingFinished.connect(
+                    lambda a=axis, fn=handler: fn(a))
+                cell_lay.addWidget(spin, 1)
+                transform.addWidget(cell, row_no * 2 + 1, axis)
+                target.append(spin)
+        self._transform_box.setToolTip(tr(
+            "Position is the centre of the selected objects. Size scales "
+            "the selection around that centre along the world axes."))
+        lay.addWidget(self._transform_box)
+        self._transform_groups = []
+        self._transform_bounds = None
         # A steady height. Selecting something used to resize this panel —
         # one line for nothing, two for an edge, four and a layer row for a
         # face — and everything below it (layers, scenes, the materials
@@ -3386,6 +3425,7 @@ class EntityInfoPanel(QWidget):
         self._name_edit.hide()
         self._material_caption.hide()
         self._material_box.hide()
+        self._transform_box.hide()
 
     def refresh(self) -> None:
         sel = list(self._window.viewport.scene.selection)
@@ -3393,6 +3433,7 @@ class EntityInfoPanel(QWidget):
         self._refresh_name(sel)
         self._refresh_layer(sel)
         self._refresh_material(sel)
+        self._refresh_transform(sel)
 
     # ---- Name field ---------------------------------------------------------
     def _refresh_name(self, sel: list) -> None:
@@ -3551,6 +3592,104 @@ class EntityInfoPanel(QWidget):
         self._window.statusBar().showMessage(
             tr("Material '{material}' applied to {n} entities",
                material=label, n=len(faces) + len(groups)), 2500)
+
+    # ---- Position and size -------------------------------------------------
+    @staticmethod
+    def _length_display(scene):
+        """Return (numbers per metre, suffix, decimals) for spin boxes."""
+        from core.units import FT_M, IN_M, model_units_of
+        units = model_units_of(scene)
+        code = units["length"]
+        scale, suffix, minimum = {
+            "m": (1.0, " m", 3), "cm": (100.0, " cm", 1),
+            "mm": (1000.0, " mm", 0), "in": (1.0 / IN_M, " in", 2),
+            "in-frac": (1.0 / IN_M, " in", 2),
+            "ft": (1.0 / FT_M, " ft", 3),
+            "ft-in": (1.0 / FT_M, " ft", 3),
+            "ft-in-frac": (1.0 / FT_M, " ft", 3),
+        }.get(code, (1.0, " m", 3))
+        return scale, suffix, max(minimum, int(units["precision"]))
+
+    def _refresh_transform(self, sel: list) -> None:
+        groups = [e for e in sel if isinstance(e, Group)]
+        # Transform fields act on whole objects. A mixed face/object
+        # selection would silently leave part of the selection behind.
+        show = bool(groups) and len(groups) == len(sel)
+        self._transform_box.setVisible(show)
+        self._transform_groups = groups if show else []
+        self._transform_bounds = None
+        if not show:
+            return
+        scene = self._window.viewport.scene
+        lo, hi = scene.selection_bounds()
+        if lo is None:
+            self._transform_box.hide()
+            self._transform_groups = []
+            return
+        centre = (lo + hi) * 0.5
+        size = hi - lo
+        scale, suffix, decimals = self._length_display(scene)
+        self._transform_bounds = (centre, size, scale)
+        self._updating = True
+        try:
+            for spin, value in zip(
+                    self._position_spins,
+                    (centre.x(), centre.y(), centre.z())):
+                spin.setSuffix(suffix)
+                spin.setDecimals(decimals)
+                spin.setValue(value * scale)
+                spin.setEnabled(True)
+            for spin, value in zip(
+                    self._size_spins, (size.x(), size.y(), size.z())):
+                spin.setSuffix(suffix)
+                spin.setDecimals(decimals)
+                spin.setValue(value * scale)
+                spin.setEnabled(abs(value) > 1e-9)
+        finally:
+            self._updating = False
+
+    def _on_position_edited(self, axis: int) -> None:
+        if self._updating or self._transform_bounds is None:
+            return
+        from PySide6.QtGui import QVector3D
+        from core.history import CompoundCommand, MoveGroupCommand
+        centre, _size, scale = self._transform_bounds
+        current = (centre.x(), centre.y(), centre.z())[axis]
+        wanted = self._position_spins[axis].value() / scale
+        if abs(wanted - current) <= 1e-9:
+            return
+        components = [0.0, 0.0, 0.0]
+        components[axis] = wanted - current
+        delta = QVector3D(*components)
+        command = CompoundCommand(
+            MoveGroupCommand(g, delta) for g in self._transform_groups)
+        self._apply_transform_command(command, tr("Position updated"))
+
+    def _on_size_edited(self, axis: int) -> None:
+        if self._updating or self._transform_bounds is None:
+            return
+        from core.history import CompoundCommand, ScaleGroupCommand
+        centre, size, scale = self._transform_bounds
+        current = (size.x(), size.y(), size.z())[axis]
+        if abs(current) <= 1e-9:
+            return
+        wanted = self._size_spins[axis].value() / scale
+        factor = wanted / current
+        if factor <= 0 or abs(factor - 1.0) <= 1e-9:
+            return
+        factors = [1.0, 1.0, 1.0]
+        factors[axis] = factor
+        command = CompoundCommand(
+            ScaleGroupCommand(g, centre, tuple(factors))
+            for g in self._transform_groups)
+        self._apply_transform_command(command, tr("Size updated"))
+
+    def _apply_transform_command(self, command, message: str) -> None:
+        self._window.viewport.history.execute(command)
+        self._window.viewport.notify_scene_changed()
+        self._window.viewport.update()
+        self.refresh()
+        self._window.statusBar().showMessage(message, 2500)
 
     def _describe(self, sel: list) -> str:
         if not sel:
