@@ -8,6 +8,13 @@ follow [SemVer](https://semver.org).
 
 ### Añadido
 
+- **Contexto de modelo para agentes IA:** el Asistente IA recibe un resumen
+  acotado del documento antes de cada turno, y el puente MCP ofrece contexto
+  paginado, búsqueda y detalle de grupos/componentes por ID estable. Los
+  agentes ya no necesitan explorar el API Python para averiguar qué hay en el
+  modelo; el contrato declara explícitamente que las referencias a topología
+  se invalidan cuando se reconstruye la geometría.
+
 - **Alt+clic recorre objetos superpuestos**: con Seleccionar activo, cada
   Alt+clic conserva la prioridad visual habitual y avanza por las caras,
   grupos y componentes que quedan detrás del punto del cursor. La barra de

@@ -115,8 +115,9 @@ def test_mcp_server_protocol_and_bridge_down_message(monkeypatch):
 
     tools = mcp.handle({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
     names = {t["name"] for t in tools["result"]["tools"]}
-    assert {"run_python", "query_model", "screenshot",
-            "undo", "redo"} <= names
+    assert {"run_python", "query_model", "get_document_context",
+            "find_entities", "get_entities", "get_capabilities",
+            "screenshot", "undo", "redo"} <= names
 
     assert mcp.handle({"jsonrpc": "2.0",
                        "method": "notifications/initialized"}) is None
@@ -126,6 +127,39 @@ def test_mcp_server_protocol_and_bridge_down_message(monkeypatch):
     result = call["result"]
     assert result["isError"] is True
     assert "AI bridge" in result["content"][0]["text"]
+
+
+def test_bridge_context_tools_are_read_only(monkeypatch):
+    from plugins.ai_bridge import _Bridge
+    from views.main_window import MainWindow
+    monkeypatch.setenv("INGETRAZO_AI_PORT", "0")
+    win = MainWindow()
+    try:
+        vp = win.viewport
+        bridge = _Bridge(vp)
+        bridge.start()
+        before = (vp.scene.content_version, len(vp.history.undo_stack))
+
+        context = _ask(bridge, "get_document_context", {"limit": 1})
+        assert context["ok"]
+        result = context["result"]
+        assert result["schema_version"] == "1.0"
+        assert "content_revision" in result and "groups" in result
+
+        found = _ask(bridge, "find_entities", {"query": "Ingeniero"})
+        assert found["ok"] and "matches" in found["result"]
+
+        ids = [row["id"] for row in found["result"]["matches"]]
+        detail = _ask(bridge, "get_entities", {"entity_ids": ids})
+        assert detail["ok"] and "entities" in detail["result"]
+
+        caps = _ask(bridge, "get_capabilities")
+        assert caps["ok"] and caps["result"]["write_actions"] is False
+        assert before == (vp.scene.content_version, len(vp.history.undo_stack))
+        bridge.stop()
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
 
 
 def test_the_packaged_app_tells_windows_users_the_exe_to_run():

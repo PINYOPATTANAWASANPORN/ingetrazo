@@ -189,6 +189,28 @@ class _Bridge(QObject):
                         "max": [hi.x(), hi.y(), hi.z()]}),
         }
 
+    def _tool_get_document_context(self, limit: int = 50,
+                                   cursor: str | None = None) -> dict:
+        """Bounded document context for an agent's first read of a model."""
+        from core.ai_context import document_context
+        return document_context(self._viewport.scene, limit, cursor)
+
+    def _tool_find_entities(self, query: str = "", limit: int = 50,
+                            cursor: str | None = None) -> dict:
+        """Resolve a group/component by name, UID, or tag."""
+        from core.ai_context import find_entities
+        return find_entities(self._viewport.scene, query, limit, cursor)
+
+    def _tool_get_entities(self, entity_ids: list | None = None) -> dict:
+        """Detailed records for stable group/component identifiers."""
+        from core.ai_context import get_entities
+        return get_entities(self._viewport.scene, entity_ids or [])
+
+    def _tool_get_capabilities(self) -> dict:
+        """The read/write capabilities currently available through MCP."""
+        from core.ai_context import capabilities
+        return capabilities()
+
     def _tool_screenshot(self, width: int = 1024, height: int = 768) -> dict:
         width = max(64, min(int(width), 4096))
         height = max(64, min(int(height), 4096))
@@ -244,7 +266,13 @@ def mcp_command(platform: str | None = None, frozen: bool | None = None,
         if windows:
             return [str(exe.with_name("ingetrazo-mcp.exe"))]
         return [str(exe), "--mcp"]
-    root = PathOf(str(root or Path(__file__).resolve().parents[1]))
+    root_text = str(root or Path(__file__).resolve().parents[1])
+    # Tests and cross-platform launchers may hand a host ``Path`` to a
+    # target-platform command.  A Windows ``Path('/src/app')`` stringifies
+    # with backslashes, which PurePosixPath treats as literal characters.
+    if not windows:
+        root_text = root_text.replace("\\", "/")
+    root = PathOf(root_text)
     python = "python" if windows else "python3"
     return [python, str(root / "scripts" / "ingetrazo_mcp.py")]
 

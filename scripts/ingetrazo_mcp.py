@@ -84,6 +84,57 @@ TOOLS = [
         "inputSchema": {"type": "object", "properties": {}},
     },
     {
+        "name": "get_document_context",
+        "description": ("Bounded, paginated context for the live document: "
+                        "revisions, units, active tag, selection, layers and "
+                        "the group/component outline. Start here instead of "
+                        "discovering the Python API."),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "limit": {"type": "integer", "minimum": 1,
+                          "maximum": 200},
+                "cursor": {"type": "string"},
+            },
+        },
+    },
+    {
+        "name": "find_entities",
+        "description": ("Find groups or components by a name fragment, "
+                        "stable ID, or tag. Results are paginated and "
+                        "read-only."),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "limit": {"type": "integer", "minimum": 1,
+                          "maximum": 200},
+                "cursor": {"type": "string"},
+            },
+        },
+    },
+    {
+        "name": "get_entities",
+        "description": ("Get detail for stable group/component IDs returned "
+                        "by document context or entity search."),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "entity_ids": {"type": "array",
+                               "items": {"type": "string"},
+                               "maxItems": 200},
+            },
+            "required": ["entity_ids"],
+        },
+    },
+    {
+        "name": "get_capabilities",
+        "description": ("Read the AI bridge feature contract, including "
+                        "stable entity types and whether write actions, "
+                        "preview, or multi-agent work are available."),
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
         "name": "screenshot",
         "description": ("Render the current viewport and LOOK at it — use "
                         "after building to verify and iterate."),
