@@ -4661,6 +4661,38 @@ class Viewport(QOpenGLWidget):
         self._vbo_parts[slot] = (list(parts), cap)
         return total
 
+    def _loose_hard_edge_block(self, hide_rest: bool) -> bytes:
+        """Packed hard edges, stable across selection-only redraws.
+
+        Selecting one entity bumps ``scene.version`` so highlight buffers
+        refresh, but ``scene.content_version`` stays put.  Rewalking and
+        repacking every loose edge on that view-only bump made a click in a
+        large imported line drawing scale with the entire model.  Keeping the
+        exact same bytes object also lets :meth:`_upload_vbo` retain the GPU
+        prefix by identity instead of comparing the large block.
+
+        Document edits, layer visibility changes, Hide/Soften and group-edit
+        boundaries all bump the content version, so they rebuild normally.
+        """
+        scene = self.scene
+        loose = scene.loose_mesh
+        key = (id(loose), scene.content_version, bool(hide_rest))
+        memo = getattr(self, "_loose_hard_edges_memo", None)
+        if memo is not None and memo[0] == key:
+            return memo[1]
+        data = array("f")
+        if not hide_rest:
+            for edge in loose.edges:
+                if (not scene.entity_visible(edge)
+                        or getattr(edge, "soft", False)
+                        or getattr(edge, "hidden", False)):
+                    continue
+                data.extend([edge.a.x(), edge.a.y(), edge.a.z(),
+                             edge.b.x(), edge.b.y(), edge.b.z()])
+        raw = data.tobytes()
+        self._loose_hard_edges_memo = (key, raw)
+        return raw
+
     def _sync_edges(self) -> None:
         if _cache_ver(self) == self._edges_version:
             return
@@ -4728,24 +4760,14 @@ class Viewport(QOpenGLWidget):
         # context is hidden and there is nothing to separate it from).
         self._edit_split_e = None
         self._edit_split_f = None
-        # Hard edges: loose ones rebuilt fresh, group ones from cached chunks
-        # (composition mirrors scene.render_edges()).
-        all_loose = array("f")
-        if not hide_rest:
-            for e in self.scene.loose_mesh.edges:
-                if (not self.scene.entity_visible(e)
-                        or getattr(e, "soft", False)
-                        or getattr(e, "hidden", False)):
-                    continue  # hidden layer / curve segment (reads smooth)
-                all_loose.extend([
-                    e.a.x(), e.a.y(), e.a.z(),
-                    e.b.x(), e.b.y(), e.b.z(),
-                ])
-        edge_parts = [all_loose.tobytes()]
+        # Hard edges: loose ones cached across selection-only bumps, group
+        # ones from cached chunks (composition mirrors scene.render_edges()).
+        loose_raw = self._loose_hard_edge_block(hide_rest)
+        edge_parts = [loose_raw]
         # Per-chunk draw spans (vertices) for frustum culling: the loose
         # block always draws (bbox None); each group's block carries its
         # chunk's world AABB.
-        loose_n = len(all_loose) // 3
+        loose_n = len(loose_raw) // 12
         edge_spans = [(None, 0, loose_n)]
         pv = getattr(self, "_preview_groups", None) or ()
         # The group half (every placement's hard edges, in draw order) is
