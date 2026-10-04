@@ -28,6 +28,7 @@ from core.group import Group
 from core.mesh import Edge, Face
 from core.guide import Guide
 from core.section import SectionPlane
+from core.i18n import tr
 from core.history import (
     CompoundCommand,
     DeleteDimensionsCommand,
@@ -213,7 +214,7 @@ class SelectTool(Tool):
     description = (
         "Pick edges, faces and objects. Shift+click adds or takes away, "
         "Ctrl+click adds, Shift+Ctrl+click takes away; the same with a "
-        "box.")
+        "box. Alt+click cycles through overlapping objects.")
     uses_snap = False  # selecting picks geometry; no snap markers
     box_select = True   # supports the rubber-band window / crossing box
 
@@ -302,6 +303,18 @@ class SelectTool(Tool):
         if getattr(viewport, "extension_pick", None) is not None:
             viewport.clear_extension_pick()
         entity = self._pick(viewport, ctx.screen.x(), ctx.screen.y())
+        cycling = bool(ctx.modifiers & Qt.AltModifier) and not bool(
+            ctx.modifiers & (Qt.ShiftModifier | Qt.ControlModifier))
+        cycle_pos = cycle_total = None
+        if cycling:
+            candidates = self._pick_candidates(
+                viewport, ctx.screen.x(), ctx.screen.y(), entity)
+            if candidates:
+                current = next((i for i, candidate in enumerate(candidates)
+                                if self._is_selected(viewport, candidate)), -1)
+                cycle_pos = (current + 1) % len(candidates)
+                cycle_total = len(candidates)
+                entity = candidates[cycle_pos]
         if entity is None:
             if viewport.scene.edit_group is not None and mode == "replace" \
                     and not viewport.scene.selection:
@@ -314,7 +327,50 @@ class SelectTool(Tool):
         else:
             picked = self._expand(viewport, entity)
             viewport.scene.select(picked, mode=mode)
+            if cycling and cycle_total is not None:
+                self._announce_cycle(viewport, entity, cycle_pos, cycle_total)
         viewport.update()
+
+    def _pick_candidates(self, viewport, screen_x: float, screen_y: float,
+                         primary=None) -> list:
+        """Selectable objects below one pixel, front to back.
+
+        ``primary`` keeps the ordinary Select priority (text and visible thin
+        edges before filled geometry).  The viewport contributes every face
+        ray hit, resolving grouped faces to their selectable container.
+        """
+        candidates = []
+
+        def add(candidate):
+            if candidate is not None and all(candidate is not old
+                                             for old in candidates):
+                candidates.append(candidate)
+
+        add(primary if primary is not None
+            else self._pick(viewport, screen_x, screen_y))
+        pick_all = getattr(viewport, "pick_selection_candidates", None)
+        if pick_all is not None:
+            for candidate in pick_all(screen_x, screen_y):
+                add(candidate)
+        return candidates
+
+    @classmethod
+    def _is_selected(cls, viewport, entity) -> bool:
+        expanded = cls._expand(viewport, entity)
+        return bool(expanded) and all(item in viewport.scene.selection
+                                      for item in expanded)
+
+    @staticmethod
+    def _announce_cycle(viewport, entity, position: int, total: int) -> None:
+        """Brief feedback that Alt+click has moved through an overlap stack."""
+        try:
+            bar = viewport.window().statusBar()
+        except (AttributeError, RuntimeError):
+            return
+        label = getattr(entity, "name", "") or type(entity).__name__
+        bar.showMessage(tr("Selected {name} ({position}/{total} under cursor)",
+                           name=label, position=position + 1, total=total),
+                        2500)
 
     @staticmethod
     def _expand(viewport, entity):

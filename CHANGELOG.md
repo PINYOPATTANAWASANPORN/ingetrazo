@@ -7,6 +7,12 @@ follow [SemVer](https://semver.org).
 ## [Sin publicar]
 
 ### Añadido
+
+- **Alt+clic recorre objetos superpuestos**: con Seleccionar activo, cada
+  Alt+clic conserva la prioridad visual habitual y avanza por las caras,
+  grupos y componentes que quedan detrás del punto del cursor. La barra de
+  estado muestra la posición dentro de la pila; las etiquetas ocultas o
+  bloqueadas y lo que queda fuera del grupo abierto siguen sin entrar.
 - **El estado de las etiquetas se ve donde se eligen**: la barra de
   herramientas, Info de entidad y el menú contextual muestran `(hidden)`,
   `(locked)` o ambos junto al nombre, con una explicación de lo que ocurrirá
