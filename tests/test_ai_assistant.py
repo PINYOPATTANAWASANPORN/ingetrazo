@@ -265,9 +265,11 @@ def test_assistant_loop_executes_recipes_transactionally(monkeypatch):
         "Listo: dibujé la arista de 3 m.",
     ])
     seen: list = []
+    systems: list[str] = []
 
     def fake_chat(provider, model, key, system, messages, **kw):
         seen.append([dict(m) for m in messages])
+        systems.append(system)
         return next(replies)
 
     monkeypatch.setattr(ai, "chat", fake_chat)
@@ -295,6 +297,10 @@ def test_assistant_loop_executes_recipes_transactionally(monkeypatch):
         # The model got the execution feedback on the second turn.
         assert any("arista lista" in m["text"]
                    for m in seen[1] if m["role"] == "user")
+        # A short task is grounded in the actual open document, without
+        # putting an unbounded Outliner into the conversation history.
+        assert "Contexto actual del documento" in systems[0]
+        assert '"content_revision"' in systems[0]
         # The transcript keeps user → assistant → feedback → assistant.
         roles = [m["role"] for m in dlg._convo]
         assert roles == ["user", "assistant", "user", "assistant"]

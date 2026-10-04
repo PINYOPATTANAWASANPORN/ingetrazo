@@ -39,7 +39,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from core import ai, ai_recipes
+from core import ai, ai_context, ai_recipes
 from core.i18n import tr
 from views.filedialogs import file_dialogs
 from views.fold_section import FoldSection, narrow, wrapping_form
@@ -545,6 +545,12 @@ class AsistentePanel(QWidget):
         provider, model, key, ollama = self._config()
         convo = ai.compact_messages(ai.slim_messages(
             self._convo, vision=ai.supports_vision(provider, model)))
+        # Ground a short request in the document the user can see.  This is
+        # deliberately bounded; an MCP client that needs the whole outline
+        # can page through get_document_context instead.
+        context = ai_context.assistant_context(self._viewport.scene)
+        system = (SYSTEM_PROMPT + "\n\nContexto actual del documento (solo "
+                  "lectura; puede estar truncado):\n" + context)
 
         budget = TOKENS_BY_PROVIDER.get(provider, MAX_TOKENS)
 
@@ -556,7 +562,7 @@ class AsistentePanel(QWidget):
 
         def worker() -> None:
             try:
-                text = ai.chat(provider, model, key, SYSTEM_PROMPT, convo,
+                text = ai.chat(provider, model, key, system, convo,
                                ollama_url=ollama, max_tokens=budget,
                                on_retry=on_retry)
                 self._reply.emit({"ok": True, "text": text})

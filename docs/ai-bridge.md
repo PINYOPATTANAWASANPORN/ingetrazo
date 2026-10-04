@@ -74,6 +74,10 @@ modelo (y el equipo) a merced de cualquiera en ella.
 |---|---|
 | `run_python` | Ejecuta Python sobre el documento vivo (scope: `scene`, `mesh`, `selection`, `groups`, `bim`, `QVector3D`… y los constructores `revolve(perfil)` / `extrude(contorno, z0, z1)`: una línea → un grupo sólido, suave y orientado). Un undo por llamada; rollback total si falla. |
 | `query_model` | Conteos, nombres de grupos/componentes, materiales, capas, bounds. |
+| `get_document_context` | El contexto acotado y paginado para empezar: revisión de contenido/vista, unidades, etiqueta activa, selección, capas y el árbol de grupos/componentes. El cursor deja de ser válido si cambia el documento o la selección. |
+| `find_entities` | Busca grupos/componentes por fragmento de nombre, ID estable o etiqueta; el cursor se invalida solo si cambia el contenido. |
+| `get_entities` | Detalle de los IDs estables de grupos/componentes: estado, etiqueta, material, transformación y metadatos. Caras, aristas y vértices no se exponen como IDs duraderos porque una operación topológica puede reconstruirlos. |
+| `get_capabilities` | Contrato de la puerta IA: qué identificadores son estables y qué funciones de escritura, preview o multiagente están disponibles. |
 | `screenshot` | Renderiza el viewport real — el agente mira e itera. |
 | `undo` / `redo` | La historia de siempre. |
 
@@ -102,6 +106,12 @@ asistente actúa por recetas de Python transaccionales — cada acción es un
 paso de undo, y con proveedores con visión recibe capturas del viewport
 para VER lo que construyó e iterar. El modelo es editable, y la clave se
 guarda en la configuración local.
+
+Antes de cada turno el asistente recibe un resumen pequeño del documento
+abierto (selección, unidades, etiqueta activa y los primeros grupos). Así un
+pedido corto puede referirse a lo que ya está en pantalla sin que el usuario
+tenga que enumerarlo. El resumen nunca reemplaza el árbol entero: un cliente
+MCP usa las herramientas paginadas cuando necesita más detalle.
 
 ### Modelar desde una foto
 
