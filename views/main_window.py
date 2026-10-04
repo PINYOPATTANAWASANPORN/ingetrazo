@@ -1749,11 +1749,17 @@ class MainWindow(QMainWindow):
         break startup — it arrives here as an error entry, shown disabled
         with the exception in its tooltip so the author can fix it."""
         import logging
-        from core.extensions import discover_plugins
+        from core.extensions import discover_plugins, plugin_candidates
 
         log = logging.getLogger("ingetrazo.plugins")
         ext_menu = menubar.addMenu(tr("Extensions"))
-        plugins, errors = discover_plugins()
+        disabled = self._disabled_extensions()
+        candidates = plugin_candidates()
+        plugins, errors = discover_plugins(
+            disabled=disabled, candidates=candidates)
+        self._extension_candidates = candidates
+        self._loaded_extensions = plugins
+        self._extension_errors = errors
 
         # Shortcuts the app already claimed (toolbar tools, menus — all built
         # before this menu): first come, first served. A plugin asking for a
@@ -1810,12 +1816,18 @@ class MainWindow(QMainWindow):
             action.setToolTip(err.error)
 
         if count == 0 and not errors:
-            ext_menu.addAction(tr("(no plugins found)")).setEnabled(False)
+            label = (tr("(no extensions enabled)") if candidates
+                     else tr("(no plugins found)"))
+            ext_menu.addAction(label).setEnabled(False)
 
         self._add_example_extensions_menu(ext_menu)
 
         # The on-ramp for plugin authors: their folder and the dev guide.
         ext_menu.addSeparator()
+        act = ext_menu.addAction(tr("Manage extensions…"))
+        act.setStatusTip(tr(
+            "View installed extensions and choose which ones load."))
+        act.triggered.connect(self._on_manage_extensions)
         act = ext_menu.addAction(tr("Open plugins folder"))
         act.setStatusTip(tr(
             "Open the folder for your plugins; one put there loads at the "
@@ -1825,6 +1837,36 @@ class MainWindow(QMainWindow):
         act.setStatusTip(tr(
             "Open the guide to writing plugins for IngeTrazo."))
         act.triggered.connect(self._on_develop_plugin)
+
+    @staticmethod
+    def _disabled_extensions() -> set[str]:
+        import json
+        raw = QSettings().value("extensions/disabled", "[]")
+        try:
+            values = json.loads(str(raw))
+        except (TypeError, ValueError):
+            return set()
+        return {str(v) for v in values} if isinstance(values, list) else set()
+
+    def _on_manage_extensions(self) -> None:
+        import json
+        from PySide6.QtWidgets import QDialog
+        from views.extension_manager import ExtensionManagerDialog
+
+        dialog = ExtensionManagerDialog(
+            getattr(self, "_extension_candidates", ()),
+            getattr(self, "_loaded_extensions", ()),
+            getattr(self, "_extension_errors", ()),
+            self._disabled_extensions(), self)
+        if dialog.exec() == QDialog.Accepted and dialog.changed():
+            disabled = sorted(dialog.disabled_stems())
+            settings = QSettings()
+            settings.setValue("extensions/disabled", json.dumps(disabled))
+            settings.sync()
+            QMessageBox.information(
+                self, tr("Extension Manager"),
+                tr("Restart IngeTrazo to apply extension changes."))
+        dialog.deleteLater()
 
     @staticmethod
     def example_extensions() -> list:

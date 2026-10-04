@@ -71,6 +71,13 @@ class PluginError:
     error: str                      # "ExcType: message", for the tooltip
 
 
+@dataclass(frozen=True)
+class PluginCandidate:
+    """A plugin found on disk, before any of its code is imported."""
+    stem: str
+    path: Path
+
+
 def user_plugins_dir() -> Path:
     """The per-user plugin directory. May not exist yet — that is fine."""
     if sys.platform == "win32":
@@ -99,6 +106,27 @@ def _candidates(p_dir: Path):
             yield entry.name, entry / "__init__.py"
 
 
+def plugin_candidates(dirs=None) -> list[PluginCandidate]:
+    """List the winning plugin files without importing them.
+
+    The manager uses this safe inventory to show disabled and broken plugins.
+    Duplicate stems follow discovery's existing first-directory-wins rule.
+    """
+    out: list[PluginCandidate] = []
+    seen: set[str] = set()
+    for p_dir in (list(dirs) if dirs is not None else plugin_dirs()):
+        if not p_dir.is_dir():
+            continue
+        for stem, file in _candidates(p_dir):
+            if stem in seen:
+                log.warning("plugin %r at %s shadowed by an earlier one; "
+                            "skipped", stem, file)
+                continue
+            seen.add(stem)
+            out.append(PluginCandidate(stem, file))
+    return out
+
+
 def _import_by_path(stem: str, file: Path):
     """Import ``file`` under a private module name, off ``sys.path``."""
     mod_name = f"ingetrazo_plugin_{stem}"
@@ -120,7 +148,7 @@ def _import_by_path(stem: str, file: Path):
     return mod
 
 
-def discover_plugins(dirs=None):
+def discover_plugins(dirs=None, disabled=None, candidates=None):
     """Scan ``dirs`` (default :func:`plugin_dirs`) and load every plugin.
 
     Returns ``(plugins, errors)`` and never raises: each failing candidate
@@ -131,36 +159,33 @@ def discover_plugins(dirs=None):
 
     plugins: list[LoadedPlugin] = []
     errors: list[PluginError] = []
-    seen: set[str] = set()
+    disabled = set(disabled or ())
 
-    for p_dir in (list(dirs) if dirs is not None else plugin_dirs()):
-        if not p_dir.is_dir():
+    for candidate in (plugin_candidates(dirs) if candidates is None
+                      else candidates):
+        stem, file = candidate.stem, candidate.path
+        if stem in disabled:
+            log.info("plugin %r disabled by the user; skipped", stem)
             continue
-        for stem, file in _candidates(p_dir):
-            if stem in seen:
-                log.warning("plugin %r at %s shadowed by an earlier one; "
-                            "skipped", stem, file)
-                continue
-            seen.add(stem)
-            try:
-                mod = _import_by_path(stem, file)
-                tools = [
-                    obj() for _n, obj in inspect.getmembers(mod,
-                                                            inspect.isclass)
-                    if (issubclass(obj, Tool) and obj is not Tool
-                        and obj.__module__ == mod.__name__     # defined here
-                        and not inspect.isabstract(obj))
-                ]
-            except Exception as exc:                # noqa: BLE001 — contract
-                log.exception("failed to load plugin %r from %s", stem, file)
-                errors.append(PluginError(
-                    stem, file, f"{type(exc).__name__}: {exc}"))
-                continue
-            setup = getattr(mod, "setup", None)
-            if not callable(setup):
-                setup = None
-            if tools or setup is not None:
-                plugins.append(LoadedPlugin(stem, file, tools, setup))
-                for t in tools:
-                    log.info("loaded plugin tool %r from %s", t.name, file)
+        try:
+            mod = _import_by_path(stem, file)
+            tools = [
+                obj() for _n, obj in inspect.getmembers(mod,
+                                                        inspect.isclass)
+                if (issubclass(obj, Tool) and obj is not Tool
+                    and obj.__module__ == mod.__name__     # defined here
+                    and not inspect.isabstract(obj))
+            ]
+        except Exception as exc:                # noqa: BLE001 — contract
+            log.exception("failed to load plugin %r from %s", stem, file)
+            errors.append(PluginError(
+                stem, file, f"{type(exc).__name__}: {exc}"))
+            continue
+        setup = getattr(mod, "setup", None)
+        if not callable(setup):
+            setup = None
+        if tools or setup is not None:
+            plugins.append(LoadedPlugin(stem, file, tools, setup))
+            for t in tools:
+                log.info("loaded plugin tool %r from %s", t.name, file)
     return plugins, errors
