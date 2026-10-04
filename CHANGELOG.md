@@ -36,6 +36,12 @@ follow [SemVer](https://semver.org).
   por encima de 18 GB a 32 ms por movimiento y 11,7 GB; con Línea, 71 ms.
   Los modelos normales usan el índice de siempre.
 
+### Corregido
+- **Las texturas en rutas largas de Windows vuelven a llegar al SKP**: el
+  exportador lee la imagen con la ruta extendida de Windows antes de copiarla
+  a un nombre corto para OpenSKP. Ya no convierte silenciosamente en color una
+  textura que Qt sí podía abrir pero Python encontraba más allá de `MAX_PATH`.
+
 ## [0.5.7] — 2026-09-30
 
 **Ventanas paramétricas, la selección con puntos y una semana de pedidos
