@@ -6,8 +6,10 @@ from core.ai_changes import AIChangeService
 from core.group import Group
 from core.history import History
 from core.layers import Layer
+from core.materials import Material
 from core.mesh import Mesh
 from core.scene import Scene
+from PySide6.QtGui import QMatrix4x4, QVector3D
 
 
 def _model():
@@ -134,3 +136,159 @@ def test_invalid_locked_missing_tag_and_busy_proposals_are_rejected():
         [{"action": "set_visibility", "entity_ids": [table.uid],
           "visible": False}])
     assert busy["code"] == "busy" and busy["task_id"] == "unlock"
+
+
+def _solid_group(name="Box"):
+    mesh = Mesh()
+    mesh.add_face([QVector3D(0, 0, 0), QVector3D(2, 0, 0),
+                   QVector3D(2, 1, 0), QVector3D(0, 1, 0)])
+    return Group(mesh, name)
+
+
+def test_material_and_translation_preview_commit_as_one_undo_step():
+    scene = Scene()
+    scene.materials["Oak"] = Material("Oak", color=(0.5, 0.3, 0.1))
+    box = _solid_group()
+    scene.groups.append(box)
+    history = History(scene)
+    service = AIChangeService(scene, history)
+    args = {
+        "task_id": "place-oak-box",
+        "intent": "paint and move the box",
+        "base_revision": scene.content_version,
+        "idempotency_key": "place-oak-box-001",
+        "actions": [
+            {"action": "assign_material", "entity_ids": [box.uid],
+             "material": "Oak"},
+            {"action": "transform_entities", "entity_ids": [box.uid],
+             "operation": "translate", "delta": [3, 4, 5]},
+        ],
+    }
+
+    preview = service.propose(**args)
+    assert preview["ok"] and len(preview["changes"]) == 2
+    transform = next(change for change in preview["changes"]
+                     if change["field"] == "translate")
+    assert transform["before"]["bounds"]["min"] == [0.0, 0.0, 0.0]
+    assert transform["after"]["bounds"]["min"] == [3.0, 4.0, 5.0]
+    assert box.material is None
+    assert box.mesh.vertices[0].position.z() == 0.0
+
+    service.request_commit(args["task_id"], args["base_revision"],
+                           args["idempotency_key"])
+    result = service.approve(args["task_id"])
+    assert result["status"] == "committed" and len(history.undo_stack) == 1
+    assert box.material["mat"] == "Oak"
+    assert min(v.position.x() for v in box.mesh.vertices) == 3.0
+    assert min(v.position.z() for v in box.mesh.vertices) == 5.0
+
+    assert history.undo()
+    assert box.material is None
+    assert min(v.position.x() for v in box.mesh.vertices) == 0.0
+    assert history.redo()
+    assert box.material["mat"] == "Oak"
+    assert min(v.position.y() for v in box.mesh.vertices) == 4.0
+
+
+def test_rotation_and_non_uniform_scale_have_exact_preview_and_redo():
+    for operation, parameters, expected_size in (
+            ("rotate", {"center": [0, 0, 0], "axis": [0, 0, 1],
+                        "degrees": 90}, [1.0, 2.0, 0.0]),
+            ("scale", {"center": [0, 0, 0], "factor": [2, 3, 1]},
+             [4.0, 3.0, 0.0])):
+        scene = Scene()
+        box = _solid_group()
+        scene.groups.append(box)
+        history = History(scene)
+        service = AIChangeService(scene, history)
+        args = {
+            "task_id": f"{operation}-box",
+            "intent": operation,
+            "base_revision": scene.content_version,
+            "idempotency_key": f"{operation}-box-001",
+            "actions": [{"action": "transform_entities",
+                         "entity_ids": [box.uid], "operation": operation,
+                         **parameters}],
+        }
+        preview = service.propose(**args)
+        size = preview["changes"][0]["after"]["bounds"]["size"]
+        assert size == expected_size
+        service.request_commit(args["task_id"], args["base_revision"],
+                               args["idempotency_key"])
+        assert service.approve(args["task_id"])["status"] == "committed"
+        applied = [(v.position.x(), v.position.y(), v.position.z())
+                   for v in box.mesh.vertices]
+        assert history.undo()
+        assert history.redo()
+        assert [(v.position.x(), v.position.y(), v.position.z())
+                for v in box.mesh.vertices] == applied
+
+
+def test_transform_and_material_validation_rejects_ambiguous_changes():
+    scene = Scene()
+    parent = Group(name="Parent")
+    child = Group(name="Child")
+    parent.adopt([child])
+    box = _solid_group()
+    scene.groups.extend([parent, box])
+    service = AIChangeService(scene, History(scene))
+    base = scene.content_version
+
+    missing = service.propose(
+        "missing-material", "paint", base, "missing-material-001",
+        [{"action": "assign_material", "entity_ids": [box.uid],
+          "material": "Absent"}])
+    assert missing["code"] == "unknown_material"
+    nested = service.propose(
+        "nested", "move", base, "nested-transform-001",
+        [{"action": "transform_entities", "entity_ids": [child.uid],
+          "operation": "translate", "delta": [1, 0, 0]}])
+    assert nested["code"] == "nested_transform_unsupported"
+    zero = service.propose(
+        "zero", "scale", base, "zero-scale-001",
+        [{"action": "transform_entities", "entity_ids": [box.uid],
+          "operation": "scale", "center": [0, 0, 0], "factor": 0}])
+    assert zero["code"] == "invalid_transform"
+    duplicate = service.propose(
+        "twice", "move twice", base, "duplicate-transform-001",
+        [{"action": "transform_entities", "entity_ids": [box.uid],
+          "operation": "translate", "delta": [1, 0, 0]},
+         {"action": "transform_entities", "entity_ids": [box.uid],
+          "operation": "translate", "delta": [0, 1, 0]}])
+    assert duplicate["code"] == "duplicate_transform"
+
+
+def test_component_transform_moves_only_the_instance_and_no_op_is_empty():
+    scene = Scene()
+    prototype = _solid_group().mesh
+    first, sibling = Group(prototype, "First"), Group(prototype, "Sibling")
+    first.xform, sibling.xform = QMatrix4x4(), QMatrix4x4()
+    scene.groups.extend([first, sibling])
+    history = History(scene)
+    service = AIChangeService(scene, history)
+    base = scene.content_version
+    no_op = service.propose(
+        "no-op", "leave in place", base, "no-op-transform-001",
+        [{"action": "transform_entities", "entity_ids": [first.uid],
+          "operation": "translate", "delta": [0, 0, 0]}])
+    assert no_op["ok"] and no_op["changes"] == []
+    service.discard("no-op")
+
+    args = {
+        "task_id": "move-instance", "intent": "move one component",
+        "base_revision": scene.content_version,
+        "idempotency_key": "move-instance-001",
+        "actions": [{"action": "transform_entities",
+                     "entity_ids": [first.uid], "operation": "translate",
+                     "delta": [7, 0, 0]}],
+    }
+    service.propose(**args)
+    service.request_commit(args["task_id"], args["base_revision"],
+                           args["idempotency_key"])
+    service.approve(args["task_id"])
+    assert first.mesh is sibling.mesh is prototype
+    assert first.xform.map(QVector3D()).x() == 7.0
+    assert sibling.xform.map(QVector3D()).x() == 0.0
+    assert min(vertex.position.x() for vertex in prototype.vertices) == 0.0
+    assert history.undo()
+    assert first.xform.map(QVector3D()).x() == 0.0

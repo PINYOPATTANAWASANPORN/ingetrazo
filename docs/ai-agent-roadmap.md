@@ -250,10 +250,12 @@ credential, bounds messages, reports client activity, and keeps raw Python
 and global undo/redo disabled unless the user opts in for that session. The
 first typed-write slice implements preview, validation, idempotency, a
 document write lease, stale-revision rejection, discard, and one-step undo for
-container naming, visibility, locking, and existing-tag assignment. MCP can
-request a commit, but only the in-app Apply button can approve it. Transforms,
-materials, creation actions, and branch-rendered geometry previews remain for
-later Phase 2 slices.
+container naming, visibility, locking, existing-tag assignment, container
+materials, and bounded top-level translate/rotate/scale operations. Transform
+previews report exact before/after bounds and parameters. MCP can request a
+commit, but only the in-app Apply button can approve it. Creation actions,
+nested world-space transforms, and branch-rendered geometry previews remain
+for later Phase 2 slices.
 
 ### Phase 1 — shared context and typed read tools
 
