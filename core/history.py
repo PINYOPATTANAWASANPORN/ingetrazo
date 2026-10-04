@@ -127,6 +127,24 @@ class SetPluginDataCommand(Command):
         scene.version += 1
 
 
+class SetAIMemoryCommand(Command):
+    """Replace the document's explicit AI facts as one undoable edit."""
+
+    def __init__(self, facts) -> None:
+        from core.ai_memory import validate_memory
+        self.facts = validate_memory(facts)
+        self._before: list[str] = []
+
+    def do(self, scene) -> None:
+        self._before = list(getattr(scene, "ai_memory", []))
+        scene.ai_memory = list(self.facts)
+        scene.version += 1
+
+    def undo(self, scene) -> None:
+        scene.ai_memory = list(self._before)
+        scene.version += 1
+
+
 class History:
     """Undo/redo stacks. ``execute`` is TRANSACTIONAL: if a command throws
     mid-mutation, the mesh is restored to its pre-command state, the failure

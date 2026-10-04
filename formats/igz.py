@@ -391,6 +391,15 @@ def save_scene(scene, path: Path) -> dict:
                 continue
         if keep:
             payload["plugin_data"] = keep
+    ai_memory = getattr(scene, "ai_memory", None)
+    if ai_memory:
+        from core.ai_memory import validate_memory
+        try:
+            payload["ai_memory"] = validate_memory(ai_memory)
+        except ValueError:
+            # A malformed runtime value cannot make an otherwise healthy
+            # document unsaveable.  The editor itself only creates valid data.
+            pass
     scales = getattr(scene, "custom_scales", None)
     if scales:
         payload["custom_scales"] = [float(n) for n in scales]
@@ -826,6 +835,8 @@ def _load_into_inner(scene, path: Path, progress=None) -> None:
     scene.units = model_units_of(payload)   # validated; absent = metres
     pdata = payload.get("plugin_data")
     scene.plugin_data = dict(pdata) if isinstance(pdata, dict) else {}
+    from core.ai_memory import load_memory
+    scene.ai_memory = load_memory(payload.get("ai_memory"))
     scales = payload.get("custom_scales")
     if isinstance(scales, list):
         scene.custom_scales = [float(n) for n in scales

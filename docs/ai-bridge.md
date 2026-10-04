@@ -132,6 +132,13 @@ devuelta por el proveedor. Actuar conserva temporalmente la ruta transaccional
 de recetas; la vista previa tipada y Aplicar/Descartar siguen en el puente MCP
 hasta que el bucle interno comparta sus tools.
 
+El botón **Memoria** abre los hechos duraderos del proyecto, uno por línea.
+Se guardan dentro del `.igz`, la edición participa en Deshacer/Rehacer y cada
+tarea nueva recibe una copia fija bajo `project_memory`. Esta memoria tiene
+límites de tamaño y solo la cambia el usuario desde la interfaz; una respuesta
+del chat o una llamada `create_task` no puede convertir una inferencia en una
+preferencia permanente sin que el usuario la vea.
+
 ### Modelar desde una foto
 
 Con el botón **Foto…** adjuntas la imagen de un objeto (una fuente, un

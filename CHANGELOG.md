@@ -8,6 +8,12 @@ follow [SemVer](https://semver.org).
 
 ### Añadido
 
+- **Memoria de proyecto para IA:** cada documento puede guardar una lista
+  explícita y editable de hechos del proyecto. El Asistente muestra cuántos
+  hay, los copia en cada contrato de tarea y nunca los aprende o modifica a
+  partir del chat. La edición es un solo paso de Deshacer/Rehacer, viaja en
+  el `.igz` y está limitada para mantener predecible el contexto del modelo.
+
 - **Controles compactos para instrucciones IA:** el Asistente permite elegir
   alcance y objetivo, alternar entre actuación transaccional y solo análisis,
   y escribir supuestos visibles sin alargar el prompt. Cada envío crea y
