@@ -43,9 +43,12 @@ import importlib.util
 import inspect
 import logging
 import os
+import shutil
 import sys
+import tempfile
+import zipfile
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from core.paths import app_root
 
@@ -92,6 +95,125 @@ def user_plugins_dir() -> Path:
 def plugin_dirs() -> list[Path]:
     """Candidate directories, app-bundled first (first stem wins)."""
     return [app_root() / "plugins", user_plugins_dir()]
+
+
+def _plugin_target(path: Path) -> Path:
+    """The installed file/package represented by a candidate source path."""
+    return path.parent if path.name == "__init__.py" else path
+
+
+def is_user_plugin(path: Path, user_dir: Path | None = None) -> bool:
+    """Whether ``path`` is a direct child plugin of the writable user dir."""
+    root = (user_dir or user_plugins_dir()).resolve()
+    try:
+        target = _plugin_target(Path(path)).resolve()
+    except OSError:
+        return False
+    return target.parent == root
+
+
+def _zip_plugin_source(archive: Path, stage: Path) -> tuple[Path, str]:
+    """Extract a small, traversal-safe plugin archive into ``stage``."""
+    with zipfile.ZipFile(archive) as zf:
+        infos = [i for i in zf.infolist() if not i.is_dir()]
+        if len(infos) > 1000 or sum(i.file_size for i in infos) > 50 * 1024 ** 2:
+            raise ValueError("Plugin archive is too large.")
+        paths = [PurePosixPath(i.filename) for i in infos]
+        if any("\\" in i.filename for i in infos) or any(
+                p.is_absolute() or ".." in p.parts for p in paths):
+            raise ValueError("Plugin archive contains an unsafe path.")
+        # Unix symlinks in ZIPs can escape after extraction just as ``..`` can.
+        if any((i.external_attr >> 16) & 0o170000 == 0o120000 for i in infos):
+            raise ValueError("Plugin archive may not contain symbolic links.")
+        roots = {p.parts[0] for p in paths if p.parts}
+        root_init = any(p == PurePosixPath("__init__.py") for p in paths)
+        package_roots = {
+            p.parts[0] for p in paths
+            if len(p.parts) == 2 and p.parts[1] == "__init__.py"}
+        top_py = [p for p in paths if len(p.parts) == 1 and p.suffix == ".py"]
+        if root_init:
+            name = archive.stem
+            source = stage
+        elif len(package_roots) == 1 and roots == package_roots:
+            name = next(iter(package_roots))
+            source = stage / name
+        elif len(top_py) == 1 and len(paths) == 1:
+            name = top_py[0].name
+            source = stage / name
+        else:
+            raise ValueError(
+                "Plugin ZIP must contain one .py file or one package with "
+                "an __init__.py file.")
+        stage.mkdir(parents=True, exist_ok=True)
+        zf.extractall(stage)
+    return source, name
+
+
+def install_plugin(source: Path, *, replace: bool = False,
+                   user_dir: Path | None = None) -> Path:
+    """Install a local ``.py``, package folder, or ZIP without importing it.
+
+    Files are copied to a staging sibling first, so a failed copy never leaves
+    a half-written plugin at the name the startup scanner imports.
+    """
+    source = Path(source)
+    root = user_dir or user_plugins_dir()
+    root.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="ingetrazo-plugin-") as tmp:
+        stage_root = Path(tmp)
+        if source.is_file() and source.suffix.lower() == ".zip":
+            payload, name = _zip_plugin_source(source, stage_root / "unpacked")
+        elif source.is_file() and source.suffix.lower() == ".py":
+            payload, name = source, source.name
+        elif source.is_dir() and (source / "__init__.py").is_file():
+            payload, name = source, source.name
+        else:
+            raise ValueError(
+                "Choose a Python plugin (.py), plugin package, or ZIP package.")
+
+        target = root / name
+        if target.exists() and not replace:
+            raise FileExistsError(str(target))
+        staged = root / f".{name}.installing"
+        if staged.exists():
+            shutil.rmtree(staged) if staged.is_dir() else staged.unlink()
+        try:
+            if payload.is_dir():
+                shutil.copytree(
+                    payload, staged,
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            else:
+                shutil.copy2(payload, staged)
+        except Exception:
+            if staged.exists():
+                shutil.rmtree(staged) if staged.is_dir() else staged.unlink()
+            raise
+        backup = root / f".{name}.previous"
+        if backup.exists():
+            shutil.rmtree(backup) if backup.is_dir() else backup.unlink()
+        if target.exists():
+            target.replace(backup)
+        try:
+            staged.replace(target)
+        except Exception:
+            if backup.exists() and not target.exists():
+                backup.replace(target)
+            raise
+        if backup.exists():
+            shutil.rmtree(backup) if backup.is_dir() else backup.unlink()
+        return target
+
+
+def uninstall_plugin(path: Path, *, user_dir: Path | None = None) -> Path:
+    """Remove one user-installed plugin; bundled plugins are read-only."""
+    target = _plugin_target(Path(path))
+    if not is_user_plugin(target, user_dir):
+        raise PermissionError("Bundled extensions cannot be removed.")
+    if target.is_dir():
+        shutil.rmtree(target)
+    else:
+        target.unlink(missing_ok=True)
+    return target
 
 
 def _candidates(p_dir: Path):

@@ -17,6 +17,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 import sys
 import textwrap
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -31,7 +32,8 @@ elif not isinstance(_inst, QApplication):
 
 import core.extensions as extensions                              # noqa: E402
 from core.extensions import (                                     # noqa: E402
-    discover_plugins, plugin_candidates, plugin_dirs, user_plugins_dir)
+    discover_plugins, install_plugin, is_user_plugin, plugin_candidates,
+    plugin_dirs, uninstall_plugin, user_plugins_dir)
 
 
 def _write(dirpath: Path, name: str, source: str) -> Path:
@@ -189,6 +191,79 @@ def test_disabled_plugin_is_listed_without_importing_its_code(tmp_path):
     assert [c.stem for c in candidates] == ["hello"]
     assert plugins == [] and errors == []
     assert not marker.exists()
+
+
+# ---- Local installation --------------------------------------------------
+
+def test_install_update_and_uninstall_loose_plugin(tmp_path):
+    source_dir = tmp_path / "downloads"
+    source_dir.mkdir()
+    source = _write(source_dir, "hello.py", "VERSION = 1\n")
+    root = tmp_path / "plugins"
+
+    target = install_plugin(source, user_dir=root)
+    assert target == root / "hello.py"
+    assert target.read_text() == "VERSION = 1\n"
+    assert is_user_plugin(target, root)
+
+    with pytest.raises(FileExistsError):
+        install_plugin(source, user_dir=root)
+    source.write_text("VERSION = 2\n")
+    assert install_plugin(source, replace=True, user_dir=root) == target
+    assert target.read_text() == "VERSION = 2\n"
+
+    assert uninstall_plugin(target, user_dir=root) == target
+    assert not target.exists()
+
+
+def test_install_package_ignores_bytecode(tmp_path):
+    source = tmp_path / "source" / "hello"
+    source.mkdir(parents=True)
+    _write(source, "__init__.py", GOOD)
+    cache = source / "__pycache__"
+    cache.mkdir()
+    _write(cache, "hello.pyc", "compiled")
+
+    target = install_plugin(source, user_dir=tmp_path / "plugins")
+    assert (target / "__init__.py").is_file()
+    assert not (target / "__pycache__").exists()
+    uninstall_plugin(target, user_dir=tmp_path / "plugins")
+    assert not target.exists()
+
+
+def test_install_package_zip(tmp_path):
+    archive = tmp_path / "hello.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("hello/__init__.py", GOOD)
+        zf.writestr("hello/data.txt", "plugin data")
+
+    root = tmp_path / "plugins"
+    target = install_plugin(archive, user_dir=root)
+    assert target == root / "hello"
+    assert (target / "__init__.py").is_file()
+    assert (target / "data.txt").read_text() == "plugin data"
+
+
+@pytest.mark.parametrize("member", ["../escape.py", "..\\escape.py"])
+def test_install_zip_rejects_path_traversal(tmp_path, member):
+    archive = tmp_path / "unsafe.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(member, "bad = True\n")
+
+    root = tmp_path / "plugins"
+    with pytest.raises(ValueError, match="unsafe path"):
+        install_plugin(archive, user_dir=root)
+    assert not (tmp_path / "escape.py").exists()
+
+
+def test_uninstall_refuses_bundled_plugin(tmp_path):
+    bundled_dir = tmp_path / "bundled"
+    bundled_dir.mkdir()
+    bundled = _write(bundled_dir, "core_plugin.py", GOOD)
+    root = tmp_path / "user-plugins"
+    with pytest.raises(PermissionError, match="Bundled"):
+        uninstall_plugin(bundled, user_dir=root)
+    assert bundled.exists()
 
 
 # ---- The Extensions menu itself -------------------------------------------
