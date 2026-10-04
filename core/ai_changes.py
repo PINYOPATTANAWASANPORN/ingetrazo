@@ -118,9 +118,10 @@ class _Proposal:
 class AIChangeService:
     """One-document proposal, approval, idempotency and write-lease service."""
 
-    def __init__(self, scene, history) -> None:
+    def __init__(self, scene, history, tasks=None) -> None:
         self.scene = scene
         self.history = history
+        self.tasks = tasks
         self._active: _Proposal | None = None
         self._by_task: dict[str, dict] = {}
         self._by_key: dict[str, tuple[str, str, dict]] = {}
@@ -273,6 +274,8 @@ class AIChangeService:
             proposal.task_id, proposal.fingerprint, result)
         if self._active is proposal:
             self._active = None
+        if self.tasks is not None:
+            self.tasks.transition(proposal.task_id, "stale", result)
         return result
 
     def _normalise(self, actions) -> tuple[list[dict], list[dict]] | dict:
@@ -413,6 +416,10 @@ class AIChangeService:
             base = int(base_revision)
         except (TypeError, ValueError):
             return _error("invalid_revision", "base_revision must be an integer")
+        if self.tasks is not None:
+            task = self.tasks.task(task_id)
+            if task is not None and not str(intent or "").strip():
+                intent = task.intent
         fingerprint = self._fingerprint(str(intent or ""), base, actions)
         prior = self._by_key.get(key)
         if prior is not None:
@@ -421,12 +428,19 @@ class AIChangeService:
                 return _error("idempotency_conflict",
                               "idempotency_key was already used for different input")
             return dict(result)
+        if self.tasks is not None:
+            task_error = self.tasks.validate_proposal(task_id, base, actions or [])
+            if task_error is not None:
+                return task_error
         if self._active is not None and self._active.task_id != task_id:
             return _error("busy", "another AI change set holds the write lease",
                           task_id=self._active.task_id)
         if base != self.scene.content_version:
-            return _error("stale_revision", "base_revision is not current",
-                          content_revision=self.scene.content_version)
+            result = _error("stale_revision", "base_revision is not current",
+                            content_revision=self.scene.content_version)
+            if self.tasks is not None:
+                self.tasks.transition(task_id, "stale", result)
+            return result
         built = self._normalise(actions)
         if isinstance(built, dict):
             return built
@@ -437,6 +451,8 @@ class AIChangeService:
         self._active = proposal
         self._by_task[task_id] = result
         self._by_key[key] = (task_id, fingerprint, result)
+        if self.tasks is not None:
+            self.tasks.transition(task_id, "preview_ready", result)
         return dict(result)
 
     def preview(self, task_id="") -> dict:
@@ -480,6 +496,8 @@ class AIChangeService:
         self._by_task[proposal.task_id] = result
         self._by_key[proposal.idempotency_key] = (
             proposal.task_id, proposal.fingerprint, result)
+        if self.tasks is not None:
+            self.tasks.transition(proposal.task_id, "approval_required", result)
         return result
 
     def approve(self, task_id: str) -> dict:
@@ -506,6 +524,8 @@ class AIChangeService:
         self._by_key[proposal.idempotency_key] = (
             proposal.task_id, proposal.fingerprint, result)
         self._active = None
+        if self.tasks is not None:
+            self.tasks.transition(proposal.task_id, "committed", result)
         return dict(result)
 
     def discard(self, task_id="") -> dict:
@@ -520,4 +540,6 @@ class AIChangeService:
         self._by_key[proposal.idempotency_key] = (
             proposal.task_id, proposal.fingerprint, result)
         self._active = None
+        if self.tasks is not None:
+            self.tasks.transition(task_id, "discarded", result)
         return dict(result)

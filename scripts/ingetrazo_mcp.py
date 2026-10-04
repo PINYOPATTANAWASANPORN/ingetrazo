@@ -66,7 +66,8 @@ INSTRUCTIONS = (
     "Estas herramientas operan el documento ABIERTO de IngeTrazo, en vivo: "
     "lo que escribas aparece en la pantalla del usuario y entra en su "
     "historial de deshacer.\n" + REFERENCE + "\nEmpieza por "
-    "get_document_context. Para propiedades compatibles usa propose_actions: "
+    "get_document_context. Para una intención corta usa create_task y después "
+    "propose_actions con el task_id y el alcance devueltos: "
     "IngeTrazo muestra la vista previa y solamente el usuario puede aplicarla. "
     "Usa screenshot para comprobar el resultado.")
 
@@ -144,6 +145,52 @@ TOOLS = [
         "inputSchema": {"type": "object", "properties": {}},
     },
     {
+        "name": "create_task",
+        "description": (
+            "Turn compact user intent into a revision-pinned task contract. "
+            "Scope may be auto, selection, current_group, visible_model, "
+            "whole_model, or {kind: entities, entity_ids: [...]}. Auto prefers "
+            "stable selected containers, then the open group, then visible "
+            "model. Returns the resolved IDs, classified goal, assumptions, "
+            "acceptance criteria, and a small role plan without changing the "
+            "document."),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "intent": {"type": "string", "minLength": 1,
+                           "maxLength": 1000},
+                "scope": {"oneOf": [
+                    {"type": "string", "enum": ["auto", "selection",
+                     "current_group", "visible_model", "whole_model"]},
+                    {"type": "object", "properties": {
+                        "kind": {"const": "entities"},
+                        "entity_ids": {"type": "array",
+                                       "items": {"type": "string"}}},
+                     "required": ["kind", "entity_ids"]}]},
+                "goal": {"type": "string", "enum": ["create", "revise",
+                         "furnish", "check", "quantify", "explain"]},
+                "constraints": {},
+                "execution": {"type": "string", "enum": ["analysis_only",
+                              "preview_first", "apply_safe_changes"]},
+                "assumptions": {"type": "array",
+                                "items": {"type": "string"},
+                                "maxItems": 20},
+                "acceptance_criteria": {"type": "array",
+                                        "items": {"type": "string"},
+                                        "maxItems": 20},
+            },
+            "required": ["intent"],
+        },
+    },
+    {
+        "name": "get_task",
+        "description": (
+            "Read a task contract and its current lifecycle status. Reports "
+            "whether the live document has made its base revision stale."),
+        "inputSchema": {"type": "object", "properties": {
+            "task_id": {"type": "string"}}, "required": ["task_id"]},
+    },
+    {
         "name": "propose_actions",
         "description": (
             "Propose bounded property edits without changing the document. "
@@ -153,7 +200,8 @@ TOOLS = [
             "targets one top-level entity and uses operation=translate with "
             "delta=[x,y,z], rotate with center/axis/degrees, or scale with "
             "center/factor. Every action also needs entity_ids. Holds one "
-            "document write lease and "
+            "document write lease. When task_id came from create_task, every "
+            "entity must remain inside that task's resolved scope. It "
             "returns the exact before/after preview."),
         "inputSchema": {
             "type": "object",

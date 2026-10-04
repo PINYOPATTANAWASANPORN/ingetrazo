@@ -78,6 +78,8 @@ modelo (y el equipo) a merced de cualquiera en ella.
 | `find_entities` | Busca grupos/componentes por fragmento de nombre, ID estable o etiqueta; el cursor se invalida solo si cambia el contenido. |
 | `get_entities` | Detalle de los IDs estables de grupos/componentes: estado, etiqueta, material, transformación y metadatos. Caras, aristas y vértices no se exponen como IDs duraderos porque una operación topológica puede reconstruirlos. |
 | `get_capabilities` | Contrato de la puerta IA: qué identificadores son estables y qué funciones de escritura, preview o multiagente están disponibles. |
+| `create_task` | Convierte una intención corta en un contrato fijado a la revisión actual: alcance automático o explícito, objetivo, restricciones, supuestos, criterios de aceptación y un plan pequeño de roles. No modifica el modelo. |
+| `get_task` | Devuelve el contrato, estado y resultado de la tarea; avisa si una edición posterior dejó obsoleta su revisión base. |
 | `propose_actions` | Propone, sin modificar el documento, cambios tipados de nombre, visibilidad, bloqueo, etiqueta, material o transformación (mover, girar y escalar contenedores de nivel superior). Devuelve valores y límites antes/después. |
 | `preview_changes` / `validate_changes` | Recupera y vuelve a validar una propuesta contra la revisión viva del documento. |
 | `commit_changes` / `discard_changes` | Solicita que la app muestre Aplicar/Descartar, o descarta la propuesta. El cliente MCP nunca puede saltarse la aprobación humana. |
@@ -115,6 +117,12 @@ abierto (selección, unidades, etiqueta activa y los primeros grupos). Así un
 pedido corto puede referirse a lo que ya está en pantalla sin que el usuario
 tenga que enumerarlo. El resumen nunca reemplaza el árbol entero: un cliente
 MCP usa las herramientas paginadas cuando necesita más detalle.
+
+Un cliente MCP puede empezar con una frase corta mediante `create_task`. Con
+`scope: auto`, IngeTrazo usa primero los grupos/componentes seleccionados,
+después el grupo abierto y finalmente el modelo visible. Los IDs resueltos
+quedan fijados en la tarea: `propose_actions` rechaza cualquier objeto fuera
+de ese alcance, aunque el agente intente ampliar silenciosamente el trabajo.
 
 ### Modelar desde una foto
 

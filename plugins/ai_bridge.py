@@ -78,6 +78,7 @@ class _Bridge(QObject):
         self.last_tool = ""
         self.last_error = ""
         self._changes = None
+        self._tasks = None
         # Queued to a BOUND method of this main-thread QObject — connecting a
         # lambda would run the slot on the worker thread (CLAUDE.md gotcha).
         self._dispatch.connect(self._run_on_main, Qt.QueuedConnection)
@@ -132,6 +133,8 @@ class _Bridge(QObject):
         self.session_token = ""
         self.client_connected = False
         self.client_name = ""
+        self._changes = None
+        self._tasks = None
         self.activity_changed.emit(self.activity())
 
     @property
@@ -145,14 +148,25 @@ class _Bridge(QObject):
                 "last_tool": self.last_tool,
                 "last_error": self.last_error,
                 "legacy_writes": self.allow_legacy_writes,
+                "active_task": (self._tasks.summary()
+                                if self._tasks is not None else None),
                 "pending_change": (self._changes.summary()
                                    if self._changes is not None else None)}
 
+    def task_service(self):
+        if self._tasks is None or self._tasks.scene is not self._viewport.scene:
+            from core.ai_tasks import AITaskService
+            self._tasks = AITaskService(self._viewport.scene)
+        return self._tasks
+
     def change_service(self):
-        if self._changes is None or self._changes.scene is not self._viewport.scene:
+        tasks = self.task_service()
+        if (self._changes is None
+                or self._changes.scene is not self._viewport.scene
+                or self._changes.tasks is not tasks):
             from core.ai_changes import AIChangeService
             self._changes = AIChangeService(self._viewport.scene,
-                                            self._viewport.history)
+                                            self._viewport.history, tasks)
         return self._changes
 
     @staticmethod
@@ -314,6 +328,19 @@ class _Bridge(QObject):
         }
         result["commit_policy"] = "per_change_set_user_approval"
         return result
+
+    def _tool_create_task(self, intent: str = "", scope="auto",
+                          goal: str = "", constraints=None,
+                          execution: str = "preview_first",
+                          assumptions: list | None = None,
+                          acceptance_criteria: list | None = None) -> dict:
+        """Create a revision-pinned task contract from compact intent."""
+        return self.task_service().create(
+            intent, scope, goal, constraints, execution, assumptions,
+            acceptance_criteria)
+
+    def _tool_get_task(self, task_id: str = "") -> dict:
+        return self.task_service().get(task_id)
 
     def _tool_propose_actions(self, task_id: str = "", intent: str = "",
                               base_revision=None, idempotency_key: str = "",
@@ -575,6 +602,11 @@ class BridgeSection(QWidget):
             text += tr(" — last tool: {tool}", tool=state["last_tool"])
         if state.get("last_error"):
             text += tr(" — error: {err}", err=state["last_error"])
+        task = state.get("active_task")
+        if task is not None:
+            text += tr(" — task: {goal} / {status} ({count} entities)",
+                       goal=task["goal"], status=task["status"],
+                       count=task["scope_count"])
         self._activity.setText(text)
         pending = state.get("pending_change")
         visible = pending is not None

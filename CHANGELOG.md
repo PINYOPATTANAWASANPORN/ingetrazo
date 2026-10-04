@@ -8,6 +8,14 @@ follow [SemVer](https://semver.org).
 
 ### Añadido
 
+- **Tareas IA a partir de instrucciones cortas:** `create_task` convierte una
+  intención breve en un contrato con revisión base, objetivo, alcance,
+  restricciones, supuestos, criterios de aceptación y plan. El alcance
+  automático prefiere la selección, luego el grupo abierto y después el
+  modelo visible. Las propuestas registradas no pueden tocar IDs fuera de la
+  tarea; `get_task` muestra su ciclo `ready` → preview → aprobación → commit,
+  detecta revisiones obsoletas y la pestaña IA enseña la tarea activa.
+
 - **Materiales y transformaciones IA tipadas:** una propuesta segura también
   puede pintar o despintar grupos con materiales ya registrados, además de
   mover, girar y escalar contenedores de nivel superior. La vista previa
