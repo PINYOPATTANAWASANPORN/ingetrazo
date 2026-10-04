@@ -14,7 +14,9 @@ Register it with Claude Code:
 Tools: run_python (transactional, one undo step per call), query_model,
 screenshot (the agent SEES the viewport), undo, redo. Every mutation goes
 through IngeTrazo's command engine — the hermeticity guard validates the
-agent's recipes, and Ctrl+Z always works.
+agent's recipes, and Ctrl+Z always works. The helper authenticates each
+request with a short-lived local session credential. Legacy mutation tools
+remain unavailable until the user enables them in IngeTrazo.
 """
 from __future__ import annotations
 
@@ -27,7 +29,7 @@ from pathlib import Path
 
 PORT = int(os.environ.get("INGETRAZO_AI_PORT", 4763))
 #: Where the bridge is. It only ever listens on the app machine's loopback
-#: (no authentication, and run_python runs code in the app); a client in
+#: and requires the rotating local session credential; a client in
 #: a container or on another machine reaches it through a tunnel the user
 #: sets up, and names the tunnel's end here (issue #130).
 HOST = os.environ.get("INGETRAZO_AI_HOST", "").strip() or "127.0.0.1"
@@ -49,6 +51,10 @@ except ImportError:                             # pragma: no cover - packaging
                  "scene, mesh, selection, groups, layers, viewport, "
                  "QVector3D, Mesh, Group, Edge, Face, bim. Recetario: "
                  "revolve / extrude / prism / wall / house.")
+try:
+    from core.ai_bridge_auth import read_credential as _read_credential
+except ImportError:                             # pragma: no cover - packaging
+    _read_credential = None
 finally:
     if sys.path and sys.path[0] == _APP_ROOT:   # leave the process as found
         del sys.path[0]
@@ -68,7 +74,9 @@ TOOLS = [
         "name": "run_python",
         "description": (
             "Execute Python against the LIVE IngeTrazo document (Z-up, "
-            "metres). Returns stdout/stderr. The reference below is "
+            "metres). Disabled by default; the user must enable legacy "
+            "write tools in the bridge panel for this session. Returns "
+            "stdout/stderr. The reference below is "
             "everything you need — read it instead of exploring the API.\n\n"
             + REFERENCE),
         "inputSchema": {
@@ -158,21 +166,38 @@ TOOLS = [
 
 _sock: socket.socket | None = None
 _req_id = 0
+_client_name = "MCP client"
+
+
+def _session() -> dict:
+    """Read the short-lived credential without printing or persisting it."""
+    if _read_credential is None:
+        raise OSError("AI bridge credential support is missing from this "
+                      "installation")
+    try:
+        return _read_credential()
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        raise OSError("AI bridge is off or its session credential is "
+                      f"unavailable: {exc}") from exc
 
 
 def _bridge(tool: str, args: dict) -> dict:
     """One request to the in-app bridge (reconnecting once if it dropped)."""
     global _sock, _req_id
     for attempt in (0, 1):
+        session = _session()
         if _sock is None:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(180.0)
-            s.connect((HOST, PORT))
+            port = PORT if PORT != 4763 else session["port"]
+            s.connect((HOST, port))
             _sock = s
         _req_id += 1
         try:
             _sock.sendall((json.dumps(
-                {"id": _req_id, "tool": tool, "args": args}) + "\n").encode())
+                {"id": _req_id, "tool": tool, "args": args,
+                 "auth": session["token"],
+                 "client": _client_name}) + "\n").encode())
             buf = b""
             while b"\n" not in buf:
                 chunk = _sock.recv(65536)
@@ -232,9 +257,14 @@ def _call(name: str, args: dict) -> dict:
 
 def handle(msg: dict) -> dict | None:
     """One JSON-RPC message → the reply dict (None for notifications)."""
+    global _client_name
     method = msg.get("method")
     msg_id = msg.get("id")
     if method == "initialize":
+        info = (msg.get("params") or {}).get("clientInfo") or {}
+        name = str(info.get("name") or "MCP client")[:80]
+        version = str(info.get("version") or "")[:32]
+        _client_name = f"{name} {version}".strip()
         return {"jsonrpc": "2.0", "id": msg_id, "result": {
             "protocolVersion": PROTOCOL,
             "capabilities": {"tools": {}},

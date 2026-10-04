@@ -8,6 +8,14 @@ follow [SemVer](https://semver.org).
 
 ### Añadido
 
+- **El puente IA ahora empieza cerrado a escrituras peligrosas:** cada inicio
+  crea una credencial local efímera que el servidor MCP obtiene sin mostrarla
+  en comandos ni configuración; las peticiones sin ella se rechazan y cada
+  mensaje queda limitado a 1 MiB. La pestaña IA muestra la conexión, el número
+  de peticiones, la última herramienta y los errores. `run_python`, undo y
+  redo permanecen apagados hasta que el usuario los habilita expresamente
+  para esa sesión, y vuelven a apagarse al detener el puente.
+
 - **Contexto de modelo para agentes IA:** el Asistente IA recibe un resumen
   acotado del documento antes de cada turno, y el puente MCP ofrece contexto
   paginado, búsqueda y detalle de grupos/componentes por ID estable. Los

@@ -243,6 +243,14 @@ to reduce latency or cost.
 
 ## Delivery plan
 
+Implementation status (2026-10-04): Phase 1's bounded context contract and
+MCP read profile are implemented. The first Phase 2 security gate is also in
+place: the loopback bridge authenticates requests with a rotating local
+credential, bounds messages, reports client activity, and keeps raw Python
+and global undo/redo disabled unless the user opts in for that session. Typed
+writes remain unadvertised until preview, validation, idempotency, and write
+lease mechanics are proven.
+
 ### Phase 1 — shared context and typed read tools
 
 Extend the existing group UID system, add revision-bound references for

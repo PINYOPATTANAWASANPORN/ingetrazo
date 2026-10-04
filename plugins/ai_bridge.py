@@ -20,15 +20,20 @@ the app + an MCP process outside), with three legs up:
 
 Protocol (framed for the bridge, not for humans): newline-delimited JSON on
 127.0.0.1:4763 (``INGETRAZO_AI_PORT`` overrides). Request
-``{"id": n, "tool": name, "args": {...}}`` → reply ``{"id": n, "ok": bool,
-"result": ... | "error": str}``. One client at a time; everything the tools
-touch runs on the Qt MAIN thread (queued-signal relay to a bound method —
-the documented PySide6 threading gotcha).
+``{"id": n, "auth": token, "tool": name, "args": {...}}`` → reply
+``{"id": n, "ok": bool, "result": ... | "error": str}``. The companion MCP
+process reads the rotating token from an owner-readable session file; it is
+never printed in setup commands. Messages are bounded to 1 MiB and legacy
+write tools are off until the user enables them for that bridge session. One
+client at a time; everything the tools touch runs on the Qt MAIN thread
+(queued-signal relay to a bound method — the documented PySide6 gotcha).
 """
 from __future__ import annotations
 
+import hmac
 import json
 import os
+import secrets
 import socket
 import sys
 import tempfile
@@ -36,13 +41,14 @@ import threading
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Qt, Signal
-from PySide6.QtWidgets import (QHBoxLayout, QLabel, QPlainTextEdit,
+from PySide6.QtWidgets import (QCheckBox, QHBoxLayout, QLabel, QPlainTextEdit,
                                QPushButton, QVBoxLayout, QWidget)
 
 from core.i18n import tr
 from views.fold_section import FoldSection, narrow
 
 DEFAULT_PORT = 4763
+MAX_MESSAGE_BYTES = 1024 * 1024
 
 
 class _Bridge(QObject):
@@ -54,6 +60,7 @@ class _Bridge(QObject):
     # COPY, sets the copied Event, and the worker times out forever. object
     # passes the PyObject by reference. (Cost us a hunt; now documented.)
     _dispatch = Signal(object)
+    activity_changed = Signal(object)
 
     def __init__(self, viewport) -> None:
         super().__init__(viewport)
@@ -63,6 +70,13 @@ class _Bridge(QObject):
         self._stop = threading.Event()
         self._scope: dict = {"__name__": "__ai__"}
         self.port: int | None = None
+        self.session_token = ""
+        self.allow_legacy_writes = False
+        self.client_connected = False
+        self.client_name = ""
+        self.request_count = 0
+        self.last_tool = ""
+        self.last_error = ""
         # Queued to a BOUND method of this main-thread QObject — connecting a
         # lambda would run the slot on the worker thread (CLAUDE.md gotcha).
         self._dispatch.connect(self._run_on_main, Qt.QueuedConnection)
@@ -77,6 +91,22 @@ class _Bridge(QObject):
         srv.settimeout(0.5)
         self._server = srv
         self.port = srv.getsockname()[1]
+        self.allow_legacy_writes = False
+        self.client_connected = False
+        self.client_name = ""
+        self.request_count = 0
+        self.last_tool = ""
+        self.last_error = ""
+        self.session_token = secrets.token_urlsafe(32)
+        try:
+            from core.ai_bridge_auth import write_credential
+            write_credential(self.session_token, self.port)
+        except Exception:
+            srv.close()
+            self._server = None
+            self.port = None
+            self.session_token = ""
+            raise
         self._stop.clear()
         self._thread = threading.Thread(
             target=self._serve, name="ingetrazo-ai-bridge", daemon=True)
@@ -91,11 +121,32 @@ class _Bridge(QObject):
             except OSError:
                 pass
             self._server = None
+        if self.session_token:
+            from core.ai_bridge_auth import remove_credential
+            remove_credential(self.session_token)
+        self.allow_legacy_writes = False
         self.port = None
+        self.session_token = ""
+        self.client_connected = False
+        self.client_name = ""
+        self.activity_changed.emit(self.activity())
 
     @property
     def running(self) -> bool:
         return self._server is not None
+
+    def activity(self) -> dict:
+        return {"connected": self.client_connected,
+                "client_name": self.client_name,
+                "request_count": self.request_count,
+                "last_tool": self.last_tool,
+                "last_error": self.last_error,
+                "legacy_writes": self.allow_legacy_writes}
+
+    @staticmethod
+    def _wire_error(message: str, req_id=None) -> bytes:
+        return (json.dumps({"id": req_id, "ok": False, "error": message})
+                + "\n").encode()
 
     # ---- Worker side ---------------------------------------------------------
     def _serve(self) -> None:
@@ -108,6 +159,8 @@ class _Bridge(QObject):
             except OSError:
                 return
             with conn:
+                self.client_connected = True
+                self.activity_changed.emit(self.activity())
                 conn.settimeout(0.5)
                 buf = b""
                 while not self._stop.is_set():
@@ -120,21 +173,43 @@ class _Bridge(QObject):
                     if not chunk:
                         break
                     buf += chunk
+                    if len(buf) > MAX_MESSAGE_BYTES and b"\n" not in buf:
+                        try:
+                            conn.sendall(self._wire_error(
+                                "request exceeds 1 MiB limit"))
+                        except OSError:
+                            pass
+                        break
                     while b"\n" in buf:
                         line, buf = buf.split(b"\n", 1)
                         if not line.strip():
                             continue
-                        reply = self._handle_line(line)
+                        if len(line) > MAX_MESSAGE_BYTES:
+                            reply = self._wire_error(
+                                "request exceeds 1 MiB limit")
+                        else:
+                            reply = self._handle_line(line)
                         try:
                             conn.sendall(reply)
                         except OSError:
                             break
+                self.client_connected = False
+                self.activity_changed.emit(self.activity())
 
     def _handle_line(self, line: bytes) -> bytes:
+        if len(line) > MAX_MESSAGE_BYTES:
+            return self._wire_error("request exceeds 1 MiB limit")
         try:
             req = json.loads(line)
         except ValueError:
-            return b'{"id": null, "ok": false, "error": "bad json"}\n'
+            return self._wire_error("bad json")
+        if not isinstance(req, dict):
+            return self._wire_error("request must be an object")
+        if not hmac.compare_digest(str(req.get("auth", "")),
+                                   self.session_token):
+            return self._wire_error("unauthorized", req.get("id"))
+        if not isinstance(req.get("args") or {}, dict):
+            return self._wire_error("args must be an object", req.get("id"))
         job = {"req": req, "done": threading.Event(), "reply": None}
         self._dispatch.emit(job)
         job["done"].wait(timeout=120.0)
@@ -147,6 +222,10 @@ class _Bridge(QObject):
         req = job["req"]
         tool = req.get("tool", "")
         args = req.get("args") or {}
+        self.request_count += 1
+        self.client_name = str(req.get("client", "MCP client"))[:120]
+        self.last_tool = str(tool)
+        self.last_error = ""
         try:
             handler = getattr(self, f"_tool_{tool}", None)
             if handler is None:
@@ -154,9 +233,11 @@ class _Bridge(QObject):
             result = handler(**args)
             job["reply"] = {"id": req.get("id"), "ok": True, "result": result}
         except Exception as exc:  # noqa: BLE001 — reported to the agent
+            self.last_error = f"{type(exc).__name__}: {exc}"
             job["reply"] = {"id": req.get("id"), "ok": False,
-                            "error": f"{type(exc).__name__}: {exc}"}
+                            "error": self.last_error}
         finally:
+            self.activity_changed.emit(self.activity())
             job["done"].set()
 
     # ---- Tools ---------------------------------------------------------------
@@ -164,6 +245,10 @@ class _Bridge(QObject):
         """Execute ``code`` via the shared transactional executor (core.ai):
         one undoable step, whole-rollback on error, no undo entry when
         nothing changed."""
+        if not self.allow_legacy_writes:
+            raise PermissionError(
+                "run_python is disabled; enable legacy write tools in the "
+                "AI bridge panel for this session")
         from core.ai import run_transactional
         return run_transactional(self._viewport, code, self._scope)
 
@@ -209,7 +294,13 @@ class _Bridge(QObject):
     def _tool_get_capabilities(self) -> dict:
         """The read/write capabilities currently available through MCP."""
         from core.ai_context import capabilities
-        return capabilities()
+        result = capabilities()
+        result["security"] = {
+            "authenticated_session": True,
+            "max_message_bytes": MAX_MESSAGE_BYTES,
+            "legacy_write_tools_enabled": self.allow_legacy_writes,
+        }
+        return result
 
     def _tool_screenshot(self, width: int = 1024, height: int = 768) -> dict:
         width = max(64, min(int(width), 4096))
@@ -222,11 +313,15 @@ class _Bridge(QObject):
         return {"path": str(out), "width": width, "height": height}
 
     def _tool_undo(self) -> dict:
+        if not self.allow_legacy_writes:
+            raise PermissionError("undo is disabled with legacy write tools")
         ok = self._viewport.history.undo()
         self._viewport.update()
         return {"ok": bool(ok)}
 
     def _tool_redo(self) -> dict:
+        if not self.allow_legacy_writes:
+            raise PermissionError("redo is disabled with legacy write tools")
         ok = self._viewport.history.redo()
         self._viewport.update()
         return {"ok": bool(ok)}
@@ -324,6 +419,9 @@ def connect_instructions(port: int, platform: str | None = None, **kw) -> str:
         + json.dumps(config, indent=2) + "\n\n"
         + tr("Other clients take the same block in their own file:") + "\n"
         + others + "\n\n"
+        + tr("The companion obtains a short-lived local credential "
+             "automatically; it is not included in this configuration.")
+        + "\n\n"
         + tr("Keep IngeTrazo open with the bridge on; the tools answer only while it runs.")
     )
 
@@ -354,6 +452,16 @@ class BridgeSection(QWidget):
         self._status = QLabel()
         self._status.setWordWrap(True)
         body.addWidget(self._status)
+        self._activity = QLabel()
+        self._activity.setWordWrap(True)
+        body.addWidget(self._activity)
+        self._legacy_writes = QCheckBox(tr(
+            "Allow raw Python, undo and redo for this session"))
+        self._legacy_writes.setToolTip(tr(
+            "Advanced: lets the connected MCP client change the document "
+            "through legacy tools. This resets to off when the bridge stops."))
+        self._legacy_writes.toggled.connect(self._on_legacy_writes)
+        body.addWidget(self._legacy_writes)
         row = QHBoxLayout()
         self._toggle = QPushButton()
         self._toggle.clicked.connect(self.toggle)
@@ -388,6 +496,9 @@ class BridgeSection(QWidget):
             self._refresh(error=str(exc))
             return False
         self._port = port
+        if getattr(self, "_activity_bridge", None) is not bridge:
+            bridge.activity_changed.connect(self._on_activity)
+            self._activity_bridge = bridge
         self._viewport.flash_status(tr(
             "AI bridge listening on 127.0.0.1:{port}", port=port), 8000)
         self._refresh()
@@ -396,9 +507,29 @@ class BridgeSection(QWidget):
     def stop(self) -> None:
         bridge = getattr(self._viewport.window(), "_ai_bridge", None)
         if bridge is not None and bridge.running:
+            bridge.allow_legacy_writes = False
             bridge.stop()
             self._viewport.flash_status(tr("AI bridge stopped"))
         self._refresh()
+
+    def _on_legacy_writes(self, checked: bool) -> None:
+        bridge = getattr(self._viewport.window(), "_ai_bridge", None)
+        if bridge is not None:
+            bridge.allow_legacy_writes = bool(checked) and bridge.running
+            self._on_activity(bridge.activity())
+
+    def _on_activity(self, state: dict) -> None:
+        if not state.get("connected"):
+            text = tr("No MCP client connected")
+        else:
+            text = tr("{client} connected — {count} requests",
+                      client=state.get("client_name") or "MCP client",
+                      count=state.get("request_count", 0))
+        if state.get("last_tool"):
+            text += tr(" — last tool: {tool}", tool=state["last_tool"])
+        if state.get("last_error"):
+            text += tr(" — error: {err}", err=state["last_error"])
+        self._activity.setText(text)
 
     def toggle(self) -> None:
         if self.running:
@@ -411,16 +542,27 @@ class BridgeSection(QWidget):
         self._toggle.setText(tr("Stop bridge") if on else tr("Start bridge"))
         self._copy.setVisible(on)
         self._text.setVisible(on)
+        self._activity.setVisible(on)
+        self._legacy_writes.setVisible(on)
         if on:
             port = getattr(self, "_port", DEFAULT_PORT)
             self._status.setText(tr(
                 "Listening on 127.0.0.1:{port} — connect your MCP client "
                 "with the lines below.", port=port))
             self._text.setPlainText(connect_instructions(port))
+            bridge = getattr(self._viewport.window(), "_ai_bridge", None)
+            if bridge is not None:
+                self._legacy_writes.blockSignals(True)
+                self._legacy_writes.setChecked(bridge.allow_legacy_writes)
+                self._legacy_writes.blockSignals(False)
+                self._on_activity(bridge.activity())
         elif error:
             self._status.setText(tr(
                 "AI bridge could not start: {err}", err=error))
         else:
+            self._legacy_writes.blockSignals(True)
+            self._legacy_writes.setChecked(False)
+            self._legacy_writes.blockSignals(False)
             self._status.setText(tr(
                 "Off. Start it to let an AI agent (Claude, Cursor, "
                 "Antigravity…) model in this document over MCP."))
