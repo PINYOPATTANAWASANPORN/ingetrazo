@@ -10,9 +10,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import dataclass
 
-from core.history import Command
+from PySide6.QtGui import QMatrix4x4, QVector3D
+
+from core.history import (Command, MoveGroupCommand, RotateGroupCommand,
+                          ScaleGroupCommand, rotation_matrix, scale_matrix)
 from core.layers import DEFAULT_LAYER
 
 MAX_ACTIONS = 100
@@ -24,7 +28,10 @@ ACTION_FIELDS = {
     "set_visibility": "hidden",
     "set_lock": "locked",
     "assign_tag": "layer",
+    "assign_material": "material",
 }
+
+TRANSFORM_ACTION = "transform_entities"
 
 
 def _error(code: str, message: str, **extra) -> dict:
@@ -47,6 +54,9 @@ class AIPropertyChangeCommand(Command):
 
     @staticmethod
     def _set(change: dict, value) -> None:
+        command = change.get("_command")
+        if command is not None:
+            return
         group = change["_entity"]
         field = change["field"]
         if field == "layer":
@@ -55,7 +65,12 @@ class AIPropertyChangeCommand(Command):
             setattr(group, field, value)
 
     def _apply(self, scene, side: str) -> None:
-        for change in self.changes:
+        ordered = self.changes if side == "after" else reversed(self.changes)
+        for change in ordered:
+            command = change.get("_command")
+            if command is not None:
+                (command.do(scene) if side == "after" else command.undo(scene))
+                continue
             self._set(change, change[side])
             if side == "after" and change["field"] in ("hidden", "locked") \
                     and change[side]:
@@ -127,6 +142,123 @@ class AIChangeService:
                          separators=(",", ":"), ensure_ascii=False)
         return hashlib.sha256(raw.encode()).hexdigest()
 
+    @staticmethod
+    def _vector(value, label: str, allow_zero: bool = True):
+        if not isinstance(value, (list, tuple)) or len(value) != 3:
+            return _error("invalid_transform", f"{label} must contain 3 numbers")
+        try:
+            raw = [float(item) for item in value]
+        except (TypeError, ValueError):
+            return _error("invalid_transform", f"{label} must contain 3 numbers")
+        if not all(math.isfinite(item) for item in raw):
+            return _error("invalid_transform", f"{label} must contain finite numbers")
+        vector = QVector3D(*raw)
+        if not allow_zero and vector.lengthSquared() <= 1e-18:
+            return _error("invalid_transform", f"{label} must not be zero")
+        return raw, vector
+
+    @staticmethod
+    def _bounds(group, matrix=None) -> dict | None:
+        from core.group import world_mesh
+        points = [vertex.position for vertex in world_mesh(group).vertices]
+        if matrix is not None:
+            points = [matrix.map(point) for point in points]
+        if not points:
+            return None
+        lo = [min(getattr(point, axis)() for point in points)
+              for axis in ("x", "y", "z")]
+        hi = [max(getattr(point, axis)() for point in points)
+              for axis in ("x", "y", "z")]
+        return {"min": lo, "max": hi,
+                "size": [hi[index] - lo[index] for index in range(3)]}
+
+    def _transform(self, raw: dict, group, index: int):
+        operation = str(raw.get("operation") or "").strip().lower()
+        before = self._bounds(group)
+        if operation == "translate":
+            parsed = self._vector(raw.get("delta"), "delta")
+            if isinstance(parsed, dict):
+                return parsed
+            values, delta = parsed
+            matrix = QMatrix4x4()
+            matrix.translate(delta)
+            command = MoveGroupCommand(group, delta)
+            normalised = {"action": TRANSFORM_ACTION,
+                          "entity_ids": [group.uid],
+                          "operation": operation, "delta": values}
+            parameters = {"delta": values}
+            no_change = all(abs(value) <= 1e-12 for value in values)
+        elif operation == "rotate":
+            center_result = self._vector(raw.get("center"), "center")
+            axis_result = self._vector(raw.get("axis"), "axis", False)
+            if isinstance(center_result, dict):
+                return center_result
+            if isinstance(axis_result, dict):
+                return axis_result
+            try:
+                degrees = float(raw.get("degrees"))
+            except (TypeError, ValueError):
+                degrees = math.nan
+            if not math.isfinite(degrees) or abs(degrees) > 3600:
+                return _error("invalid_transform",
+                              "degrees must be finite and between -3600 and 3600")
+            center_values, center = center_result
+            axis_values, axis = axis_result
+            matrix = rotation_matrix(center, axis, degrees)
+            command = RotateGroupCommand(group, center, axis, degrees)
+            normalised = {"action": TRANSFORM_ACTION,
+                          "entity_ids": [group.uid],
+                          "operation": operation, "center": center_values,
+                          "axis": axis_values, "degrees": degrees}
+            parameters = {"center": center_values, "axis": axis_values,
+                          "degrees": degrees}
+            no_change = abs(degrees) % 360.0 <= 1e-12
+        elif operation == "scale":
+            center_result = self._vector(raw.get("center"), "center")
+            if isinstance(center_result, dict):
+                return center_result
+            factor_raw = raw.get("factor")
+            if isinstance(factor_raw, (list, tuple)):
+                factor_result = self._vector(factor_raw, "factor")
+                if isinstance(factor_result, dict):
+                    return factor_result
+                factor = factor_result[0]
+            else:
+                try:
+                    factor = float(factor_raw)
+                except (TypeError, ValueError):
+                    factor = math.nan
+            factors = factor if isinstance(factor, list) else [factor] * 3
+            if (not all(math.isfinite(value) for value in factors)
+                    or any(abs(value) <= 1e-9 or abs(value) > 1000
+                           for value in factors)):
+                return _error("invalid_transform",
+                              "scale factors must be finite, non-zero, and at most 1000")
+            center_values, center = center_result
+            stored_factor = factor if isinstance(factor, list) else float(factor)
+            matrix = scale_matrix(center, stored_factor)
+            command = ScaleGroupCommand(group, center, stored_factor)
+            normalised = {"action": TRANSFORM_ACTION,
+                          "entity_ids": [group.uid],
+                          "operation": operation, "center": center_values,
+                          "factor": stored_factor}
+            parameters = {"center": center_values, "factor": stored_factor}
+            no_change = all(abs(value - 1.0) <= 1e-12 for value in factors)
+        else:
+            return _error("invalid_transform",
+                          f"action {index} operation must be translate, rotate, or scale")
+        if no_change:
+            return normalised, None
+        return normalised, {
+            "_entity": group, "_command": command,
+            "entity_id": group.uid,
+            "entity_type": "component" if group.is_component() else "group",
+            "entity_name": group.name,
+            "field": operation,
+            "before": {"bounds": before},
+            "after": {"bounds": self._bounds(group, matrix), **parameters},
+        }
+
     def _stale(self, proposal: _Proposal) -> dict | None:
         current = self.scene.content_version
         if current == proposal.base_revision:
@@ -152,13 +284,14 @@ class AIChangeService:
         groups = self.scene.groups_by_uid()
         normalised: list[dict] = []
         changes: dict[tuple[str, str], dict] = {}
+        transformed: set[str] = set()
         total_entities = 0
         for index, raw in enumerate(actions):
             if not isinstance(raw, dict):
                 return _error("invalid_action", f"action {index} must be an object")
             kind = str(raw.get("action") or "")
             field = ACTION_FIELDS.get(kind)
-            if field is None:
+            if field is None and kind != TRANSFORM_ACTION:
                 return _error("unsupported_action", f"unsupported action {kind!r}")
             ids = raw.get("entity_ids")
             if not isinstance(ids, list) or not ids:
@@ -174,6 +307,35 @@ class AIChangeService:
                 return _error("unknown_entity", "one or more entities do not exist",
                               entity_ids=missing)
 
+            if kind == TRANSFORM_ACTION:
+                if len(ids) != 1:
+                    return _error("invalid_transform",
+                                  "each transform action must target exactly one entity")
+                group = groups[ids[0]]
+                if group not in self.scene.groups:
+                    return _error(
+                        "nested_transform_unsupported",
+                        "nested entities cannot be transformed safely in world coordinates yet",
+                        entity_id=group.uid)
+                if group.uid in transformed:
+                    return _error(
+                        "duplicate_transform",
+                        "use one transform action per entity in a change set",
+                        entity_id=group.uid)
+                if group.locked:
+                    return _error("entity_locked",
+                                  f"entity {group.uid} is locked",
+                                  entity_id=group.uid)
+                built = self._transform(raw, group, index)
+                if isinstance(built, dict):
+                    return built
+                entry, change = built
+                normalised.append(entry)
+                if change is not None:
+                    changes[(group.uid, f"transform-{index}")] = change
+                transformed.add(group.uid)
+                continue
+
             if field == "name":
                 value = str(raw.get("name") or "").strip()
                 if not value or len(value) > MAX_NAME:
@@ -187,7 +349,7 @@ class AIChangeService:
                 if not isinstance(raw.get("locked"), bool):
                     return _error("invalid_lock", "locked must be boolean")
                 value = raw["locked"]
-            else:
+            elif field == "layer":
                 value = str(raw.get("tag") or "").strip()
                 layer = self.scene.layer(value)
                 if layer is None:
@@ -195,11 +357,25 @@ class AIChangeService:
                 if not layer.visible or layer.locked:
                     return _error("unavailable_tag",
                                   f"tag {value!r} is hidden or locked")
+            else:
+                material_name = raw.get("material")
+                if material_name in (None, ""):
+                    value = None
+                else:
+                    material_name = str(material_name).strip()
+                    material = self.scene.materials.get(material_name)
+                    if material is None:
+                        return _error("unknown_material",
+                                      f"material {material_name!r} does not exist")
+                    value = material.face_attrs()
 
             entry = {"action": kind, "entity_ids": ids}
             entry[{"name": "name", "hidden": "visible",
-                   "locked": "locked", "layer": "tag"}[field]] = (
+                   "locked": "locked", "layer": "tag",
+                   "material": "material"}[field]] = (
                        not value if field == "hidden" else value)
+            if field == "material":
+                entry["material"] = value.get("mat") if value else None
             normalised.append(entry)
             for uid in ids:
                 group = groups[uid]
@@ -208,6 +384,8 @@ class AIChangeService:
                                   f"entity {uid} is locked", entity_id=uid)
                 before = (getattr(group, field) if field != "layer" else
                           (getattr(group, "layer", None) or DEFAULT_LAYER))
+                if field == "material":
+                    before = dict(before) if before else None
                 key = (uid, field)
                 changes[key] = {
                     "_entity": group,

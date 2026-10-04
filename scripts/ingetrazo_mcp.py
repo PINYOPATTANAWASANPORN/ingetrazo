@@ -148,8 +148,12 @@ TOOLS = [
         "description": (
             "Propose bounded property edits without changing the document. "
             "Supported actions: rename_entities {name}, set_visibility "
-            "{visible}, set_lock {locked}, assign_tag {tag}; every action "
-            "also needs entity_ids. Holds one document write lease and "
+            "{visible}, set_lock {locked}, assign_tag {tag}, "
+            "assign_material {material}, and transform_entities. A transform "
+            "targets one top-level entity and uses operation=translate with "
+            "delta=[x,y,z], rotate with center/axis/degrees, or scale with "
+            "center/factor. Every action also needs entity_ids. Holds one "
+            "document write lease and "
             "returns the exact before/after preview."),
         "inputSchema": {
             "type": "object",

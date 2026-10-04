@@ -78,6 +78,9 @@ modelo (y el equipo) a merced de cualquiera en ella.
 | `find_entities` | Busca grupos/componentes por fragmento de nombre, ID estable o etiqueta; el cursor se invalida solo si cambia el contenido. |
 | `get_entities` | Detalle de los IDs estables de grupos/componentes: estado, etiqueta, material, transformación y metadatos. Caras, aristas y vértices no se exponen como IDs duraderos porque una operación topológica puede reconstruirlos. |
 | `get_capabilities` | Contrato de la puerta IA: qué identificadores son estables y qué funciones de escritura, preview o multiagente están disponibles. |
+| `propose_actions` | Propone, sin modificar el documento, cambios tipados de nombre, visibilidad, bloqueo, etiqueta, material o transformación (mover, girar y escalar contenedores de nivel superior). Devuelve valores y límites antes/después. |
+| `preview_changes` / `validate_changes` | Recupera y vuelve a validar una propuesta contra la revisión viva del documento. |
+| `commit_changes` / `discard_changes` | Solicita que la app muestre Aplicar/Descartar, o descarta la propuesta. El cliente MCP nunca puede saltarse la aprobación humana. |
 | `screenshot` | Renderiza el viewport real — el agente mira e itera. |
 | `undo` / `redo` | La historia de siempre. |
 

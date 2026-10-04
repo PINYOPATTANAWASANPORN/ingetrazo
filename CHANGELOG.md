@@ -8,6 +8,14 @@ follow [SemVer](https://semver.org).
 
 ### Añadido
 
+- **Materiales y transformaciones IA tipadas:** una propuesta segura también
+  puede pintar o despintar grupos con materiales ya registrados, además de
+  mover, girar y escalar contenedores de nivel superior. La vista previa
+  incluye parámetros y límites exactos antes/después; valores no finitos,
+  escalas nulas, objetos bloqueados, transformaciones repetidas o referencias
+  anidadas ambiguas se rechazan antes de adquirir un cambio. Aplicar combina
+  propiedades y geometría en un único paso de deshacer/rehacer.
+
 - **Cambios IA tipados con vista previa y aprobación humana:** los clientes
   MCP pueden proponer renombrar, mostrar/ocultar, bloquear/desbloquear y
   asignar etiquetas a grupos o componentes mediante IDs estables. IngeTrazo
