@@ -2945,6 +2945,11 @@ class MakeGroupCommand(Command):
             note(e)
         self.snapshot: Optional[dict] = None
         self.group: Optional[Group] = None
+        # Capture the document's active tag on the first execution.  Redo
+        # must recreate the same object the user made even when another tag
+        # has become active in the meantime.
+        self._layer_captured = False
+        self._created_layer: str | None = None
 
     def do(self, scene) -> None:
         m = scene.mesh
@@ -3004,6 +3009,12 @@ class MakeGroupCommand(Command):
             if e is not None:
                 stamp_edge_flags(e, flags)
         self.group = Group(gmesh, name=self._name)
+        if not self._layer_captured:
+            self._created_layer = getattr(scene, "active_layer", None)
+            self._layer_captured = True
+        if self._created_layer:
+            from core.layers import assign_layer
+            assign_layer(self.group, self._created_layer)
         if self._component:
             from PySide6.QtGui import QMatrix4x4
             if rot is not None:
@@ -3256,6 +3267,10 @@ class MakeNestedGroupCommand(Command):
             self.container = self._inner.group
         elif self.container is None:
             self.container = Group(Mesh(), name=self.name)
+            created_layer = getattr(scene, "active_layer", None)
+            if created_layer:
+                from core.layers import assign_layer
+                assign_layer(self.container, created_layer)
         if self.container not in scene.groups:
             scene.groups.append(self.container)
         self._xform0 = getattr(self.container, "xform", None)

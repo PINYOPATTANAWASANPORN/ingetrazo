@@ -6,6 +6,14 @@ follow [SemVer](https://semver.org).
 
 ## [Sin publicar]
 
+### Añadido
+- **Los grupos y componentes nuevos nacen en la etiqueta activa**: Crear
+  grupo y Crear componente aplican la misma etiqueta activa que el resto de
+  herramientas de dibujo, también al agrupar varios grupos. Deshacer y rehacer
+  conserva la etiqueta con la que se creó el contenedor aunque después se
+  cambie la activa; convertir un grupo existente en componente mantiene su
+  etiqueta original.
+
 ### Rendimiento
 - **Orbitar un modelo con miles de componentes es 11× más fluido**: con la
   planta industrial de la #158 (21 406 copias) cada cuadro pasaba de 1,3 s
