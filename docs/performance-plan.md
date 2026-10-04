@@ -64,7 +64,11 @@ pick index the same way for hover rays.
 *Gate: camera inside the casita → paint cost drops to the visible
 subset; orbiting a corner of a big scene never submits the far side.*
 
-### P2 — GPU instancing for components (the hedge killer) — slice 1 LANDED 2026-08-25 (instanced draw all modes + sections; validated live with 5 copies. Remaining: drop baked per-instance pick arrays via ray transform)
+### P2 — GPU instancing for components (the hedge killer) — DONE
+
+Instanced draw covers all modes and sections. Instance picking now transforms
+the ray into prototype space and shares the prototype triangle arrays instead
+of baking one pick copy per placement.
 Replace world-baked instance chunks with ONE proto VBO + per-instance
 matrices via `glDrawArraysInstanced` + `glVertexAttribDivisor`
 (GL 3.3 core ✓). Wins: N hedges cost 1× vertex memory and 1 draw; the
@@ -123,6 +127,16 @@ Slow frames (25–29 ms) are dominated by the **edges pass** (19–22 ms:
 271k-face wireframe lines + silhouettes) — a P3-adjacent target.
 Gesture latency measured at 30–70 ms. Culling live: 12–25k tris
 dropped while orbiting; paints 5–12 ms.
+
+## Later finding — selection over loose edge drawings (2026-10-04)
+
+A selection-only `scene.version` bump rebuilt and packed the complete loose
+hard-edge block even though no model content changed. The block now keys on
+`scene.content_version`, so selection refreshes reuse the identical bytes and
+the incremental VBO upload retains its prefix by identity. A synthetic 50,000
+edge drawing measured **374.29 ms** to build the cold 1.2 MB block and
+**0.0081 ms** to retrieve it after selection. Geometry, layer, Hide/Soften and
+group-edit changes still invalidate it.
 
 ## Order and sizing
 
