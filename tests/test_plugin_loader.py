@@ -33,7 +33,7 @@ elif not isinstance(_inst, QApplication):
 import core.extensions as extensions                              # noqa: E402
 from core.extensions import (                                     # noqa: E402
     discover_plugins, install_plugin, is_user_plugin, plugin_candidates,
-    plugin_dirs, uninstall_plugin, user_plugins_dir)
+    plugin_dirs, read_plugin_manifest, uninstall_plugin, user_plugins_dir)
 
 
 def _write(dirpath: Path, name: str, source: str) -> Path:
@@ -193,27 +193,93 @@ def test_disabled_plugin_is_listed_without_importing_its_code(tmp_path):
     assert not marker.exists()
 
 
+def test_package_manifest_is_read_without_importing_plugin(tmp_path):
+    package = tmp_path / "hello"
+    package.mkdir()
+    marker = tmp_path / "imported.txt"
+    _write(package, "__init__.py", f"open({str(marker)!r}, 'w').close()\n")
+    _write(package, "plugin.toml", """
+        [plugin]
+        name = "Hello Tools"
+        version = "1.2.0"
+        author = "Ada"
+        description = "Useful modelling tools"
+        min_ingetrazo = "0.5"
+        homepage = "https://example.test/hello"
+    """)
+
+    (candidate,) = plugin_candidates([tmp_path])
+    assert not marker.exists()
+    assert candidate.manifest.name == "Hello Tools"
+    assert candidate.manifest.version == "1.2.0"
+    assert candidate.manifest.author == "Ada"
+    assert candidate.manifest_error == ""
+
+
+def test_loose_plugin_uses_same_stem_manifest(tmp_path):
+    plugin = _write(tmp_path, "hello.py", GOOD)
+    _write(tmp_path, "hello.toml", "[plugin]\nname = 'Friendly name'\n")
+    manifest = read_plugin_manifest("hello", plugin)
+    assert manifest is not None and manifest.name == "Friendly name"
+
+
+def test_incompatible_manifest_blocks_import(tmp_path):
+    marker = tmp_path / "imported.txt"
+    _write(tmp_path, "future.py", GOOD +
+           f"\nopen({str(marker)!r}, 'w').close()\n")
+    _write(tmp_path, "future.toml", """
+        [plugin]
+        name = "Future tools"
+        version = "2.0.0"
+        min_ingetrazo = "99.0.0"
+    """)
+
+    candidates = plugin_candidates([tmp_path])
+    assert "Requires IngeTrazo 99.0.0" in candidates[0].manifest_error
+    plugins, errors = discover_plugins(candidates=candidates)
+    assert plugins == []
+    assert "Requires IngeTrazo 99.0.0" in errors[0].error
+    assert not marker.exists()
+
+
+def test_malformed_manifest_blocks_import_and_is_reported(tmp_path):
+    _write(tmp_path, "hello.py", GOOD)
+    _write(tmp_path, "hello.toml", "[plugin\nname = 'broken'")
+    candidates = plugin_candidates([tmp_path])
+    assert "TOMLDecodeError" in candidates[0].manifest_error
+    plugins, errors = discover_plugins(candidates=candidates)
+    assert plugins == []
+    assert "TOMLDecodeError" in errors[0].error
+
+
 # ---- Local installation --------------------------------------------------
 
 def test_install_update_and_uninstall_loose_plugin(tmp_path):
     source_dir = tmp_path / "downloads"
     source_dir.mkdir()
     source = _write(source_dir, "hello.py", "VERSION = 1\n")
+    manifest = _write(
+        source_dir, "hello.toml",
+        "[plugin]\nname = 'Hello'\nversion = '1.0.0'\n")
     root = tmp_path / "plugins"
 
     target = install_plugin(source, user_dir=root)
     assert target == root / "hello.py"
     assert target.read_text() == "VERSION = 1\n"
+    assert target.with_suffix(".toml").read_text() == manifest.read_text()
     assert is_user_plugin(target, root)
 
     with pytest.raises(FileExistsError):
         install_plugin(source, user_dir=root)
     source.write_text("VERSION = 2\n")
+    manifest.unlink()
     assert install_plugin(source, replace=True, user_dir=root) == target
     assert target.read_text() == "VERSION = 2\n"
+    assert not target.with_suffix(".toml").exists()
 
     assert uninstall_plugin(target, user_dir=root) == target
     assert not target.exists()
+    assert not target.with_suffix(".toml").exists()
 
 
 def test_install_package_ignores_bytecode(tmp_path):
@@ -242,6 +308,18 @@ def test_install_package_zip(tmp_path):
     assert target == root / "hello"
     assert (target / "__init__.py").is_file()
     assert (target / "data.txt").read_text() == "plugin data"
+
+
+def test_install_loose_plugin_zip_with_manifest(tmp_path):
+    archive = tmp_path / "hello.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("hello.py", GOOD)
+        zf.writestr(
+            "hello.toml", "[plugin]\nname='Hello'\nversion='1.0.0'\n")
+
+    target = install_plugin(archive, user_dir=tmp_path / "plugins")
+    assert target.name == "hello.py"
+    assert target.with_suffix(".toml").is_file()
 
 
 @pytest.mark.parametrize("member", ["../escape.py", "..\\escape.py"])
@@ -328,13 +406,40 @@ def test_manager_reports_loaded_broken_and_disabled_plugins(tmp_path):
             dialog.tree.topLevelItem(i).text(0): dialog.tree.topLevelItem(i)
             for i in range(dialog.tree.topLevelItemCount())
         }
-        assert rows["hello"].text(1) == "Loaded"
-        assert rows["roto"].text(1) == "Load error"
-        assert rows["off"].text(1) == "Disabled"
+        assert rows["hello"].text(2) == "Loaded"
+        assert rows["roto"].text(2) == "Load error"
+        assert rows["off"].text(2) == "Disabled"
         assert rows["off"].checkState(0) == Qt.Unchecked
         rows["hello"].setCheckState(0, Qt.Unchecked)
         assert dialog.disabled_stems() == {"hello", "off"}
         assert dialog.changed()
+    finally:
+        dialog.close()
+
+
+def test_manager_displays_manifest_metadata(tmp_path):
+    from views.extension_manager import ExtensionManagerDialog
+
+    package = tmp_path / "hello"
+    package.mkdir()
+    _write(package, "__init__.py", GOOD)
+    _write(package, "plugin.toml", """
+        [plugin]
+        name = "Hello Tools"
+        version = "1.4.2"
+        author = "Ada"
+        description = "Useful modelling tools"
+        homepage = "https://example.test/hello"
+    """)
+    candidates = plugin_candidates([tmp_path])
+    plugins, errors = discover_plugins(candidates=candidates)
+    dialog = ExtensionManagerDialog(candidates, plugins, errors, set())
+    try:
+        item = dialog.tree.topLevelItem(0)
+        assert [item.text(i) for i in range(4)] == [
+            "Hello Tools", "1.4.2", "Loaded", "Ada"]
+        assert item.toolTip(0) == "Useful modelling tools"
+        assert item.toolTip(3) == "https://example.test/hello"
     finally:
         dialog.close()
 

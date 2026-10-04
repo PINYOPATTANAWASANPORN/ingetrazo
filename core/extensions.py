@@ -36,6 +36,8 @@ The contract ``views/main_window.py`` relies on:
   must not duplicate the built-in in the menu or clone its shortcut.
 - Two plugins with the same stem: the first directory wins (app-bundled
   before user), the loser is logged and skipped.
+- Optional TOML manifests are read before import. Malformed manifests and
+  plugins requiring a newer IngeTrazo are reported without executing code.
 """
 from __future__ import annotations
 
@@ -46,11 +48,13 @@ import os
 import shutil
 import sys
 import tempfile
+import tomllib
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 
 from core.paths import app_root
+from core.version import __version__
 
 log = logging.getLogger("ingetrazo.plugins")
 
@@ -75,10 +79,23 @@ class PluginError:
 
 
 @dataclass(frozen=True)
+class PluginManifest:
+    """Display and compatibility metadata read without importing code."""
+    name: str
+    version: str = ""
+    author: str = ""
+    description: str = ""
+    min_ingetrazo: str = ""
+    homepage: str = ""
+
+
+@dataclass(frozen=True)
 class PluginCandidate:
     """A plugin found on disk, before any of its code is imported."""
     stem: str
     path: Path
+    manifest: PluginManifest | None = None
+    manifest_error: str = ""
 
 
 def user_plugins_dir() -> Path:
@@ -95,6 +112,59 @@ def user_plugins_dir() -> Path:
 def plugin_dirs() -> list[Path]:
     """Candidate directories, app-bundled first (first stem wins)."""
     return [app_root() / "plugins", user_plugins_dir()]
+
+
+def _version_tuple(value: str) -> tuple[int, ...]:
+    """Comparable numeric release prefix (``0.5.7-beta`` → ``(0, 5, 7)``)."""
+    release = value.split("+", 1)[0].split("-", 1)[0]
+    parts = release.split(".")
+    if not parts or any(not p.isdigit() for p in parts):
+        raise ValueError(f"Invalid version: {value}")
+    numeric = tuple(int(p) for p in parts)
+    return numeric + (0,) * max(0, 3 - len(numeric))
+
+
+def _manifest_path(path: Path) -> Path:
+    return (path.parent / "plugin.toml" if path.name == "__init__.py"
+            else path.with_suffix(".toml"))
+
+
+def read_plugin_manifest(stem: str, path: Path) -> PluginManifest | None:
+    """Read optional ``plugin.toml``/``stem.toml`` metadata safely."""
+    manifest_path = _manifest_path(path)
+    if not manifest_path.is_file():
+        return None
+    with manifest_path.open("rb") as handle:
+        document = tomllib.load(handle)
+    values = document.get("plugin")
+    if not isinstance(values, dict):
+        raise ValueError("Manifest must contain a [plugin] table.")
+    allowed = ("name", "version", "author", "description",
+               "min_ingetrazo", "homepage")
+    for key in allowed:
+        if key in values and not isinstance(values[key], str):
+            raise ValueError(f"Manifest field {key!r} must be text.")
+    manifest = PluginManifest(
+        name=values.get("name", stem).strip() or stem,
+        version=values.get("version", "").strip(),
+        author=values.get("author", "").strip(),
+        description=values.get("description", "").strip(),
+        min_ingetrazo=values.get("min_ingetrazo", "").strip(),
+        homepage=values.get("homepage", "").strip())
+    if manifest.version:
+        _version_tuple(manifest.version)
+    if manifest.min_ingetrazo:
+        _version_tuple(manifest.min_ingetrazo)
+    return manifest
+
+
+def _compatibility_error(manifest: PluginManifest | None) -> str:
+    if (manifest is not None and manifest.min_ingetrazo
+            and _version_tuple(__version__) < _version_tuple(
+                manifest.min_ingetrazo)):
+        return (f"Requires IngeTrazo {manifest.min_ingetrazo} or newer "
+                f"(installed: {__version__}).")
+    return ""
 
 
 def _plugin_target(path: Path) -> Path:
@@ -131,13 +201,17 @@ def _zip_plugin_source(archive: Path, stage: Path) -> tuple[Path, str]:
             p.parts[0] for p in paths
             if len(p.parts) == 2 and p.parts[1] == "__init__.py"}
         top_py = [p for p in paths if len(p.parts) == 1 and p.suffix == ".py"]
+        top_toml = [
+            p for p in paths if len(p.parts) == 1 and p.suffix == ".toml"]
         if root_init:
             name = archive.stem
             source = stage
         elif len(package_roots) == 1 and roots == package_roots:
             name = next(iter(package_roots))
             source = stage / name
-        elif len(top_py) == 1 and len(paths) == 1:
+        elif (len(top_py) == 1 and len(paths) in (1, 2)
+              and (not top_toml
+                   or top_toml == [top_py[0].with_suffix(".toml")])):
             name = top_py[0].name
             source = stage / name
         else:
@@ -172,11 +246,21 @@ def install_plugin(source: Path, *, replace: bool = False,
                 "Choose a Python plugin (.py), plugin package, or ZIP package.")
 
         target = root / name
+        source_manifest = (payload.with_suffix(".toml")
+                           if payload.is_file() else None)
+        if source_manifest is not None and not source_manifest.is_file():
+            source_manifest = None
+        target_manifest = (target.with_suffix(".toml")
+                           if payload.is_file() else None)
         if target.exists() and not replace:
             raise FileExistsError(str(target))
         staged = root / f".{name}.installing"
+        staged_manifest = (root / f".{target_manifest.name}.installing"
+                           if target_manifest is not None else None)
         if staged.exists():
             shutil.rmtree(staged) if staged.is_dir() else staged.unlink()
+        if staged_manifest is not None and staged_manifest.exists():
+            staged_manifest.unlink()
         try:
             if payload.is_dir():
                 shutil.copytree(
@@ -184,23 +268,42 @@ def install_plugin(source: Path, *, replace: bool = False,
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
             else:
                 shutil.copy2(payload, staged)
+                if source_manifest is not None:
+                    shutil.copy2(source_manifest, staged_manifest)
         except Exception:
             if staged.exists():
                 shutil.rmtree(staged) if staged.is_dir() else staged.unlink()
+            if staged_manifest is not None and staged_manifest.exists():
+                staged_manifest.unlink()
             raise
         backup = root / f".{name}.previous"
+        backup_manifest = (root / f".{target_manifest.name}.previous"
+                           if target_manifest is not None else None)
         if backup.exists():
             shutil.rmtree(backup) if backup.is_dir() else backup.unlink()
         if target.exists():
             target.replace(backup)
+        if backup_manifest is not None and backup_manifest.exists():
+            backup_manifest.unlink()
+        if target_manifest is not None and target_manifest.exists():
+            target_manifest.replace(backup_manifest)
         try:
             staged.replace(target)
+            if staged_manifest is not None and staged_manifest.exists():
+                staged_manifest.replace(target_manifest)
         except Exception:
+            if target.exists():
+                target.unlink()
             if backup.exists() and not target.exists():
                 backup.replace(target)
+            if (backup_manifest is not None and backup_manifest.exists()
+                    and not target_manifest.exists()):
+                backup_manifest.replace(target_manifest)
             raise
         if backup.exists():
             shutil.rmtree(backup) if backup.is_dir() else backup.unlink()
+        if backup_manifest is not None and backup_manifest.exists():
+            backup_manifest.unlink()
         return target
 
 
@@ -213,6 +316,7 @@ def uninstall_plugin(path: Path, *, user_dir: Path | None = None) -> Path:
         shutil.rmtree(target)
     else:
         target.unlink(missing_ok=True)
+        target.with_suffix(".toml").unlink(missing_ok=True)
     return target
 
 
@@ -245,7 +349,14 @@ def plugin_candidates(dirs=None) -> list[PluginCandidate]:
                             "skipped", stem, file)
                 continue
             seen.add(stem)
-            out.append(PluginCandidate(stem, file))
+            try:
+                manifest = read_plugin_manifest(stem, file)
+                manifest_error = _compatibility_error(manifest)
+            except (OSError, ValueError, tomllib.TOMLDecodeError) as exc:
+                manifest = None
+                manifest_error = f"{type(exc).__name__}: {exc}"
+            out.append(PluginCandidate(
+                stem, file, manifest, manifest_error))
     return out
 
 
@@ -288,6 +399,12 @@ def discover_plugins(dirs=None, disabled=None, candidates=None):
         stem, file = candidate.stem, candidate.path
         if stem in disabled:
             log.info("plugin %r disabled by the user; skipped", stem)
+            continue
+        if candidate.manifest_error:
+            errors.append(PluginError(
+                stem, file, candidate.manifest_error))
+            log.warning("plugin %r manifest rejected: %s",
+                        stem, candidate.manifest_error)
             continue
         try:
             mod = _import_by_path(stem, file)

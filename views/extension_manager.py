@@ -39,7 +39,8 @@ class ExtensionManagerDialog(QDialog):
         self.tree = QTreeWidget(self)
         self.tree.setObjectName("extensionManagerTree")
         self.tree.setHeaderLabels([
-            tr("Extension"), tr("Status"), tr("Location")])
+            tr("Extension"), tr("Version"), tr("Status"), tr("Author"),
+            tr("Location")])
         self.tree.setRootIsDecorated(False)
         self.tree.setAlternatingRowColors(True)
         for candidate in candidates:
@@ -52,21 +53,31 @@ class ExtensionManagerDialog(QDialog):
                 status = tr("Loaded")
             else:
                 status = tr("No tools registered")
+            manifest = candidate.manifest
             item = QTreeWidgetItem([
-                stem, status, str(candidate.path.parent)])
+                manifest.name if manifest else stem,
+                manifest.version if manifest else "",
+                status,
+                manifest.author if manifest else "",
+                str(candidate.path.parent)])
             item.setData(0, Qt.UserRole, stem)
             item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
             item.setCheckState(
                 0, Qt.Unchecked if stem in self._initial else Qt.Checked)
             if stem in failed:
-                item.setToolTip(1, failed[stem])
+                item.setToolTip(2, failed[stem])
+            if manifest and manifest.description:
+                item.setToolTip(0, manifest.description)
+            if manifest and manifest.homepage:
+                item.setToolTip(3, manifest.homepage)
             self.tree.addTopLevelItem(item)
         self.tree.resizeColumnToContents(0)
         self.tree.resizeColumnToContents(1)
         layout.addWidget(self.tree, 1)
 
         if not candidates:
-            empty = QTreeWidgetItem([tr("No extensions installed"), "", ""])
+            empty = QTreeWidgetItem([
+                tr("No extensions installed"), "", "", "", ""])
             empty.setFlags(Qt.NoItemFlags)
             self.tree.addTopLevelItem(empty)
 
