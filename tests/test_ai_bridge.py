@@ -21,9 +21,10 @@ if QApplication.instance() is None:
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
 
-def _rpc(sock, tool, args=None):
+def _rpc(sock, tool, args=None, token=""):
     sock.sendall((json.dumps(
-        {"id": 1, "tool": tool, "args": args or {}}) + "\n").encode())
+        {"id": 1, "tool": tool, "args": args or {},
+         "auth": token}) + "\n").encode())
     buf = b""
     while b"\n" not in buf:
         chunk = sock.recv(65536)
@@ -43,7 +44,7 @@ def _ask(bridge, tool, args=None):
         s.settimeout(10.0)
         s.connect(("127.0.0.1", bridge.port))
         try:
-            out["reply"] = _rpc(s, tool, args)
+            out["reply"] = _rpc(s, tool, args, bridge.session_token)
         finally:
             s.close()
 
@@ -55,16 +56,23 @@ def _ask(bridge, tool, args=None):
     return out["reply"]
 
 
-def test_bridge_runs_python_transactionally(monkeypatch):
+def test_bridge_runs_python_transactionally(monkeypatch, tmp_path):
     from plugins.ai_bridge import _Bridge
     from views.main_window import MainWindow
     monkeypatch.setenv("INGETRAZO_AI_PORT", "0")   # ephemeral test port
+    monkeypatch.setenv("INGETRAZO_AI_CREDENTIAL_FILE",
+                       str(tmp_path / "session.json"))
     win = MainWindow()
     try:
         vp = win.viewport
         bridge = _Bridge(vp)
         bridge.start()
         assert bridge.port
+
+        # Legacy mutation tools are an explicit, session-only permission.
+        denied = _ask(bridge, "run_python", {"code": "print('no')"})
+        assert denied["ok"] is False and "disabled" in denied["error"]
+        bridge.allow_legacy_writes = True
 
         edges0 = len(vp.scene.mesh.edges)
         reply = _ask(bridge, "run_python", {"code": (
@@ -110,8 +118,10 @@ def test_mcp_server_protocol_and_bridge_down_message(monkeypatch):
     monkeypatch.setattr(mcp, "PORT", 1)            # nothing listens there
 
     init = mcp.handle({"jsonrpc": "2.0", "id": 1, "method": "initialize",
-                       "params": {}})
+                       "params": {"clientInfo": {"name": "Test client",
+                                                   "version": "2"}}})
     assert init["result"]["serverInfo"]["name"] == "ingetrazo"
+    assert mcp._client_name == "Test client 2"
 
     tools = mcp.handle({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
     names = {t["name"] for t in tools["result"]["tools"]}
@@ -129,10 +139,52 @@ def test_mcp_server_protocol_and_bridge_down_message(monkeypatch):
     assert "AI bridge" in result["content"][0]["text"]
 
 
-def test_bridge_context_tools_are_read_only(monkeypatch):
+def test_mcp_helper_authenticates_without_exposing_the_token(monkeypatch):
+    import ingetrazo_mcp as mcp
+
+    class FakeSocket:
+        def __init__(self):
+            self.sent = b""
+            self.connected = None
+
+        def settimeout(self, _seconds):
+            pass
+
+        def connect(self, address):
+            self.connected = address
+
+        def sendall(self, payload):
+            self.sent += payload
+
+        def recv(self, _size):
+            return b'{"id": 1, "ok": true, "result": {}}\n'
+
+        def close(self):
+            pass
+
+    fake = FakeSocket()
+    monkeypatch.setattr(mcp, "_sock", None)
+    monkeypatch.setattr(mcp, "PORT", 4763)
+    monkeypatch.setattr(mcp, "_session", lambda: {
+        "token": "private-session-token", "port": 54321})
+    monkeypatch.setattr(mcp.socket, "socket", lambda *_args: fake)
+
+    assert mcp._bridge("query_model", {})["ok"] is True
+    request = json.loads(fake.sent.decode())
+    assert request["auth"] == "private-session-token"
+    assert request["client"]
+    assert fake.connected == (mcp.HOST, 54321)
+
+    from plugins.ai_bridge import connect_instructions
+    assert "private-session-token" not in connect_instructions(54321)
+
+
+def test_bridge_context_tools_are_read_only(monkeypatch, tmp_path):
     from plugins.ai_bridge import _Bridge
     from views.main_window import MainWindow
     monkeypatch.setenv("INGETRAZO_AI_PORT", "0")
+    monkeypatch.setenv("INGETRAZO_AI_CREDENTIAL_FILE",
+                       str(tmp_path / "session.json"))
     win = MainWindow()
     try:
         vp = win.viewport
@@ -155,8 +207,42 @@ def test_bridge_context_tools_are_read_only(monkeypatch):
 
         caps = _ask(bridge, "get_capabilities")
         assert caps["ok"] and caps["result"]["write_actions"] is False
+        assert caps["result"]["security"] == {
+            "authenticated_session": True,
+            "max_message_bytes": 1024 * 1024,
+            "legacy_write_tools_enabled": False,
+        }
         assert before == (vp.scene.content_version, len(vp.history.undo_stack))
         bridge.stop()
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_bridge_authenticates_bounds_and_removes_its_session(monkeypatch,
+                                                              tmp_path):
+    from core.ai_bridge_auth import read_credential
+    from plugins.ai_bridge import MAX_MESSAGE_BYTES, _Bridge
+    from views.main_window import MainWindow
+    session_file = tmp_path / "session.json"
+    monkeypatch.setenv("INGETRAZO_AI_PORT", "0")
+    monkeypatch.setenv("INGETRAZO_AI_CREDENTIAL_FILE", str(session_file))
+    win = MainWindow()
+    try:
+        bridge = _Bridge(win.viewport)
+        bridge.start()
+        credential = read_credential()
+        assert credential["token"] == bridge.session_token
+        assert credential["port"] == bridge.port
+        assert bridge._handle_line(json.dumps({
+            "id": 7, "tool": "query_model", "args": {},
+            "auth": "wrong-token"}).encode()).decode().find(
+                "unauthorized") >= 0
+        oversized = bridge._handle_line(b"x" * (MAX_MESSAGE_BYTES + 1))
+        assert b"exceeds 1 MiB" in oversized
+        bridge.stop()
+        assert not session_file.exists()
+        assert bridge.allow_legacy_writes is False
     finally:
         win._saved_version = win.viewport.scene.version
         win.close()
