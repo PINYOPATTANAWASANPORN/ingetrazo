@@ -11,12 +11,12 @@ Register it with Claude Code:
 
     claude mcp add ingetrazo -- python3 /path/to/app/scripts/ingetrazo_mcp.py
 
-Tools: run_python (transactional, one undo step per call), query_model,
-screenshot (the agent SEES the viewport), undo, redo. Every mutation goes
-through IngeTrazo's command engine — the hermeticity guard validates the
-agent's recipes, and Ctrl+Z always works. The helper authenticates each
-request with a short-lived local session credential. Legacy mutation tools
-remain unavailable until the user enables them in IngeTrazo.
+Tools include bounded model context and preview-first typed property changes,
+plus the legacy run_python, query_model, screenshot, undo and redo profile.
+Typed commits require the user's in-app Apply action and become one undo step.
+The helper authenticates each request with a short-lived local session
+credential. Legacy mutation tools remain unavailable until the user enables
+them in IngeTrazo.
 """
 from __future__ import annotations
 
@@ -65,9 +65,10 @@ finally:
 INSTRUCTIONS = (
     "Estas herramientas operan el documento ABIERTO de IngeTrazo, en vivo: "
     "lo que escribas aparece en la pantalla del usuario y entra en su "
-    "historial de deshacer.\n" + REFERENCE + "\nEmpieza por query_model "
-    "para ver qué hay, construye con run_python y MIRA el resultado con "
-    "screenshot.")
+    "historial de deshacer.\n" + REFERENCE + "\nEmpieza por "
+    "get_document_context. Para propiedades compatibles usa propose_actions: "
+    "IngeTrazo muestra la vista previa y solamente el usuario puede aplicarla. "
+    "Usa screenshot para comprobar el resultado.")
 
 TOOLS = [
     {
@@ -141,6 +142,60 @@ TOOLS = [
                         "stable entity types and whether write actions, "
                         "preview, or multi-agent work are available."),
         "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "propose_actions",
+        "description": (
+            "Propose bounded property edits without changing the document. "
+            "Supported actions: rename_entities {name}, set_visibility "
+            "{visible}, set_lock {locked}, assign_tag {tag}; every action "
+            "also needs entity_ids. Holds one document write lease and "
+            "returns the exact before/after preview."),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "string", "maxLength": 100},
+                "intent": {"type": "string"},
+                "base_revision": {"type": "integer"},
+                "idempotency_key": {"type": "string", "minLength": 8,
+                                    "maxLength": 200},
+                "actions": {"type": "array", "minItems": 1,
+                            "maxItems": 100,
+                            "items": {"type": "object"}},
+            },
+            "required": ["task_id", "base_revision", "idempotency_key",
+                         "actions"],
+        },
+    },
+    {
+        "name": "preview_changes",
+        "description": "Read a task's exact non-mutating before/after preview.",
+        "inputSchema": {"type": "object", "properties": {
+            "task_id": {"type": "string"}}, "required": ["task_id"]},
+    },
+    {
+        "name": "validate_changes",
+        "description": "Revalidate a proposed task against the live revision.",
+        "inputSchema": {"type": "object", "properties": {
+            "task_id": {"type": "string"}}, "required": ["task_id"]},
+    },
+    {
+        "name": "commit_changes",
+        "description": (
+            "Request commit of a validated preview. This never bypasses the "
+            "user: IngeTrazo displays Apply/Discard and only Apply commits "
+            "the change set as one undo step."),
+        "inputSchema": {"type": "object", "properties": {
+            "task_id": {"type": "string"},
+            "base_revision": {"type": "integer"},
+            "idempotency_key": {"type": "string"}},
+            "required": ["task_id", "base_revision", "idempotency_key"]},
+    },
+    {
+        "name": "discard_changes",
+        "description": "Discard a proposal and release its write lease.",
+        "inputSchema": {"type": "object", "properties": {
+            "task_id": {"type": "string"}}, "required": ["task_id"]},
     },
     {
         "name": "screenshot",

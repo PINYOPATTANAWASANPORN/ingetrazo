@@ -245,10 +245,15 @@ def capabilities() -> dict:
         "schema_version": SCHEMA_VERSION,
         "read_tools": ["get_document_context", "find_entities",
                        "get_entities", "get_capabilities"],
+        "write_tools": ["propose_actions", "preview_changes",
+                        "validate_changes", "commit_changes",
+                        "discard_changes"],
+        "write_action_types": ["rename_entities", "set_visibility",
+                               "set_lock", "assign_tag"],
         "stable_entity_types": ["group", "component"],
         "topology_references": "revision_bound_only",
-        "write_actions": False,
-        "preview_changes": False,
+        "write_actions": True,
+        "preview_changes": True,
         "multi_agent": False,
     }
 

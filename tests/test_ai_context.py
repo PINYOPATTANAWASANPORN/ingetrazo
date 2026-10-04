@@ -84,4 +84,6 @@ def test_assistant_packet_is_small_json_and_capabilities_are_honest():
     caps = capabilities()
     assert caps["stable_entity_types"] == ["group", "component"]
     assert caps["topology_references"] == "revision_bound_only"
-    assert caps["write_actions"] is False
+    assert caps["write_actions"] is True
+    assert caps["preview_changes"] is True
+    assert "rename_entities" in caps["write_action_types"]

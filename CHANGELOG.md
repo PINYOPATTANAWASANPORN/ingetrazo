@@ -8,6 +8,15 @@ follow [SemVer](https://semver.org).
 
 ### Añadido
 
+- **Cambios IA tipados con vista previa y aprobación humana:** los clientes
+  MCP pueden proponer renombrar, mostrar/ocultar, bloquear/desbloquear y
+  asignar etiquetas a grupos o componentes mediante IDs estables. IngeTrazo
+  muestra cada valor anterior y nuevo; solo el botón «Aplicar cambios» de la
+  aplicación confirma el conjunto como un único paso de deshacer. Una
+  revisión obsoleta, un objeto bloqueado, una etiqueta no disponible, una
+  clave idempotente reutilizada o una segunda propuesta concurrente se
+  rechazan sin tocar el documento; «Descartar» tampoco deja cambios.
+
 - **El puente IA ahora empieza cerrado a escrituras peligrosas:** cada inicio
   crea una credencial local efímera que el servidor MCP obtiene sin mostrarla
   en comandos ni configuración; las peticiones sin ella se rechazan y cada
