@@ -81,6 +81,7 @@ class _Task:
     allowed_ids: set[str]
     constraints: object
     assumptions: list[str]
+    project_memory: list[str]
     acceptance_criteria: list[str]
     plan: list[dict]
     status: str = "ready"
@@ -103,6 +104,7 @@ class _Task:
             "scope": self.scope,
             "constraints": self.constraints,
             "assumptions": list(self.assumptions),
+            "project_memory": list(self.project_memory),
             "acceptance_criteria": list(self.acceptance_criteria),
             "plan": list(self.plan),
             "warnings": list(self.warnings),
@@ -229,10 +231,12 @@ class AITaskService:
         allowed_ids = set(resolved.pop("_allowed_ids"))
         if not resolved.get("truncated"):
             resolved.pop("truncated", None)
+        from core.ai_memory import load_memory
         task = _Task(
             task_id, intent, classified, execution,
             self.scene.content_version, resolved, allowed_ids,
             constraints, assumptions,
+            load_memory(getattr(self.scene, "ai_memory", [])),
             criteria, self._plan(classified, execution))
         self._tasks[task_id] = task
         self._active_id = task_id

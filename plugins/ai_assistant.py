@@ -28,10 +28,13 @@ from PySide6.QtGui import QFontDatabase, QImageReader, QPalette
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QDialog,
+    QDialogButtonBox,
     QFileDialog,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPlainTextEdit,
     QPushButton,
     QSplitter,
@@ -123,6 +126,34 @@ class PromptEdit(QPlainTextEdit):
         self.setPlainText(text)
 
 
+class ProjectMemoryDialog(QDialog):
+    """Visible editor for durable, document-owned AI facts."""
+
+    def __init__(self, facts, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(tr("Project AI memory"))
+        self.resize(520, 340)
+        layout = QVBoxLayout(self)
+        label = QLabel(tr(
+            "One fact per line. These facts are saved in this document and "
+            "included in every new AI task. Chat cannot change them."))
+        label.setWordWrap(True)
+        layout.addWidget(label)
+        self.editor = QPlainTextEdit()
+        self.editor.setPlainText("\n".join(facts))
+        self.editor.setPlaceholderText(tr(
+            "Typical floor height is 3.00 m\nPreferred wall thickness is 0.15 m"))
+        layout.addWidget(self.editor, 1)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Save | QDialogButtonBox.Cancel, parent=self)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def facts(self) -> list[str]:
+        return self.editor.toPlainText().splitlines()
+
+
 class AsistentePanel(QWidget):
     """The assistant as the «AI» tab of the side tray: the connection
     settings fold away, the chat takes the rest of the height."""
@@ -145,6 +176,8 @@ class AsistentePanel(QWidget):
         self._foto: tuple[str, str, str] | None = None  # (b64, mime, name)
         self._reply.connect(self._on_reply, Qt.QueuedConnection)
         self._build_ui()
+        self._viewport.sceneVersionChanged.connect(
+            lambda _version: self._refresh_project_memory())
         self._load_settings()
 
     # ---- UI -----------------------------------------------------------------
@@ -261,17 +294,26 @@ class AsistentePanel(QWidget):
         intent_row.addWidget(self._intent_mode)
         bl.addLayout(intent_row)
 
+        memory_row = QHBoxLayout()
         self._intent_assumptions = QLineEdit()
         self._intent_assumptions.setPlaceholderText(tr(
             "Assumptions (optional; separate with semicolons)"))
         self._intent_assumptions.setToolTip(tr(
             "Visible task assumptions sent to the model; they are not saved automatically"))
-        bl.addWidget(self._intent_assumptions)
+        memory_row.addWidget(self._intent_assumptions, 1)
+        self._project_memory = QPushButton()
+        self._project_memory.setToolTip(tr(
+            "Edit explicit project facts saved in this document"))
+        self._project_memory.clicked.connect(self._on_project_memory)
+        memory_row.addWidget(self._project_memory)
+        bl.addLayout(memory_row)
+        self._refresh_project_memory()
         self._task_chip = QLabel("")
         self._task_chip.setVisible(False)
         bl.addWidget(self._task_chip)
         narrow(self._intent_scope, self._intent_goal, self._intent_mode,
-               self._intent_assumptions, self._task_chip)
+               self._intent_assumptions, self._project_memory,
+               self._task_chip)
 
         self._input = PromptEdit()
         self._input.setPlaceholderText(
@@ -305,6 +347,7 @@ class AsistentePanel(QWidget):
         self._clear_foto()
 
     def focus_input(self) -> None:
+        self._refresh_project_memory()
         self._input.setFocus(Qt.ShortcutFocusReason)
 
     def _chat_colors(self) -> dict:
@@ -387,8 +430,34 @@ class AsistentePanel(QWidget):
 
     def _set_task_controls_enabled(self, enabled: bool) -> None:
         for widget in (self._intent_scope, self._intent_goal,
-                       self._intent_mode, self._intent_assumptions):
+                       self._intent_mode, self._intent_assumptions,
+                       self._project_memory):
             widget.setEnabled(enabled)
+
+    def _refresh_project_memory(self) -> None:
+        count = len(getattr(self._viewport.scene, "ai_memory", []))
+        self._project_memory.setText(tr("Memory ({count})", count=count))
+
+    def _apply_project_memory(self, facts) -> bool:
+        from core.ai_memory import validate_memory
+        from core.history import SetAIMemoryCommand
+        try:
+            clean = validate_memory(facts)
+        except ValueError as exc:
+            QMessageBox.warning(self, tr("Project AI memory"), str(exc))
+            return False
+        if clean == list(getattr(self._viewport.scene, "ai_memory", [])):
+            return True
+        self._viewport.history.execute(SetAIMemoryCommand(clean))
+        self._refresh_project_memory()
+        self._viewport.update()
+        return self._viewport.history.last_error is None
+
+    def _on_project_memory(self) -> None:
+        dialog = ProjectMemoryDialog(
+            getattr(self._viewport.scene, "ai_memory", []), self)
+        if dialog.exec() == QDialog.Accepted:
+            self._apply_project_memory(dialog.facts())
 
     def _task_is_read_only(self) -> bool:
         task = self._task_packet or {}
@@ -656,7 +725,7 @@ class AsistentePanel(QWidget):
             task_context = {key: self._task_packet[key] for key in (
                 "task_id", "intent", "goal", "execution", "base_revision",
                 "scope", "constraints", "assumptions",
-                "acceptance_criteria", "plan")}
+                "project_memory", "acceptance_criteria", "plan")}
             task_context["read_only"] = self._task_is_read_only()
             system += ("\n\nContrato de tarea fijado por la interfaz. Respeta "
                        "estrictamente el alcance y los supuestos; no amplíes "

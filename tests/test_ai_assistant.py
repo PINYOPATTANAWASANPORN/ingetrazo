@@ -326,6 +326,7 @@ def test_short_intent_controls_ground_the_model_in_selected_scope(monkeypatch):
         group = Group(name="Chair")
         win.viewport.scene.groups.append(group)
         win.viewport.scene.selection.add(group)
+        win.viewport.scene.ai_memory = ["Preferred wall thickness is 0.15 m"]
         dlg = AsistenteDialog(win.viewport, parent=win)
         dlg._key.setText("sk-ant-test")
         dlg._shots.setChecked(False)
@@ -353,6 +354,7 @@ def test_short_intent_controls_ground_the_model_in_selected_scope(monkeypatch):
         assert group.uid in systems[0]
         assert "analysis_only" in systems[0]
         assert '"read_only":true' in systems[0]
+        assert "Preferred wall thickness is 0.15 m" in systems[0]
         assert dlg._task_service().get(packet["task_id"])["status"] == "completed"
         assert dlg._intent_scope.isEnabled()
     finally:
@@ -406,6 +408,31 @@ def test_analysis_only_control_blocks_model_recipe(monkeypatch):
         dlg._intent_mode.setCurrentIndex(
             dlg._intent_mode.findData("apply_safe_changes"))
         dlg._save_settings()
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_project_memory_editor_applies_one_undoable_document_change():
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    try:
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        before = len(win.viewport.history.undo_stack)
+        assert dlg._apply_project_memory([
+            "  Typical floor height is 3.00 m  ",
+            "Preferred wall thickness is 0.15 m",
+        ])
+        assert win.viewport.scene.ai_memory == [
+            "Typical floor height is 3.00 m",
+            "Preferred wall thickness is 0.15 m",
+        ]
+        assert dlg._project_memory.text() == "Memory (2)"
+        assert len(win.viewport.history.undo_stack) == before + 1
+        win.viewport.history.undo()
+        assert win.viewport.scene.ai_memory == []
+    finally:
         win._saved_version = win.viewport.scene.version
         win.close()
 

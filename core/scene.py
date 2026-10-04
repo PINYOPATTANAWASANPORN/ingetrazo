@@ -113,6 +113,10 @@ class Scene:
     #: .igz; the core never reads it. Changed through
     #: ``core.history.SetPluginDataCommand`` so each edit is undoable.
     plugin_data: dict = field(default_factory=dict)
+    #: Explicit facts the document owner wants AI tasks to know, such as a
+    #: standard wall thickness or required units.  They are never inferred
+    #: from chat and travel with the .igz file.
+    ai_memory: list[str] = field(default_factory=list)
     dimension_style: dict = field(default_factory=lambda: {
         "decimals": 2, "units": "m", "font_size": 9, "color": [45, 55, 75],
         "norma": "iso", "base_step_mm": 8.0, "ends": "arrow"})
