@@ -259,8 +259,9 @@ for later Phase 2 slices. The first Phase 3 backend slice is also implemented:
 `create_task` turns compact intent into a revision-pinned task with automatic
 selection/current-group/visible-model scope, constraints, assumptions,
 acceptance criteria, and a deterministic role plan. Registered tasks enforce
-their resolved entity scope through preview and commit. Intent chips, project
-streaming, cancellation, and actual specialist execution remain. The
+their resolved entity scope through preview and commit. Context-aware
+suggestion chips, streaming, cancellation, and actual specialist execution
+remain. The
 in-app Assistant now exposes compact Scope, Goal, and Execution controls plus
 editable per-request assumptions, includes the resulting task contract in
 the model context, and enforces Analysis only by refusing returned recipes.
