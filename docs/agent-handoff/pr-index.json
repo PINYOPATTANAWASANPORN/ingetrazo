@@ -302,6 +302,16 @@
       "merged": false,
       "updated_at": "2026-10-04T14:45:31Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/32"
+    },
+    {
+      "number": 33,
+      "state": "open",
+      "title": "Add AI development handoff pack",
+      "base": "feature/ai-project-memory",
+      "head": "docs/ai-development-handoff",
+      "merged": false,
+      "updated_at": "2026-10-04T14:54:31Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33"
     }
   ]
 }

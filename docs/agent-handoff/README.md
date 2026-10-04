@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 Snapshot date: **2026-10-04**  
 Upstream/fork `main` baseline: **`6be29fe`**  
 Handoff base: **`feature/ai-project-memory` at `6c8364c`**  
-Delivery state: **30 open PRs; none merged into the fork's `main`**
+Delivery state: **31 open PRs; none merged into the fork's `main`**
 
 ## Read in this order
 
@@ -20,6 +20,11 @@ Delivery state: **30 open PRs; none merged into the fork's `main`**
 4. [`LESSONS_LEARNED.md`](LESSONS_LEARNED.md) — reusable engineering knowledge
    and failure patterns.
 5. [`pr-index.json`](pr-index.json) — GitHub API snapshot of every fork PR.
+
+The handoff pack itself is delivered by
+[#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
+#32. New code should preserve this documentation layer or update it in the
+same change.
 
 The detailed design documents remain authoritative for their domains:
 

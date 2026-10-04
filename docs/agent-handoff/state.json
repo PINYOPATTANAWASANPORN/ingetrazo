@@ -8,9 +8,13 @@
     "commit": "6c8364c",
     "pull_request": 32
   },
+  "documentation_delivery": {
+    "branch": "docs/ai-development-handoff",
+    "pull_request": 33
+  },
   "delivery": {
-    "pull_requests_total": 30,
-    "open": 30,
+    "pull_requests_total": 31,
+    "open": 31,
     "merged": 0,
     "missing_numbers": [18, 27],
     "installed_build_verified": false
