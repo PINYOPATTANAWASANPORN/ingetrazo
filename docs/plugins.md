@@ -12,6 +12,10 @@ tools. Drop it in either of the two places IngeTrazo scans at startup:
   (honouring `$XDG_DATA_HOME`), `%APPDATA%\ingetrazo\plugins\` on Windows.
   **Extensions ▸ Open plugins folder** creates and opens it for you.
 
+**Extensions ▸ Manage extensions…** inventories both locations without
+executing disabled plugins. It shows load errors and lets you enable or disable
+individual plugins; the choice takes effect on the next IngeTrazo start.
+
 Every `Tool` subclass **defined in the file** gets an entry in the
 **Extensions** menu. (Classes a plugin merely imports are ignored, so
 importing `LineTool` to reuse it does not duplicate the built-in.)

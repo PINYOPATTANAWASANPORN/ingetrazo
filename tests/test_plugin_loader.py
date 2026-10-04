@@ -31,7 +31,7 @@ elif not isinstance(_inst, QApplication):
 
 import core.extensions as extensions                              # noqa: E402
 from core.extensions import (                                     # noqa: E402
-    discover_plugins, plugin_dirs, user_plugins_dir)
+    discover_plugins, plugin_candidates, plugin_dirs, user_plugins_dir)
 
 
 def _write(dirpath: Path, name: str, source: str) -> Path:
@@ -180,6 +180,17 @@ def test_duplicate_stem_first_dir_wins(tmp_path):
     assert [t.name for p in plugins for t in p.tools] == ["Hello"]
 
 
+def test_disabled_plugin_is_listed_without_importing_its_code(tmp_path):
+    marker = tmp_path / "imported.txt"
+    _write(tmp_path, "hello.py", GOOD + f"\nopen({str(marker)!r}, 'w').close()\n")
+    candidates = plugin_candidates([tmp_path])
+    plugins, errors = discover_plugins(
+        disabled={"hello"}, candidates=candidates)
+    assert [c.stem for c in candidates] == ["hello"]
+    assert plugins == [] and errors == []
+    assert not marker.exists()
+
+
 # ---- The Extensions menu itself -------------------------------------------
 
 def _extensions_menu(window):
@@ -222,6 +233,35 @@ def test_menu_placeholder_when_no_plugins(main_window):
     texts = [a.text() for a in actions]
     assert "Open plugins folder" in texts
     assert "Develop a plugin…" in texts
+    assert "Manage extensions…" in texts
+
+
+def test_manager_reports_loaded_broken_and_disabled_plugins(tmp_path):
+    from PySide6.QtCore import Qt
+    from views.extension_manager import ExtensionManagerDialog
+
+    _write(tmp_path, "hello.py", GOOD)
+    _write(tmp_path, "roto.py", "import modulo_que_no_existe\n")
+    _write(tmp_path, "off.py", GOOD)
+    candidates = plugin_candidates([tmp_path])
+    plugins, errors = discover_plugins(
+        disabled={"off"}, candidates=candidates)
+    dialog = ExtensionManagerDialog(
+        candidates, plugins, errors, {"off"})
+    try:
+        rows = {
+            dialog.tree.topLevelItem(i).text(0): dialog.tree.topLevelItem(i)
+            for i in range(dialog.tree.topLevelItemCount())
+        }
+        assert rows["hello"].text(1) == "Loaded"
+        assert rows["roto"].text(1) == "Load error"
+        assert rows["off"].text(1) == "Disabled"
+        assert rows["off"].checkState(0) == Qt.Unchecked
+        rows["hello"].setCheckState(0, Qt.Unchecked)
+        assert dialog.disabled_stems() == {"hello", "off"}
+        assert dialog.changed()
+    finally:
+        dialog.close()
 
 
 def test_plugin_cannot_steal_a_builtin_shortcut(tmp_path, main_window):
