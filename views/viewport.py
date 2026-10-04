@@ -11037,6 +11037,40 @@ class Viewport(QOpenGLWidget):
                     best_g = self._owner_of(g)
         return best_g
 
+    def pick_selection_candidates(self, screen_x: float,
+                                  screen_y: float) -> list:
+        """Every selectable filled entity below a pixel, front to back.
+
+        Select's ordinary picker still decides the first candidate so visible
+        edges, labels and annotations retain their established priority.  This
+        method exposes the deeper face hits already calculated by the shared
+        pick index; grouped faces resolve to the group a click may select.
+        """
+        origin, direction = self._pixel_to_ray(screen_x, screen_y)
+        if origin is None or direction is None:
+            return []
+        import numpy as np
+        idx = self._pick_index(near=("px", screen_x, screen_y))
+        if not idx.entities:
+            return []
+        face_t = self._hover_face_t(idx, origin, direction)
+        if face_t is None:
+            return []
+        result = []
+        seen = set()
+        for raw_i in np.argsort(face_t):
+            i = int(raw_i)
+            if not np.isfinite(face_t[i]):
+                break
+            face, owner = idx.entities[i]
+            candidate = owner if owner is not None else face
+            marker = id(candidate)
+            if marker in seen:
+                continue
+            seen.add(marker)
+            result.append(candidate)
+        return result
+
     # ---- Tool management ----------------------------------------------------
     def set_active_tool(self, tool: Optional[Tool]) -> None:
         if self.active_tool is tool and self.nav_mode is None:
