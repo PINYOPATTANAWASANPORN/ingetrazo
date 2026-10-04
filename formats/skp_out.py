@@ -127,8 +127,19 @@ def _stage_texture(src: Path, stage_dir: Path | None, taken: set) -> Path | None
     src = Path(src)
     if stage_dir is None:                   # direct callers: no staging
         return src if len(str(src)) < 200 else None
+    # Qt can create and render a Windows file beyond MAX_PATH, while Python's
+    # ordinary ``Path.read_bytes`` still reports it as missing unless the
+    # extended-length prefix is used.  This is exactly the cache path this
+    # staging step exists to shorten before OpenSKP sees it.
+    import os
+    source_path = os.path.abspath(os.fspath(src))
+    if os.name == "nt" and not source_path.startswith("\\\\?\\"):
+        source_path = ("\\\\?\\UNC\\" + source_path[2:]
+                       if source_path.startswith("\\\\")
+                       else "\\\\?\\" + source_path)
     try:
-        data = src.read_bytes()
+        with open(source_path, "rb") as stream:
+            data = stream.read()
     except OSError:
         return None
     from core.texture import texture_file_name
@@ -140,7 +151,7 @@ def _stage_texture(src: Path, stage_dir: Path | None, taken: set) -> Path | None
         # the image; what Qt cannot read either becomes a colour.
         from PySide6.QtGui import QImage
         from PySide6.QtCore import QBuffer, QIODevice
-        img = QImage(str(src))
+        img = QImage(source_path)
         if img.isNull():
             return None
         buf = QBuffer()
