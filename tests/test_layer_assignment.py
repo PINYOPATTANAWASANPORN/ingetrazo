@@ -67,7 +67,8 @@ def test_entity_info_shows_the_layer_and_changes_it():
     vp = win.viewport
     try:
         scene = vp.scene
-        scene.layers.append(Layer("Muros"))
+        scene.layers.extend([Layer("Muros"),
+                             Layer("Referencia", visible=False, locked=True)])
         face = _square(scene.mesh)
         g = Group(Mesh(), name="caja")
         scene.groups.append(g)
@@ -77,6 +78,10 @@ def test_entity_info_shows_the_layer_and_changes_it():
         panel.refresh()
         assert panel._layer_box.isVisibleTo(panel)
         assert panel._layer_box.currentData() == "Layer 0"
+        reference = panel._layer_box.findData("Referencia")
+        assert panel._layer_box.itemText(reference) == \
+            "Referencia (hidden, locked)"
+        assert "invisible" in panel._layer_box.model().item(reference).toolTip()
 
         idx = panel._layer_box.findData("Muros")
         panel._layer_box.setCurrentIndex(idx)          # the user picks Muros
@@ -107,7 +112,8 @@ def test_right_click_layer_submenu_and_new_layer():
     vp = win.viewport
     try:
         scene = vp.scene
-        scene.layers.append(Layer("Muros"))
+        scene.layers.extend([Layer("Muros"),
+                             Layer("Referencia", visible=False, locked=True)])
         g = Group(Mesh(), name="caja")
         scene.groups.append(g)
         scene.select([g])
@@ -115,7 +121,13 @@ def test_right_click_layer_submenu_and_new_layer():
         win._add_layer_submenu(menu, list(scene.selection))
         sub = [a for a in menu.actions() if a.menu() is not None][0].menu()
         names = [a.text() for a in sub.actions() if not a.isSeparator()]
-        assert names[:2] == ["Layer 0", "Muros"] and names[-1] == "New layer…"
+        assert names[:3] == ["Layer 0", "Muros",
+                             "Referencia (hidden, locked)"]
+        assert names[-1] == "New layer…"
+        ref_action = [a for a in sub.actions()
+                      if a.data() == "Referencia"][0]
+        assert ref_action.text() == "Referencia (hidden, locked)"
+        assert "invisible" in ref_action.toolTip()
         ticked = [a.text() for a in sub.actions() if a.isChecked()]
         assert ticked == ["Layer 0"]
         [a for a in sub.actions() if a.text() == "Muros"][0].trigger()

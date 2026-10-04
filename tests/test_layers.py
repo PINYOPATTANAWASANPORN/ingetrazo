@@ -111,6 +111,7 @@ def test_toolbar_active_tag_switches_and_explains_unavailable_tags():
             Layer("Muros"),
             Layer("Oculto", visible=False),
             Layer("Bloqueado", locked=True),
+            Layer("Ambos", visible=False, locked=True),
         ])
         win._refresh_active_tag_combo()
         combo = win._active_tag_combo
@@ -118,6 +119,10 @@ def test_toolbar_active_tag_switches_and_explains_unavailable_tags():
         assert combo.itemData(combo.currentIndex()) == DEFAULT_LAYER
         assert combo.findText("Oculto (hidden)") >= 0
         assert combo.findText("Bloqueado (locked)") >= 0
+        both = combo.findText("Ambos (hidden, locked)")
+        assert both >= 0
+        assert "invisible" in combo.model().item(both).toolTip()
+        assert "cannot be edited" in combo.model().item(both).toolTip()
         assert not combo.model().item(combo.findData("Oculto")).isEnabled()
         assert not combo.model().item(combo.findData("Bloqueado")).isEnabled()
 
