@@ -8,6 +8,13 @@ follow [SemVer](https://semver.org).
 
 ### Añadido
 
+- **Controles compactos para instrucciones IA:** el Asistente permite elegir
+  alcance y objetivo, alternar entre actuación transaccional y solo análisis,
+  y escribir supuestos visibles sin alargar el prompt. Cada envío crea y
+  muestra su contrato de tarea, lo añade automáticamente al contexto y
+  bloquea recetas Python si el usuario eligió solo análisis. Los controles se
+  deshabilitan durante la ejecución y recuperan su estado al finalizar.
+
 - **Tareas IA a partir de instrucciones cortas:** `create_task` convierte una
   intención breve en un contrato con revisión base, objetivo, alcance,
   restricciones, supuestos, criterios de aceptación y plan. El alcance

@@ -98,7 +98,7 @@ class _Task:
             "execution": self.execution,
             "base_revision": self.base_revision,
             "content_revision": content_revision,
-            "stale": (self.status not in {"committed", "discarded"}
+            "stale": (self.status not in {"committed", "completed", "discarded"}
                       and content_revision != self.base_revision),
             "scope": self.scope,
             "constraints": self.constraints,

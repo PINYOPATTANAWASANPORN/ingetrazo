@@ -124,6 +124,14 @@ después el grupo abierto y finalmente el modelo visible. Los IDs resueltos
 quedan fijados en la tarea: `propose_actions` rechaza cualquier objeto fuera
 de ese alcance, aunque el agente intente ampliar silenciosamente el trabajo.
 
+La caja del Asistente ofrece los mismos datos como controles compactos:
+**alcance**, **objetivo**, **Actuar (deshacer)** o **Solo análisis**, más una
+línea de supuestos visibles separada por punto y coma. El contrato acompaña
+automáticamente cada turno. Solo análisis rechaza cualquier receta Python
+devuelta por el proveedor. Actuar conserva temporalmente la ruta transaccional
+de recetas; la vista previa tipada y Aplicar/Descartar siguen en el puente MCP
+hasta que el bucle interno comparta sus tools.
+
 ### Modelar desde una foto
 
 Con el botón **Foto…** adjuntas la imagen de un objeto (una fuente, un

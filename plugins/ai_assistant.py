@@ -20,6 +20,7 @@ the recipes always execute on the Qt main thread.
 from __future__ import annotations
 
 import base64
+import json
 import threading
 
 from PySide6.QtCore import QBuffer, QIODevice, QSettings, Qt, Signal
@@ -136,6 +137,11 @@ class AsistentePanel(QWidget):
         self._round = 0
         self._nudged = False
         self._last_prompt = ""
+        self._tasks = None
+        self._task_packet: dict | None = None
+        self._active_task_id = ""
+        self._task_changed = False
+        self._analysis_nudged = False
         self._foto: tuple[str, str, str] | None = None  # (b64, mime, name)
         self._reply.connect(self._on_reply, Qt.QueuedConnection)
         self._build_ui()
@@ -224,6 +230,49 @@ class AsistentePanel(QWidget):
         chip_row.addWidget(self._foto_quitar)
         bl.addLayout(chip_row)
 
+        intent_row = QHBoxLayout()
+        self._intent_scope = QComboBox()
+        for label, value in ((tr("Auto scope"), "auto"),
+                             (tr("Selection"), "selection"),
+                             (tr("Current group"), "current_group"),
+                             (tr("Visible model"), "visible_model"),
+                             (tr("Whole model"), "whole_model")):
+            self._intent_scope.addItem(label, value)
+        self._intent_scope.setToolTip(tr(
+            "What the assistant may consider for this request"))
+        intent_row.addWidget(self._intent_scope)
+        self._intent_goal = QComboBox()
+        self._intent_goal.addItem(tr("Auto goal"), "")
+        for label, value in ((tr("Create"), "create"),
+                             (tr("Revise"), "revise"),
+                             (tr("Furnish"), "furnish"),
+                             (tr("Check"), "check"),
+                             (tr("Quantify"), "quantify"),
+                             (tr("Explain"), "explain")):
+            self._intent_goal.addItem(label, value)
+        self._intent_goal.setToolTip(tr(
+            "The result you want; Auto infers it from your short request"))
+        intent_row.addWidget(self._intent_goal)
+        self._intent_mode = QComboBox()
+        self._intent_mode.addItem(tr("Act (undoable)"), "apply_safe_changes")
+        self._intent_mode.addItem(tr("Analysis only"), "analysis_only")
+        self._intent_mode.setToolTip(tr(
+            "Analysis only blocks any Python recipe returned by the model"))
+        intent_row.addWidget(self._intent_mode)
+        bl.addLayout(intent_row)
+
+        self._intent_assumptions = QLineEdit()
+        self._intent_assumptions.setPlaceholderText(tr(
+            "Assumptions (optional; separate with semicolons)"))
+        self._intent_assumptions.setToolTip(tr(
+            "Visible task assumptions sent to the model; they are not saved automatically"))
+        bl.addWidget(self._intent_assumptions)
+        self._task_chip = QLabel("")
+        self._task_chip.setVisible(False)
+        bl.addWidget(self._task_chip)
+        narrow(self._intent_scope, self._intent_goal, self._intent_mode,
+               self._intent_assumptions, self._task_chip)
+
         self._input = PromptEdit()
         self._input.setPlaceholderText(
             tr("e.g. draw a 6×4 m house with a gable roof")
@@ -238,7 +287,7 @@ class AsistentePanel(QWidget):
         split.setStretchFactor(0, 3)
         split.setStretchFactor(1, 1)
         line = self._input.fontMetrics().lineSpacing()
-        split.setSizes([400, 6 * line + 16])
+        split.setSizes([400, 10 * line + 24])
         layout.addWidget(split, 1)
 
         row3 = QHBoxLayout()
@@ -293,6 +342,13 @@ class AsistentePanel(QWidget):
         self._ollama.setText(str(st.value("ia/ollama_url",
                                           "http://localhost:11434") or ""))
         self._shots.setChecked(str(st.value("ia/capturas", "1")) != "0")
+        for combo, key, default in (
+                (self._intent_scope, "ia/task_scope", "auto"),
+                (self._intent_goal, "ia/task_goal", ""),
+                (self._intent_mode, "ia/task_mode", "apply_safe_changes")):
+            index = combo.findData(str(st.value(key, default) or default))
+            if index >= 0:
+                combo.setCurrentIndex(index)
         stored = str(st.value("ia/proveedor", "auto") or "auto")
         idx = self._provider.findData(stored)
         if idx >= 0:
@@ -308,7 +364,36 @@ class AsistentePanel(QWidget):
         st.setValue("ia/ollama_url", self._ollama.text().strip())
         st.setValue("ia/capturas", "1" if self._shots.isChecked() else "0")
         st.setValue("ia/proveedor", self._provider.currentData())
+        st.setValue("ia/task_scope", self._intent_scope.currentData())
+        st.setValue("ia/task_goal", self._intent_goal.currentData())
+        st.setValue("ia/task_mode", self._intent_mode.currentData())
         self._stash_credentials(st, self._provider.currentData())
+
+    def _task_service(self):
+        if self._tasks is None or self._tasks.scene is not self._viewport.scene:
+            from core.ai_tasks import AITaskService
+            self._tasks = AITaskService(self._viewport.scene)
+        return self._tasks
+
+    def _create_task(self, prompt: str) -> dict:
+        assumptions = [item.strip() for item in
+                       self._intent_assumptions.text().split(";")
+                       if item.strip()]
+        return self._task_service().create(
+            intent=prompt, scope=self._intent_scope.currentData(),
+            goal=self._intent_goal.currentData(), constraints={},
+            execution=self._intent_mode.currentData(),
+            assumptions=assumptions, acceptance_criteria=[])
+
+    def _set_task_controls_enabled(self, enabled: bool) -> None:
+        for widget in (self._intent_scope, self._intent_goal,
+                       self._intent_mode, self._intent_assumptions):
+            widget.setEnabled(enabled)
+
+    def _task_is_read_only(self) -> bool:
+        task = self._task_packet or {}
+        return (task.get("execution") == "analysis_only"
+                or task.get("goal") in {"check", "quantify", "explain"})
 
     def _stash_credentials(self, st: QSettings, slot) -> None:
         """Remember the current key/model under the provider they belong
@@ -515,6 +600,22 @@ class AsistentePanel(QWidget):
         if hint is not None:
             self._append(hint, "err")     # the prompt stays in the box
             return
+        task = self._create_task(prompt)
+        if not task.get("ok"):
+            self._append(tr("Could not create the AI task: {err}",
+                            err=task.get("message") or task), "err")
+            return
+        self._task_packet = task
+        self._active_task_id = task["task_id"]
+        self._task_changed = False
+        self._analysis_nudged = False
+        self._task_service().transition(self._active_task_id, "running")
+        self._task_chip.setText(tr(
+            "Task: {goal} · {scope} · {count} entities · {mode}",
+            goal=task["goal"], scope=task["scope"]["kind"],
+            count=task["scope"]["entity_count"], mode=task["execution"]))
+        self._task_chip.setVisible(True)
+        self._set_task_controls_enabled(False)
         self._input.clear()
         self._save_settings()
         self._append(f"Tú: {prompt}", "user")
@@ -551,6 +652,18 @@ class AsistentePanel(QWidget):
         context = ai_context.assistant_context(self._viewport.scene)
         system = (SYSTEM_PROMPT + "\n\nContexto actual del documento (solo "
                   "lectura; puede estar truncado):\n" + context)
+        if self._task_packet is not None:
+            task_context = {key: self._task_packet[key] for key in (
+                "task_id", "intent", "goal", "execution", "base_revision",
+                "scope", "constraints", "assumptions",
+                "acceptance_criteria", "plan")}
+            task_context["read_only"] = self._task_is_read_only()
+            system += ("\n\nContrato de tarea fijado por la interfaz. Respeta "
+                       "estrictamente el alcance y los supuestos; no amplíes "
+                       "los entity_ids. Si read_only es true, NO "
+                       "incluyas código Python ni cambies el documento:\n"
+                       + json.dumps(task_context, ensure_ascii=False,
+                                    separators=(",", ":")))
 
         budget = TOKENS_BY_PROVIDER.get(provider, MAX_TOKENS)
 
@@ -650,9 +763,27 @@ class AsistentePanel(QWidget):
                             n=MAX_ROUNDS), "muted")
             self._finish()
             return
+        if code is not None and self._task_is_read_only():
+            if not self._analysis_nudged:
+                self._analysis_nudged = True
+                self._append(tr(
+                    "Analysis-only mode blocked the returned recipe; asking for a read-only answer."),
+                    "muted")
+                self._convo.append({"role": "user", "text":
+                    "La tarea es analysis_only. El bloque Python fue "
+                    "rechazado y NO se ejecutó. Responde con análisis y "
+                    "recomendaciones, sin código ni cambios al documento."})
+                self._next_turn()
+                return
+            self._append(tr(
+                "Analysis-only mode blocked a second recipe; the document is unchanged."),
+                "err")
+            self._finish()
+            return
         if code is None:
             if self._round == 0 and not self._nudged and _asks_to_build(
-                    self._last_prompt) and "?" not in text[-80:]:
+                    self._last_prompt) and "?" not in text[-80:] \
+                    and not self._task_is_read_only():
                 # A model that narrates a build it never sent (Groq's
                 # compound answered «se añadió una cumbrera…» with no
                 # block, Marco 2026-09-15): one push, then let it be.
@@ -669,6 +800,7 @@ class AsistentePanel(QWidget):
             return
         self._round += 1
         result = ai.run_transactional(self._viewport, code, self._scope)
+        self._task_changed = self._task_changed or bool(result["changed"])
         summary = []
         if result["stdout"]:
             out = result["stdout"].rstrip()
@@ -697,6 +829,13 @@ class AsistentePanel(QWidget):
     def _finish(self) -> None:
         self._busy = False
         self._send.setEnabled(True)
+        self._set_task_controls_enabled(True)
+        if self._active_task_id:
+            status = "committed" if self._task_changed else "completed"
+            self._task_service().transition(
+                self._active_task_id, status,
+                {"changed": self._task_changed,
+                 "content_revision": self._viewport.scene.content_version})
 
     def _screenshot_b64(self) -> str | None:
         try:
