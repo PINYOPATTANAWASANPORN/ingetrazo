@@ -255,7 +255,12 @@ materials, and bounded top-level translate/rotate/scale operations. Transform
 previews report exact before/after bounds and parameters. MCP can request a
 commit, but only the in-app Apply button can approve it. Creation actions,
 nested world-space transforms, and branch-rendered geometry previews remain
-for later Phase 2 slices.
+for later Phase 2 slices. The first Phase 3 backend slice is also implemented:
+`create_task` turns compact intent into a revision-pinned task with automatic
+selection/current-group/visible-model scope, constraints, assumptions,
+acceptance criteria, and a deterministic role plan. Registered tasks enforce
+their resolved entity scope through preview and commit. Intent chips, project
+memory, streaming, cancellation, and actual specialist execution remain.
 
 ### Phase 1 — shared context and typed read tools
 

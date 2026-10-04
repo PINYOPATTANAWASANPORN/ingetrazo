@@ -87,3 +87,6 @@ def test_assistant_packet_is_small_json_and_capabilities_are_honest():
     assert caps["write_actions"] is True
     assert caps["preview_changes"] is True
     assert "rename_entities" in caps["write_action_types"]
+    assert caps["task_engine"] is True
+    assert {"create_task", "get_task"} <= set(
+        caps["write_tools"] + caps["read_tools"])

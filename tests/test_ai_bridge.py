@@ -130,6 +130,7 @@ def test_mcp_server_protocol_and_bridge_down_message(monkeypatch):
             "screenshot", "undo", "redo"} <= names
     assert {"propose_actions", "preview_changes", "validate_changes",
             "commit_changes", "discard_changes"} <= names
+    assert {"create_task", "get_task"} <= names
 
     assert mcp.handle({"jsonrpc": "2.0",
                        "method": "notifications/initialized"}) is None
@@ -263,6 +264,42 @@ def test_bridge_typed_write_waits_for_in_app_approval(monkeypatch, tmp_path):
         assert group.name == "Kitchen cabinet"
         assert len(vp.history.undo_stack) == 1
         assert vp.history.undo() and group.name == "Draft cabinet"
+        bridge.stop()
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_bridge_short_task_resolves_selection_and_limits_proposal(monkeypatch,
+                                                                   tmp_path):
+    from core.group import Group
+    from plugins.ai_bridge import _Bridge
+    from views.main_window import MainWindow
+    monkeypatch.setenv("INGETRAZO_AI_PORT", "0")
+    monkeypatch.setenv("INGETRAZO_AI_CREDENTIAL_FILE",
+                       str(tmp_path / "session.json"))
+    win = MainWindow()
+    try:
+        vp = win.viewport
+        selected, outside = Group(name="Selected"), Group(name="Outside")
+        vp.scene.groups.extend([selected, outside])
+        vp.scene.selection.add(selected)
+        bridge = _Bridge(vp)
+        bridge.start()
+        created = _ask(bridge, "create_task", {
+            "intent": "rename this", "scope": "auto",
+            "acceptance_criteria": ["clear final name"]})["result"]
+        assert created["scope"]["entity_ids"] == [selected.uid]
+        read = _ask(bridge, "get_task", {"task_id": created["task_id"]})
+        assert read["result"]["status"] == "ready"
+        denied = _ask(bridge, "propose_actions", {
+            "task_id": created["task_id"],
+            "base_revision": created["base_revision"],
+            "idempotency_key": "task-scope-denied-001",
+            "actions": [{"action": "rename_entities",
+                         "entity_ids": [outside.uid], "name": "No"}]})
+        assert denied["result"]["code"] == "scope_violation"
+        assert bridge.activity()["active_task"]["status"] == "ready"
         bridge.stop()
     finally:
         win._saved_version = win.viewport.scene.version
