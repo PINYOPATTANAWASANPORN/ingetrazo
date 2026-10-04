@@ -247,9 +247,13 @@ Implementation status (2026-10-04): Phase 1's bounded context contract and
 MCP read profile are implemented. The first Phase 2 security gate is also in
 place: the loopback bridge authenticates requests with a rotating local
 credential, bounds messages, reports client activity, and keeps raw Python
-and global undo/redo disabled unless the user opts in for that session. Typed
-writes remain unadvertised until preview, validation, idempotency, and write
-lease mechanics are proven.
+and global undo/redo disabled unless the user opts in for that session. The
+first typed-write slice implements preview, validation, idempotency, a
+document write lease, stale-revision rejection, discard, and one-step undo for
+container naming, visibility, locking, and existing-tag assignment. MCP can
+request a commit, but only the in-app Apply button can approve it. Transforms,
+materials, creation actions, and branch-rendered geometry previews remain for
+later Phase 2 slices.
 
 ### Phase 1 — shared context and typed read tools
 

@@ -77,6 +77,7 @@ class _Bridge(QObject):
         self.request_count = 0
         self.last_tool = ""
         self.last_error = ""
+        self._changes = None
         # Queued to a BOUND method of this main-thread QObject — connecting a
         # lambda would run the slot on the worker thread (CLAUDE.md gotcha).
         self._dispatch.connect(self._run_on_main, Qt.QueuedConnection)
@@ -115,6 +116,8 @@ class _Bridge(QObject):
 
     def stop(self) -> None:
         self._stop.set()
+        if self._changes is not None and self._changes.summary() is not None:
+            self._changes.discard(self._changes.summary()["task_id"])
         if self._server is not None:
             try:
                 self._server.close()
@@ -141,7 +144,16 @@ class _Bridge(QObject):
                 "request_count": self.request_count,
                 "last_tool": self.last_tool,
                 "last_error": self.last_error,
-                "legacy_writes": self.allow_legacy_writes}
+                "legacy_writes": self.allow_legacy_writes,
+                "pending_change": (self._changes.summary()
+                                   if self._changes is not None else None)}
+
+    def change_service(self):
+        if self._changes is None or self._changes.scene is not self._viewport.scene:
+            from core.ai_changes import AIChangeService
+            self._changes = AIChangeService(self._viewport.scene,
+                                            self._viewport.history)
+        return self._changes
 
     @staticmethod
     def _wire_error(message: str, req_id=None) -> bytes:
@@ -300,7 +312,29 @@ class _Bridge(QObject):
             "max_message_bytes": MAX_MESSAGE_BYTES,
             "legacy_write_tools_enabled": self.allow_legacy_writes,
         }
+        result["commit_policy"] = "per_change_set_user_approval"
         return result
+
+    def _tool_propose_actions(self, task_id: str = "", intent: str = "",
+                              base_revision=None, idempotency_key: str = "",
+                              actions: list | None = None) -> dict:
+        return self.change_service().propose(
+            task_id, intent, base_revision, idempotency_key, actions)
+
+    def _tool_preview_changes(self, task_id: str = "") -> dict:
+        return self.change_service().preview(task_id)
+
+    def _tool_validate_changes(self, task_id: str = "") -> dict:
+        return self.change_service().validate(task_id)
+
+    def _tool_commit_changes(self, task_id: str = "", base_revision=None,
+                             idempotency_key: str = "") -> dict:
+        """Request approval; only the in-app Apply button performs commit."""
+        return self.change_service().request_commit(
+            task_id, base_revision, idempotency_key)
+
+    def _tool_discard_changes(self, task_id: str = "") -> dict:
+        return self.change_service().discard(task_id)
 
     def _tool_screenshot(self, width: int = 1024, height: int = 768) -> dict:
         width = max(64, min(int(width), 4096))
@@ -462,6 +496,18 @@ class BridgeSection(QWidget):
             "through legacy tools. This resets to off when the bridge stops."))
         self._legacy_writes.toggled.connect(self._on_legacy_writes)
         body.addWidget(self._legacy_writes)
+        self._pending = QPlainTextEdit()
+        self._pending.setReadOnly(True)
+        self._pending.setMaximumHeight(120)
+        body.addWidget(self._pending)
+        approval = QHBoxLayout()
+        self._apply = QPushButton(tr("Apply changes"))
+        self._apply.clicked.connect(self._on_apply_changes)
+        approval.addWidget(self._apply)
+        self._discard = QPushButton(tr("Discard changes"))
+        self._discard.clicked.connect(self._on_discard_changes)
+        approval.addWidget(self._discard)
+        body.addLayout(approval)
         row = QHBoxLayout()
         self._toggle = QPushButton()
         self._toggle.clicked.connect(self.toggle)
@@ -530,6 +576,43 @@ class BridgeSection(QWidget):
         if state.get("last_error"):
             text += tr(" — error: {err}", err=state["last_error"])
         self._activity.setText(text)
+        pending = state.get("pending_change")
+        visible = pending is not None
+        self._pending.setVisible(visible)
+        self._apply.setVisible(visible)
+        self._discard.setVisible(visible)
+        if pending is not None:
+            lines = [tr("Task {task}: {count} proposed changes on {entities} entities",
+                        task=pending["task_id"], count=pending["change_count"],
+                        entities=pending["affected_count"])]
+            for change in pending.get("changes", []):
+                lines.append("{name}: {field}  {before} → {after}".format(
+                    name=change["entity_name"], field=change["field"],
+                    before=change["before"], after=change["after"]))
+            self._pending.setPlainText("\n".join(lines))
+
+    def _on_apply_changes(self) -> None:
+        bridge = getattr(self._viewport.window(), "_ai_bridge", None)
+        pending = bridge.activity().get("pending_change") if bridge else None
+        if bridge is None or pending is None:
+            return
+        result = bridge.change_service().approve(pending["task_id"])
+        if result.get("ok"):
+            self._viewport.update()
+            self._viewport.flash_status(tr(
+                "AI changes applied as one undo step"))
+        else:
+            self._viewport.flash_status(str(result.get("message") or result))
+        self._on_activity(bridge.activity())
+
+    def _on_discard_changes(self) -> None:
+        bridge = getattr(self._viewport.window(), "_ai_bridge", None)
+        pending = bridge.activity().get("pending_change") if bridge else None
+        if bridge is None or pending is None:
+            return
+        bridge.change_service().discard(pending["task_id"])
+        self._viewport.flash_status(tr("AI changes discarded"))
+        self._on_activity(bridge.activity())
 
     def toggle(self) -> None:
         if self.running:
@@ -544,6 +627,10 @@ class BridgeSection(QWidget):
         self._text.setVisible(on)
         self._activity.setVisible(on)
         self._legacy_writes.setVisible(on)
+        if not on:
+            self._pending.setVisible(False)
+            self._apply.setVisible(False)
+            self._discard.setVisible(False)
         if on:
             port = getattr(self, "_port", DEFAULT_PORT)
             self._status.setText(tr(

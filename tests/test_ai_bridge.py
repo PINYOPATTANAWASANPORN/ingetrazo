@@ -128,6 +128,8 @@ def test_mcp_server_protocol_and_bridge_down_message(monkeypatch):
     assert {"run_python", "query_model", "get_document_context",
             "find_entities", "get_entities", "get_capabilities",
             "screenshot", "undo", "redo"} <= names
+    assert {"propose_actions", "preview_changes", "validate_changes",
+            "commit_changes", "discard_changes"} <= names
 
     assert mcp.handle({"jsonrpc": "2.0",
                        "method": "notifications/initialized"}) is None
@@ -206,13 +208,61 @@ def test_bridge_context_tools_are_read_only(monkeypatch, tmp_path):
         assert detail["ok"] and "entities" in detail["result"]
 
         caps = _ask(bridge, "get_capabilities")
-        assert caps["ok"] and caps["result"]["write_actions"] is False
+        assert caps["ok"] and caps["result"]["write_actions"] is True
+        assert caps["result"]["preview_changes"] is True
+        assert caps["result"]["commit_policy"] == \
+            "per_change_set_user_approval"
         assert caps["result"]["security"] == {
             "authenticated_session": True,
             "max_message_bytes": 1024 * 1024,
             "legacy_write_tools_enabled": False,
         }
         assert before == (vp.scene.content_version, len(vp.history.undo_stack))
+        bridge.stop()
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_bridge_typed_write_waits_for_in_app_approval(monkeypatch, tmp_path):
+    from core.group import Group
+    from plugins.ai_bridge import _Bridge
+    from views.main_window import MainWindow
+    monkeypatch.setenv("INGETRAZO_AI_PORT", "0")
+    monkeypatch.setenv("INGETRAZO_AI_CREDENTIAL_FILE",
+                       str(tmp_path / "session.json"))
+    win = MainWindow()
+    try:
+        vp = win.viewport
+        group = Group(name="Draft cabinet")
+        vp.scene.groups.append(group)
+        bridge = _Bridge(vp)
+        bridge.start()
+        base = vp.scene.content_version
+        args = {
+            "task_id": "rename-cabinet",
+            "intent": "give the cabinet its final name",
+            "base_revision": base,
+            "idempotency_key": "rename-cabinet-001",
+            "actions": [{"action": "rename_entities",
+                         "entity_ids": [group.uid],
+                         "name": "Kitchen cabinet"}],
+        }
+        proposed = _ask(bridge, "propose_actions", args)
+        assert proposed["ok"] and proposed["result"]["status"] == "preview_ready"
+        assert group.name == "Draft cabinet" and not vp.history.undo_stack
+
+        requested = _ask(bridge, "commit_changes", {
+            "task_id": args["task_id"], "base_revision": base,
+            "idempotency_key": args["idempotency_key"]})
+        assert requested["result"]["status"] == "approval_required"
+        assert group.name == "Draft cabinet"                 # agent cannot apply
+
+        applied = bridge.change_service().approve(args["task_id"])
+        assert applied["status"] == "committed"
+        assert group.name == "Kitchen cabinet"
+        assert len(vp.history.undo_stack) == 1
+        assert vp.history.undo() and group.name == "Draft cabinet"
         bridge.stop()
     finally:
         win._saved_version = win.viewport.scene.version
