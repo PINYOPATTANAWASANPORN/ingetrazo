@@ -7,6 +7,11 @@ follow [SemVer](https://semver.org).
 ## [Sin publicar]
 
 ### Añadido
+- **El estado de las etiquetas se ve donde se eligen**: la barra de
+  herramientas, Info de entidad y el menú contextual muestran `(hidden)`,
+  `(locked)` o ambos junto al nombre, con una explicación de lo que ocurrirá
+  al asignar objetos. El nombre real de la etiqueta sigue guardándose sin esos
+  textos.
 - **Los grupos y componentes nuevos nacen en la etiqueta activa**: Crear
   grupo y Crear componente aplican la misma etiqueta activa que el resto de
   herramientas de dibujo, también al agrupar varios grupos. Deshacer y rehacer

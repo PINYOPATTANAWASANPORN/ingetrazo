@@ -3463,6 +3463,7 @@ class EntityInfoPanel(QWidget):
     # ---- Layer field --------------------------------------------------------
     def _refresh_layer(self, sel: list) -> None:
         from core.layers import layer_of
+        from views.layer_labels import layer_label, layer_tooltip
         tagged = [e for e in sel if isinstance(e, _TAGGABLE)]
         show = bool(tagged)
         self._layer_caption.setVisible(show)
@@ -3470,7 +3471,6 @@ class EntityInfoPanel(QWidget):
         if not show:
             return
         scene = self._window.viewport.scene
-        names = [ly.name for ly in scene.layers]
         current = {layer_of(e) for e in tagged}
         self._updating = True
         try:
@@ -3479,8 +3479,12 @@ class EntityInfoPanel(QWidget):
                 # A mixed selection reads as such; picking a layer moves
                 # everything onto it.
                 self._layer_box.addItem(tr("(several)"), None)
-            for name in names:
-                self._layer_box.addItem(name, name)
+            for layer in scene.layers:
+                self._layer_box.addItem(layer_label(layer), layer.name)
+                item = self._layer_box.model().item(
+                    self._layer_box.count() - 1)
+                if item is not None:
+                    item.setToolTip(layer_tooltip(layer))
             if len(current) == 1:
                 idx = self._layer_box.findData(next(iter(current)))
                 self._layer_box.setCurrentIndex(max(idx, 0))

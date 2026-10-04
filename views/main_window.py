@@ -2311,20 +2311,16 @@ class MainWindow(QMainWindow):
             return
         scene = self.viewport.scene
         current = getattr(scene, "active_layer", None)
+        from views.layer_labels import layer_label, layer_tooltip
         with QSignalBlocker(combo):
             combo.clear()
             selected = -1
             for i, layer in enumerate(scene.layers):
-                if not layer.visible:
-                    shown = tr("{name} (hidden)", name=layer.name)
-                elif layer.locked:
-                    shown = tr("{name} (locked)", name=layer.name)
-                else:
-                    shown = layer.name
-                combo.addItem(shown, layer.name)
+                combo.addItem(layer_label(layer), layer.name)
                 item = combo.model().item(i)
                 if item is not None:
                     item.setEnabled(layer.visible and not layer.locked)
+                    item.setToolTip(layer_tooltip(layer))
                 if layer.name == current:
                     selected = i
             combo.setCurrentIndex(selected)
@@ -3403,6 +3399,7 @@ class MainWindow(QMainWindow):
         from core.dimension import Dimension
         from core.layers import layer_of
         from core.textlabel import TextLabel
+        from views.layer_labels import layer_label, layer_tooltip
         targets = [e for e in sel
                    if isinstance(e, (Face, Edge, Group, Dimension, TextLabel))]
         if not targets:
@@ -3415,7 +3412,9 @@ class MainWindow(QMainWindow):
         sub = QMenu(tr("Layer"), menu)
         menu.addMenu(sub)
         for ly in self.viewport.scene.layers:
-            act = sub.addAction(ly.name)
+            act = sub.addAction(layer_label(ly))
+            act.setData(ly.name)
+            act.setToolTip(layer_tooltip(ly))
             act.setCheckable(True)
             act.setChecked(len(current) == 1 and ly.name in current)
             act.triggered.connect(
