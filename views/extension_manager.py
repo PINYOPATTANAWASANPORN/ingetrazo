@@ -3,13 +3,18 @@
 """Installed-extension inventory and enable/disable UI."""
 from __future__ import annotations
 
+import zipfile
+from pathlib import Path
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QDialog, QDialogButtonBox, QLabel, QTreeWidget, QTreeWidgetItem,
-    QVBoxLayout,
+    QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QMessageBox, QPushButton,
+    QTreeWidget, QTreeWidgetItem, QVBoxLayout,
 )
 
+from core.extensions import install_plugin, is_user_plugin, uninstall_plugin
 from core.i18n import tr
+from views.filedialogs import file_dialogs
 
 
 class ExtensionManagerDialog(QDialog):
@@ -20,6 +25,7 @@ class ExtensionManagerDialog(QDialog):
         self.setWindowTitle(tr("Extension Manager"))
         self.resize(760, 420)
         self._initial = set(disabled)
+        self._candidates = {c.stem: c for c in candidates}
         loaded = {p.stem for p in plugins}
         failed = {e.stem: e.error for e in errors}
 
@@ -64,6 +70,18 @@ class ExtensionManagerDialog(QDialog):
             empty.setFlags(Qt.NoItemFlags)
             self.tree.addTopLevelItem(empty)
 
+        actions = QHBoxLayout()
+        self.install_button = QPushButton(tr("Install…"), self)
+        self.remove_button = QPushButton(tr("Uninstall"), self)
+        self.remove_button.setEnabled(False)
+        self.install_button.clicked.connect(self._install)
+        self.remove_button.clicked.connect(self._uninstall)
+        self.tree.itemSelectionChanged.connect(self._sync_remove_button)
+        actions.addWidget(self.install_button)
+        actions.addWidget(self.remove_button)
+        actions.addStretch(1)
+        layout.addLayout(actions)
+
         buttons = QDialogButtonBox(
             QDialogButtonBox.Save | QDialogButtonBox.Cancel, parent=self)
         buttons.accepted.connect(self.accept)
@@ -81,3 +99,71 @@ class ExtensionManagerDialog(QDialog):
 
     def changed(self) -> bool:
         return self.disabled_stems() != self._initial
+
+    def _selected_candidate(self):
+        items = self.tree.selectedItems()
+        if not items:
+            return None
+        stem = items[0].data(0, Qt.UserRole)
+        return self._candidates.get(str(stem)) if stem else None
+
+    def _sync_remove_button(self) -> None:
+        candidate = self._selected_candidate()
+        self.remove_button.setEnabled(
+            candidate is not None and is_user_plugin(candidate.path))
+
+    def _install(self) -> None:
+        chosen, _selected_filter = file_dialogs.getOpenFileName(
+            self, tr("Install extension"), "",
+            tr("IngeTrazo extensions (*.py *.zip);;All files (*)"))
+        if not chosen:
+            return
+        source = Path(chosen)
+        try:
+            target = install_plugin(source)
+        except FileExistsError:
+            answer = QMessageBox.question(
+                self, tr("Update extension"),
+                tr("An extension named “{name}” is already installed. "
+                   "Replace it with this version?", name=source.stem),
+                QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if answer != QMessageBox.Yes:
+                return
+            try:
+                target = install_plugin(source, replace=True)
+            except (OSError, ValueError, zipfile.BadZipFile) as exc:
+                QMessageBox.warning(self, tr("Install extension"), str(exc))
+                return
+        except (OSError, ValueError, zipfile.BadZipFile) as exc:
+            QMessageBox.warning(self, tr("Install extension"), str(exc))
+            return
+        QMessageBox.information(
+            self, tr("Extension installed"),
+            tr("“{name}” was installed. Restart IngeTrazo to load it.",
+               name=target.stem))
+
+    def _uninstall(self) -> None:
+        candidate = self._selected_candidate()
+        if candidate is None or not is_user_plugin(candidate.path):
+            return
+        answer = QMessageBox.question(
+            self, tr("Uninstall extension"),
+            tr("Remove “{name}” from this computer? The extension remains "
+               "active until IngeTrazo restarts.", name=candidate.stem),
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if answer != QMessageBox.Yes:
+            return
+        try:
+            uninstall_plugin(candidate.path)
+        except OSError as exc:
+            QMessageBox.warning(self, tr("Uninstall extension"), str(exc))
+            return
+        item = self.tree.currentItem()
+        if item is not None:
+            self.tree.takeTopLevelItem(self.tree.indexOfTopLevelItem(item))
+        self._candidates.pop(candidate.stem, None)
+        self._sync_remove_button()
+        QMessageBox.information(
+            self, tr("Extension uninstalled"),
+            tr("“{name}” was removed. Restart IngeTrazo to unload it.",
+               name=candidate.stem))

@@ -13,8 +13,10 @@ tools. Drop it in either of the two places IngeTrazo scans at startup:
   **Extensions ▸ Open plugins folder** creates and opens it for you.
 
 **Extensions ▸ Manage extensions…** inventories both locations without
-executing disabled plugins. It shows load errors and lets you enable or disable
-individual plugins; the choice takes effect on the next IngeTrazo start.
+executing disabled plugins. It shows load errors, installs or updates local
+`.py` and `.zip` plugins, removes user-installed plugins, and lets you enable
+or disable individual plugins. All changes take effect on the next IngeTrazo
+start. Bundled extensions remain read-only.
 
 Every `Tool` subclass **defined in the file** gets an entry in the
 **Extensions** menu. (Classes a plugin merely imports are ignored, so
@@ -302,6 +304,6 @@ Wilson's Windowizer 3 by Bane Andreev, an architect, written with AI help.
 - Side-panel registration, document data, viewport overlays and snap
   providers — **done** (`setup(app)`, above).
 - Plugin manifest (`plugin.toml`) for metadata and dependencies.
-- Plugin manager UI (install, enable, disable, update) — after the API
-  stabilises; a package format would freeze the API too early (see the
-  discussion in PR #1).
+- Plugin manager UI — **done** for local `.py`/`.zip` install, update,
+  uninstall, enable and disable. Online catalogues and dependency resolution
+  remain future work; the plugin API is still provisional.
