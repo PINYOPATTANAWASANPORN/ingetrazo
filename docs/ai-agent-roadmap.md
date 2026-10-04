@@ -260,7 +260,12 @@ for later Phase 2 slices. The first Phase 3 backend slice is also implemented:
 selection/current-group/visible-model scope, constraints, assumptions,
 acceptance criteria, and a deterministic role plan. Registered tasks enforce
 their resolved entity scope through preview and commit. Intent chips, project
-memory, streaming, cancellation, and actual specialist execution remain.
+memory, streaming, cancellation, and actual specialist execution remain. The
+in-app Assistant now exposes compact Scope, Goal, and Execution controls plus
+editable per-request assumptions, includes the resulting task contract in
+the model context, and enforces Analysis only by refusing returned recipes.
+The current Act mode still uses the transactional legacy recipe path; typed
+preview/apply remains the MCP path until tool calling is shared in-app.
 
 ### Phase 1 — shared context and typed read tools
 

@@ -309,6 +309,107 @@ def test_assistant_loop_executes_recipes_transactionally(monkeypatch):
         win.close()
 
 
+def test_short_intent_controls_ground_the_model_in_selected_scope(monkeypatch):
+    from core.group import Group
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    systems = []
+
+    def fake_chat(provider, model, key, system, messages, **kw):
+        systems.append(system)
+        return "La selección contiene una silla."
+
+    monkeypatch.setattr(ai, "chat", fake_chat)
+    win = MainWindow()
+    try:
+        group = Group(name="Chair")
+        win.viewport.scene.groups.append(group)
+        win.viewport.scene.selection.add(group)
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._key.setText("sk-ant-test")
+        dlg._shots.setChecked(False)
+        dlg._intent_scope.setCurrentIndex(
+            dlg._intent_scope.findData("auto"))
+        dlg._intent_goal.setCurrentIndex(
+            dlg._intent_goal.findData("explain"))
+        dlg._intent_mode.setCurrentIndex(
+            dlg._intent_mode.findData("analysis_only"))
+        dlg._intent_assumptions.setText("keep dimensions; use metric units")
+        dlg._input.setText("อธิบายชิ้นนี้")
+        dlg._on_send()
+        app = QApplication.instance()
+        for _ in range(2000):
+            app.processEvents()
+            if not dlg._busy:
+                break
+
+        assert not dlg._busy and systems
+        packet = dlg._task_packet
+        assert packet["scope"]["kind"] == "selection"
+        assert packet["scope"]["entity_ids"] == [group.uid]
+        assert packet["assumptions"] == ["keep dimensions", "use metric units"]
+        assert packet["task_id"] in systems[0]
+        assert group.uid in systems[0]
+        assert "analysis_only" in systems[0]
+        assert '"read_only":true' in systems[0]
+        assert dlg._task_service().get(packet["task_id"])["status"] == "completed"
+        assert dlg._intent_scope.isEnabled()
+    finally:
+        dlg._intent_goal.setCurrentIndex(
+            dlg._intent_goal.findData(""))
+        dlg._intent_mode.setCurrentIndex(
+            dlg._intent_mode.findData("apply_safe_changes"))
+        dlg._save_settings()
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_analysis_only_control_blocks_model_recipe(monkeypatch):
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    replies = iter([
+        "Voy a cambiarlo:\n```python\n"
+        "mesh.add_edge(QVector3D(0,0,0), QVector3D(9,0,0))\n```",
+        "Análisis: conviene revisar las dimensiones antes de editar.",
+    ])
+    monkeypatch.setattr(ai, "chat", lambda *args, **kwargs: next(replies))
+    win = MainWindow()
+    try:
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._key.setText("sk-ant-test")
+        dlg._shots.setChecked(False)
+        dlg._intent_goal.setCurrentIndex(
+            dlg._intent_goal.findData(""))
+        dlg._intent_mode.setCurrentIndex(
+            dlg._intent_mode.findData("analysis_only"))
+        edges = len(win.viewport.scene.mesh.edges)
+        history = len(win.viewport.history.undo_stack)
+        dlg._input.setText("ตรวจสอบโมเดลนี้")
+        dlg._on_send()
+        app = QApplication.instance()
+        for _ in range(2000):
+            app.processEvents()
+            if not dlg._busy:
+                break
+
+        assert not dlg._busy
+        assert len(win.viewport.scene.mesh.edges) == edges
+        assert len(win.viewport.history.undo_stack) == history
+        assert "Analysis-only mode blocked" in dlg._chat.toPlainText()
+        assert dlg._task_service().get(
+            dlg._active_task_id)["status"] == "completed"
+    finally:
+        dlg._intent_goal.setCurrentIndex(
+            dlg._intent_goal.findData(""))
+        dlg._intent_mode.setCurrentIndex(
+            dlg._intent_mode.findData("apply_safe_changes"))
+        dlg._save_settings()
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
 def test_photo_attaches_to_next_message_only(monkeypatch, tmp_path):
     # The attached photo rides the NEXT user message as scaled JPEG and is
     # cleared afterwards — execution feedback turns must not re-send it.
