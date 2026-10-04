@@ -18,6 +18,24 @@ executing disabled plugins. It shows load errors, installs or updates local
 or disable individual plugins. All changes take effect on the next IngeTrazo
 start. Bundled extensions remain read-only.
 
+Package extensions may include a `plugin.toml` beside `__init__.py`. Loose
+`hello.py` extensions use `hello.toml` beside the file. The manager reads this
+metadata without executing plugin code:
+
+```toml
+[plugin]
+name = "Hello Tools"
+version = "1.2.0"
+author = "Your Name"
+description = "A short explanation shown in the manager."
+min_ingetrazo = "0.5.7"
+homepage = "https://example.com/hello-tools"
+```
+
+`name` defaults to the file/package name; every other field is optional. An
+invalid manifest or a `min_ingetrazo` newer than the running application is
+reported as a load error and its Python code is not imported.
+
 Every `Tool` subclass **defined in the file** gets an entry in the
 **Extensions** menu. (Classes a plugin merely imports are ignored, so
 importing `LineTool` to reuse it does not duplicate the built-in.)
@@ -303,7 +321,8 @@ Wilson's Windowizer 3 by Bane Andreev, an architect, written with AI help.
 - Importer / exporter registration.
 - Side-panel registration, document data, viewport overlays and snap
   providers — **done** (`setup(app)`, above).
-- Plugin manifest (`plugin.toml`) for metadata and dependencies.
+- Plugin manifest (`plugin.toml`) metadata and minimum host version — **done**.
+  Declaring and resolving third-party Python dependencies remains future work.
 - Plugin manager UI — **done** for local `.py`/`.zip` install, update,
   uninstall, enable and disable. Online catalogues and dependency resolution
   remain future work; the plugin API is still provisional.
