@@ -341,6 +341,11 @@ class AsistentePanel(QWidget):
             "Analysis only blocks any Python recipe returned by the model"))
         intent_row.addWidget(self._intent_mode)
         bl.addLayout(intent_row)
+        self._specialist_review = QCheckBox(tr("Review with 2 specialists (read-only)"))
+        self._specialist_review.setToolTip(tr(
+            "Sends two independent requests to the selected provider/model using the same scoped metadata. No model changes."))
+        self._specialist_review.toggled.connect(self._on_review_mode)
+        bl.addWidget(self._specialist_review)
 
         memory_row = QHBoxLayout()
         self._intent_assumptions = QLineEdit()
@@ -501,8 +506,10 @@ class AsistentePanel(QWidget):
         st.setValue("ia/capturas", "1" if self._shots.isChecked() else "0")
         st.setValue("ia/proveedor", self._provider.currentData())
         st.setValue("ia/task_scope", self._intent_scope.currentData())
-        st.setValue("ia/task_goal", self._intent_goal.currentData())
-        st.setValue("ia/task_mode", self._intent_mode.currentData())
+        goal, mode = (self._review_previous if self._specialist_review.isChecked()
+                      else (self._intent_goal.currentData(), self._intent_mode.currentData()))
+        st.setValue("ia/task_goal", goal)
+        st.setValue("ia/task_mode", mode)
         self._stash_credentials(st, self._provider.currentData())
 
     def _task_service(self):
@@ -528,16 +535,32 @@ class AsistentePanel(QWidget):
                        if item.strip()]
         return self._task_service().create(
             intent=prompt, scope=self._intent_scope.currentData(),
-            goal=self._intent_goal.currentData(), constraints={},
-            execution=self._intent_mode.currentData(),
+            goal="check" if self._specialist_review.isChecked() else self._intent_goal.currentData(), constraints={},
+            execution="analysis_only" if self._specialist_review.isChecked() else self._intent_mode.currentData(),
             assumptions=assumptions, acceptance_criteria=[])
 
     def _set_task_controls_enabled(self, enabled: bool) -> None:
         for widget in (self._intent_scope, self._intent_goal,
                        self._intent_mode, self._intent_assumptions,
                        self._project_memory, self._allow_python,
-                       self._suggestion_bar):
+                       self._suggestion_bar, self._specialist_review):
             widget.setEnabled(enabled)
+        if self._specialist_review.isChecked():
+            self._intent_goal.setEnabled(False)
+            self._intent_mode.setEnabled(False)
+            self._suggestion_bar.setEnabled(False)
+
+    def _on_review_mode(self, checked):
+        if checked:
+            self._review_previous = (self._intent_goal.currentData(),
+                                     self._intent_mode.currentData())
+            self._intent_goal.setCurrentIndex(self._intent_goal.findData("check"))
+            self._intent_mode.setCurrentIndex(self._intent_mode.findData("analysis_only"))
+        else:
+            goal, mode = self._review_previous
+            self._intent_goal.setCurrentIndex(self._intent_goal.findData(goal))
+            self._intent_mode.setCurrentIndex(self._intent_mode.findData(mode))
+        self._set_task_controls_enabled(not self._busy and not self._pending_task_id)
 
     def _refresh_context_controls(self) -> None:
         self._refresh_project_memory()
@@ -859,7 +882,41 @@ class AsistentePanel(QWidget):
         self._round = 0
         self._nudged = False
         self._last_prompt = prompt
+        if self._specialist_review.isChecked():
+            self._start_specialist_review()
+            return
         self._next_turn()
+
+    def _start_specialist_review(self):
+        from core import ai_review
+        try:
+            packet = ai_review.snapshot(self._viewport.scene, self._task_packet)
+        except ValueError as exc:
+            self._append(str(exc), "err")
+            self._task_service().transition(self._active_task_id, "failed")
+            self._finish()
+            return
+        self._busy = True
+        self._send.setEnabled(False)
+        self._cancel.setVisible(True)
+        self._cancel.setEnabled(True)
+        self._generation += 1
+        generation = self._generation
+        self._review_scene = self._viewport.scene
+        token = ai_review.ReviewCancellation()
+        self._cancel_token = token
+        config = self._config()
+        self._append(tr("Two specialists are reviewing the same metadata snapshot. Photos and geometry are not included."), "muted")
+
+        def worker():
+            try:
+                report = ai_review.run_review(packet, *config, token)
+                self._reply.emit({"review": report, "generation": generation})
+            except ai.CancelledError:
+                pass
+            except Exception as exc:
+                self._reply.emit({"review_error": str(exc), "generation": generation})
+        threading.Thread(target=worker, daemon=True).start()
 
     def _next_turn(self) -> None:
         self._busy = True
@@ -1034,6 +1091,23 @@ class AsistentePanel(QWidget):
     def _on_reply(self, msg: dict) -> None:
         generation = msg.get("generation")
         if generation is not None and generation != self._generation:
+            return
+        if "review_error" in msg:
+            self._append(msg["review_error"], "err")
+            self._task_service().transition(self._active_task_id, "failed")
+            self._finish()
+            return
+        if "review" in msg:
+            from core.ai_review import report_text
+            report = msg["review"]
+            if (self._review_scene is not self._viewport.scene or
+                    report["base_revision"] != self._viewport.scene.content_version):
+                report.update(status="stale", specialists=[], conflicts=[])
+                self._append(tr("The document changed during review. Run the review again."), "err")
+            else:
+                self._append(report_text(report), "ai")
+            self._task_service().record_review(self._active_task_id, report)
+            self._finish()
             return
         if msg.get("stream"):
             self._stream_text += str(msg.get("text", ""))
@@ -1275,7 +1349,7 @@ class AsistentePanel(QWidget):
         if self._active_task_id:
             current = self._task_service().get(self._active_task_id)
             terminal = {"committed", "completed", "discarded", "stale",
-                        "cancelled"}
+                        "cancelled", "partial", "failed"}
             if current.get("status") not in terminal and not pending:
                 status = "committed" if self._task_changed else "completed"
                 self._task_service().transition(

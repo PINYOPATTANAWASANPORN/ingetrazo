@@ -167,6 +167,12 @@ preferencia permanente sin que el usuario la vea.
 
 ### Modelar desde una foto
 
+Para una revisión paralela, activa **Review with 2 specialists (read-only)**
+en el Asistente. Dos solicitudes al proveedor/modelo seleccionado revisan los
+mismos metadatos y muestran discrepancias sin cambiar el documento. Esta
+función no usa fotos ni certifica geometría; todavía no tiene endpoint MCP.
+Consulta [la revisión con especialistas](ai-specialist-review.md).
+
 Con el botón **Foto…** adjuntas la imagen de un objeto (una fuente, un
 mueble, una fachada) y el asistente la interpreta y lo recrea por partes,
 cada una como grupo con nombre, comparando sus capturas contra la foto.

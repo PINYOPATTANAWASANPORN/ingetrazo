@@ -87,6 +87,7 @@ class _Task:
     status: str = "ready"
     warnings: list[str] = field(default_factory=list)
     result: dict | None = None
+    review: dict | None = None
 
     def public(self, content_revision: int) -> dict:
         return {
@@ -110,6 +111,7 @@ class _Task:
             "plan": list(self.plan),
             "warnings": list(self.warnings),
             "result": self.result,
+            "review": self.review,
         }
 
 
@@ -306,4 +308,11 @@ class AITaskService:
             task.result = {key: value for key, value in result.items()
                            if key in {"changed", "content_revision", "validation",
                                       "affected_entities", "code", "message"}}
+
+    def record_review(self, task_id, report):
+        """Store coordinator output after the UI rechecks the live revision."""
+        task = self.task(task_id)
+        if task is not None:
+            task.review = json.loads(json.dumps(report))
+            self.transition(task_id, report["status"], {"changed": False})
 

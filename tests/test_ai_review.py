@@ -1,0 +1,128 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+import json
+import threading
+
+import pytest
+from core import ai, ai_review
+from core.ai_tasks import AITaskService
+from core.group import Group
+from core.scene import Scene
+
+
+def model():
+    scene = Scene()
+    group = Group(name="Chair")
+    scene.groups.append(group)
+    tasks = AITaskService(scene)
+    task = tasks.create("check the chair", execution="analysis_only")
+    return scene, group, tasks, task
+
+
+def reply(uid, verdict="concern"):
+    return json.dumps(dict(summary="Review of supplied metadata", findings=[
+        dict(entity_id=uid, topic="material", verdict=verdict,
+             evidence="The supplied material name is empty.")]))
+
+
+def test_parallel_specialists_share_snapshot_and_preserve_conflicts(monkeypatch):
+    scene, group, _tasks, task = model()
+    packet = ai_review.snapshot(scene, task)
+    barrier = threading.Barrier(2)
+    seen = []
+    def chat(provider, model, key, system, messages, **kwargs):
+        barrier.wait(timeout=3)  # proves both requests run concurrently
+        seen.append(messages[0]["text"])
+        verdict = "concern" if "organisation" in system else "clear"
+        return reply(group.uid, verdict)
+    monkeypatch.setattr(ai, "chat", chat)
+    report = ai_review.run_review(packet, "local", "test", "", "localhost",
+                                  ai_review.ReviewCancellation())
+    assert report["status"] == "completed" and report["changed"] is False
+    assert len(seen) == 2 and seen[0] == seen[1]
+    assert len(report["conflicts"]) == 1
+    assert scene.content_version == task["base_revision"] and group.name == "Chair"
+    assert "CONFLICT (unresolved)" in ai_review.report_text(report)
+
+
+@pytest.mark.parametrize("bad", [
+    '{"actions":[{"action":"rename_entities"}]}',
+    '```python\nprint("never executed")\n```',
+    reply("outside-scope"),
+    'x' * (ai_review.MAX_REPLY_CHARS + 1),
+])
+def test_malformed_or_write_responses_fail_without_model_changes(monkeypatch, bad):
+    scene, group, _tasks, task = model()
+    monkeypatch.setattr(ai, "chat", lambda *a, **k: bad)
+    report = ai_review.run_review(ai_review.snapshot(scene, task), "local", "m", "", "url",
+                                  ai_review.ReviewCancellation())
+    assert report["status"] == "failed"
+    assert all(not item["ok"] for item in report["specialists"])
+    assert group.name == "Chair" and scene.content_version == task["base_revision"]
+
+
+def test_one_provider_failure_retains_other_review_as_partial(monkeypatch):
+    scene, group, _tasks, task = model()
+    def chat(_p, _m, _k, system, *_args, **_kwargs):
+        if "organisation" in system:
+            raise RuntimeError("provider unavailable")
+        return reply(group.uid)
+    monkeypatch.setattr(ai, "chat", chat)
+    report = ai_review.run_review(ai_review.snapshot(scene, task), "local", "m", "", "url",
+                                  ai_review.ReviewCancellation())
+    assert report["status"] == "partial"
+    assert sum(item["ok"] for item in report["specialists"]) == 1
+
+
+def test_snapshot_is_detached_scoped_and_revision_pinned():
+    scene, group, tasks, _task = model()
+    outside = Group(name="Outside")
+    scene.groups.append(outside)
+    scene.selection.add(group)
+    task = tasks.create("inspect selected", execution="analysis_only")
+    packet = ai_review.snapshot(scene, task)
+    assert [e["id"] for e in packet["entities"]] == [group.uid]
+    group.name = "Later"
+    assert packet["entities"][0]["name"] == "Chair"
+    scene.version += 1
+    with pytest.raises(ValueError, match="stale"):
+        ai_review.snapshot(scene, task)
+
+
+def test_snapshot_rejects_truncation_and_write_mode():
+    scene, _group, tasks, task = model()
+    task["scope"]["truncated"] = True
+    with pytest.raises(ValueError, match="200"):
+        ai_review.snapshot(scene, task)
+    task = tasks.create("create box")
+    with pytest.raises(ValueError, match="analysis-only"):
+        ai_review.snapshot(scene, task)
+
+
+def test_cancel_closes_both_active_requests_and_no_result_is_returned(monkeypatch):
+    scene, _group, _tasks, task = model()
+    cancel = ai_review.ReviewCancellation()
+    barrier = threading.Barrier(3)
+    closed = []
+    class Response:
+        def close(self):
+            closed.append(self)
+    def chat(*args, cancel_token, **kwargs):
+        response = Response()
+        cancel_token.bind_response(response)
+        barrier.wait(timeout=3)
+        cancel_token.wait(3)
+        raise ai.CancelledError("cancelled")
+    monkeypatch.setattr(ai, "chat", chat)
+    outcomes = []
+    def worker():
+        try:
+            ai_review.run_review(ai_review.snapshot(scene, task), "local", "m", "", "url", cancel)
+        except ai.CancelledError:
+            outcomes.append("cancelled")
+    thread = threading.Thread(target=worker)
+    thread.start()
+    barrier.wait(timeout=3)
+    cancel.cancel()
+    thread.join(timeout=4)
+    assert not thread.is_alive() and outcomes == ["cancelled"]
+    assert len(closed) == 2

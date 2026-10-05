@@ -269,7 +269,10 @@ acceptance criteria, and a deterministic role plan. Registered tasks enforce
 their resolved entity scope through preview and commit. Deterministic local
 suggestion chips now fill the prompt and task controls from empty-model,
 visible-model, or stable-selection state without calling a provider or sending
-automatically. Actual specialist execution remains. The
+automatically. The Assistant now runs two read-only provider-backed specialists
+over one bounded metadata snapshot, retains conflicting findings and rejects
+stale/cancelled results. See [specialist review](ai-specialist-review.md).
+General MCP orchestration and modeler proposals remain. The
 in-app Assistant now exposes compact Scope, Goal, and Execution controls plus
 editable per-request assumptions, includes the resulting task contract in
 the model context, and enforces Analysis only by refusing returned recipes.

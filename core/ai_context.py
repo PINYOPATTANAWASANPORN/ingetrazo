@@ -264,6 +264,10 @@ def capabilities() -> dict:
         "preview_changes": True,
         "task_engine": True,
         "multi_agent": False,
+        "assistant_specialist_review": {
+            "roles": ["model_structure", "task_requirements"],
+            "execution": "read_only_parallel_provider_calls",
+            "input": "bounded_metadata_snapshot", "mcp_execution": False},
     }
 
 

@@ -623,6 +623,73 @@ def test_assistant_typed_wall_creation_is_previewed_before_apply(monkeypatch):
         win.close()
 
 
+def test_assistant_specialists_are_read_only_and_keep_report(monkeypatch):
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+    calls = []
+    def chat(*args, **kwargs):
+        calls.append(args[4][0]["text"])
+        return json.dumps({"summary": "Metadata inspected", "findings": []})
+    monkeypatch.setattr(ai, "chat", chat)
+    win = MainWindow()
+    try:
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._key.setText("sk-ant-test")
+        dlg._specialist_review.setChecked(True)
+        assert not dlg._intent_mode.isEnabled()
+        before = win.viewport.scene.content_version
+        undo_before = len(win.viewport.history.undo_stack)
+        dlg._input.setText("check the model")
+        dlg._on_send()
+        _wait_for_assistant(dlg)
+        task = dlg._task_service().get(dlg._active_task_id)
+        assert task["execution"] == "analysis_only" and task["status"] == "completed"
+        assert task["review"]["status"] == "completed"
+        assert len(calls) == 2 and calls[0] == calls[1]
+        assert "Metadata inspected" in dlg._chat.toPlainText()
+        assert win.viewport.scene.content_version == before
+        assert len(win.viewport.history.undo_stack) == undo_before
+        assert not dlg._pending_task_id
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_specialist_results_are_rejected_after_edit_or_cancel(monkeypatch):
+    import threading
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+    for outcome in ("stale", "cancelled"):
+        entered = threading.Barrier(3)
+        release = threading.Event()
+        def chat(*args, **kwargs):
+            entered.wait(timeout=3)
+            release.wait(timeout=3)
+            return json.dumps({"summary": "OLD REVIEW MUST NOT APPEAR", "findings": []})
+        monkeypatch.setattr(ai, "chat", chat)
+        win = MainWindow()
+        try:
+            dlg = AsistenteDialog(win.viewport, parent=win)
+            dlg._key.setText("sk-ant-test")
+            dlg._specialist_review.setChecked(True)
+            dlg._input.setText("check model")
+            dlg._on_send()
+            entered.wait(timeout=3)
+            if outcome == "stale":
+                win.viewport.scene.version += 1
+            else:
+                dlg._on_cancel()
+            release.set()
+            _wait_for_assistant(dlg)
+            assert dlg._task_service().get(dlg._active_task_id)["status"] == outcome
+            assert "OLD REVIEW MUST NOT APPEAR" not in dlg._chat.toPlainText()
+            assert not dlg._pending_task_id
+        finally:
+            release.set()
+            win._saved_version = win.viewport.scene.version
+            win.close()
+
+
 def test_assistant_blocks_python_until_session_permission_is_enabled(monkeypatch):
     from plugins.ai_assistant import AsistenteDialog
     from views.main_window import MainWindow
