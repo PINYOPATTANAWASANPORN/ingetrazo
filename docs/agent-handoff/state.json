@@ -13,8 +13,8 @@
     "pull_request": 33
   },
   "delivery": {
-    "pull_requests_total": 31,
-    "open": 31,
+    "pull_requests_total": 32,
+    "open": 32,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -73,5 +73,10 @@
     "docs/agent-handoff/AI_AGENT_HANDOFF.md",
     "docs/agent-handoff/LESSONS_LEARNED.md",
     "docs/agent-handoff/pr-index.json"
-  ]
+  ],
+  "implementation_delivery": {
+    "branch": "feature/ai-assistant-typed-preview",
+    "commit": "0a96098",
+    "pull_request": 34
+  }
 }

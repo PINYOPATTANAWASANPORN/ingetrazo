@@ -310,8 +310,18 @@
       "base": "feature/ai-project-memory",
       "head": "docs/ai-development-handoff",
       "merged": false,
-      "updated_at": "2026-10-04T14:54:31Z",
+      "updated_at": "2026-10-05T01:04:37Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33"
+    },
+    {
+      "number": 34,
+      "state": "open",
+      "title": "Add typed previews to the AI assistant",
+      "base": "docs/ai-development-handoff",
+      "head": "feature/ai-assistant-typed-preview",
+      "merged": false,
+      "updated_at": "2026-10-05T01:35:11Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/34"
     }
   ]
 }
