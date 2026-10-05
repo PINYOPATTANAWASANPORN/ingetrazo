@@ -391,6 +391,38 @@ def test_assistant_streams_and_cancel_ignores_late_action(monkeypatch):
         win.close()
 
 
+def test_context_suggestion_fills_prompt_and_task_controls():
+    from core.group import Group
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    try:
+        chair = Group(name="Chair")
+        win.viewport.scene.groups.append(chair)
+        win.viewport.scene.select([chair])
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._refresh_suggestions(force=True)
+        assert dlg._suggestions[0]["label"] == "Describe selection"
+        assert dlg._input.toPlainText() == ""
+
+        dlg._apply_suggestion(0)
+        assert dlg._input.toPlainText() == "Describe the selected object."
+        assert dlg._intent_scope.currentData() == "selection"
+        assert dlg._intent_goal.currentData() == "explain"
+        assert dlg._intent_mode.currentData() == "analysis_only"
+        assert dlg._convo == []  # a chip fills controls; it never auto-sends
+    finally:
+        dlg._intent_scope.setCurrentIndex(
+            dlg._intent_scope.findData("auto"))
+        dlg._intent_goal.setCurrentIndex(dlg._intent_goal.findData(""))
+        dlg._intent_mode.setCurrentIndex(
+            dlg._intent_mode.findData("apply_safe_changes"))
+        dlg._save_settings()
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
 def test_assistant_typed_preview_waits_for_apply_and_commits_one_undo(monkeypatch):
     from core.group import Group
     from plugins.ai_assistant import AsistenteDialog

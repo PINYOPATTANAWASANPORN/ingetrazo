@@ -41,7 +41,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from core import ai, ai_context, ai_recipes
+from core import ai, ai_context, ai_recipes, ai_suggestions
 from core.i18n import tr
 from views.filedialogs import file_dialogs
 from views.fold_section import FoldSection, narrow, wrapping_form
@@ -197,14 +197,22 @@ class AsistentePanel(QWidget):
         self._cancel_token = None
         self._stream_text = ""
         self._stream_flush_scheduled = False
+        self._suggestions: list[dict] = []
+        self._suggestion_signature = None
         self._pending_task_id = ""
         self._pending_idempotency_key = ""
         self._foto: tuple[str, str, str] | None = None  # (b64, mime, name)
         self._reply.connect(self._on_reply, Qt.QueuedConnection)
         self._build_ui()
         self._viewport.sceneVersionChanged.connect(
-            lambda _version: self._refresh_project_memory())
+            lambda _version: self._refresh_context_controls())
         self._load_settings()
+        self._suggestion_timer = QTimer(self)
+        self._suggestion_timer.setInterval(500)
+        self._suggestion_timer.timeout.connect(
+            self._refresh_suggestions_if_needed)
+        self._suggestion_timer.start()
+        self._refresh_suggestions(force=True)
 
     # ---- UI -----------------------------------------------------------------
     def _build_ui(self) -> None:
@@ -339,6 +347,20 @@ class AsistentePanel(QWidget):
         memory_row.addWidget(self._project_memory)
         bl.addLayout(memory_row)
         self._refresh_project_memory()
+        suggestion_row = QHBoxLayout()
+        suggestion_row.setContentsMargins(0, 0, 0, 0)
+        suggestion_row.addWidget(QLabel(tr("Try:")))
+        self._suggestion_buttons = []
+        for index in range(ai_suggestions.MAX_SUGGESTIONS):
+            button = QPushButton()
+            button.clicked.connect(
+                lambda _checked=False, i=index: self._apply_suggestion(i))
+            suggestion_row.addWidget(button)
+            self._suggestion_buttons.append(button)
+        suggestion_row.addStretch()
+        self._suggestion_bar = QWidget()
+        self._suggestion_bar.setLayout(suggestion_row)
+        bl.addWidget(self._suggestion_bar)
         self._task_chip = QLabel("")
         self._task_chip.setVisible(False)
         bl.addWidget(self._task_chip)
@@ -367,6 +389,7 @@ class AsistentePanel(QWidget):
         bl.addWidget(self._preview_buttons)
         narrow(self._intent_scope, self._intent_goal, self._intent_mode,
                self._intent_assumptions, self._project_memory,
+               self._suggestion_bar, *self._suggestion_buttons,
                self._task_chip, self._stream_preview, self._change_preview,
                self._apply_changes, self._discard_changes)
 
@@ -408,7 +431,7 @@ class AsistentePanel(QWidget):
         self._clear_foto()
 
     def focus_input(self) -> None:
-        self._refresh_project_memory()
+        self._refresh_context_controls()
         self._input.setFocus(Qt.ShortcutFocusReason)
 
     def _chat_colors(self) -> dict:
@@ -503,12 +526,59 @@ class AsistentePanel(QWidget):
     def _set_task_controls_enabled(self, enabled: bool) -> None:
         for widget in (self._intent_scope, self._intent_goal,
                        self._intent_mode, self._intent_assumptions,
-                       self._project_memory, self._allow_python):
+                       self._project_memory, self._allow_python,
+                       self._suggestion_bar):
             widget.setEnabled(enabled)
+
+    def _refresh_context_controls(self) -> None:
+        self._refresh_project_memory()
+        self._refresh_suggestions(force=True)
 
     def _refresh_project_memory(self) -> None:
         count = len(getattr(self._viewport.scene, "ai_memory", []))
         self._project_memory.setText(tr("Memory ({count})", count=count))
+
+    def _refresh_suggestions_if_needed(self) -> None:
+        scene = self._viewport.scene
+        signature = (id(scene), scene.version,
+                     getattr(scene, "active_layer", None),
+                     getattr(getattr(scene, "edit_group", None), "uid", None))
+        if signature != self._suggestion_signature:
+            self._refresh_suggestions(signature=signature)
+
+    def _refresh_suggestions(self, force: bool = False, signature=None) -> None:
+        scene = self._viewport.scene
+        signature = signature or (
+            id(scene), scene.version, getattr(scene, "active_layer", None),
+            getattr(getattr(scene, "edit_group", None), "uid", None))
+        if not force and signature == self._suggestion_signature:
+            return
+        self._suggestion_signature = signature
+        self._suggestions = ai_suggestions.suggestions(scene)
+        for index, button in enumerate(self._suggestion_buttons):
+            if index < len(self._suggestions):
+                item = self._suggestions[index]
+                button.setText(tr(item["label"]))
+                button.setToolTip(item["prompt"])
+                button.setVisible(True)
+            else:
+                button.setVisible(False)
+        self._suggestion_bar.setVisible(bool(self._suggestions))
+
+    def _apply_suggestion(self, index: int) -> None:
+        if self._busy or self._pending_task_id \
+                or index < 0 or index >= len(self._suggestions):
+            return
+        item = self._suggestions[index]
+        for combo, value in (
+                (self._intent_scope, item["scope"]),
+                (self._intent_goal, item["goal"]),
+                (self._intent_mode, item["execution"])):
+            position = combo.findData(value)
+            if position >= 0:
+                combo.setCurrentIndex(position)
+        self._input.setText(item["prompt"])
+        self._input.setFocus(Qt.ShortcutFocusReason)
 
     def _apply_project_memory(self, facts) -> bool:
         from core.ai_memory import validate_memory

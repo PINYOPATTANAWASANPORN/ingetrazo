@@ -262,8 +262,10 @@ Phase 3 backend slice is also implemented:
 `create_task` turns compact intent into a revision-pinned task with automatic
 selection/current-group/visible-model scope, constraints, assumptions,
 acceptance criteria, and a deterministic role plan. Registered tasks enforce
-their resolved entity scope through preview and commit. Context-aware
-suggestion chips and actual specialist execution remain. The
+their resolved entity scope through preview and commit. Deterministic local
+suggestion chips now fill the prompt and task controls from empty-model,
+visible-model, or stable-selection state without calling a provider or sending
+automatically. Actual specialist execution remains. The
 in-app Assistant now exposes compact Scope, Goal, and Execution controls plus
 editable per-request assumptions, includes the resulting task contract in
 the model context, and enforces Analysis only by refusing returned recipes.
@@ -283,6 +285,11 @@ active HTTP response, interrupts retry backoff, terminates the task as
 `cancelled`, releases any pending proposal, and invalidates queued chunks from
 that generation. Partial output remains display-only and cannot reach action
 parsing or the transactional executor.
+A versioned eight-case corpus and deterministic fixtures now cover creation,
+selection reads, properties, tags, Thai intent, and critical ambiguity. The
+evaluation utility validates JSONL samples and reports completion, rollback,
+manual corrections, tokens, tool calls, latency, and time to first preview.
+No baseline numbers are claimed until real provider runs are captured.
 
 ### Phase 1 — shared context and typed read tools
 

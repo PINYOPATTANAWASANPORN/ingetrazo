@@ -147,6 +147,13 @@ interpreta como JSON o Python; solo una respuesta terminada puede producir una
 vista previa. Los eventos que lleguen tarde después de cancelar se descartan
 por su identificador de generación.
 
+La fila **Probar** ofrece sugerencias locales según el estado visible: un
+modelo vacío propone primitivas seguras, una selección estable propone
+describir/ocultar/bloquear/asignar etiqueta y un modelo sin selección propone
+resumir o revisar. Al pulsar una sugerencia solo se rellenan el texto,
+alcance, objetivo y modo; el usuario todavía decide si enviarla. No consume
+tokens ni convierte inferencias en memoria del proyecto.
+
 El botón **Memoria** abre los hechos duraderos del proyecto, uno por línea.
 Se guardan dentro del `.igz`, la edición participa en Deshacer/Rehacer y cada
 tarea nueva recibe una copia fija bajo `project_memory`. Esta memoria tiene

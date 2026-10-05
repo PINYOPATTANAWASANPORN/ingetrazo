@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "description": "Fixed privacy-safe tasks for comparing Assistant providers and releases.",
+  "cases": [
+    {
+      "id": "empty-create-box",
+      "category": "creation",
+      "fixture": "empty",
+      "intent": "Create a 4×4×3 m box named Room Mass.",
+      "goal": "create",
+      "execution": "apply_safe_changes",
+      "expected": {"action_types": ["create_box"], "preview": true, "clarification": false}
+    },
+    {
+      "id": "empty-create-column-th",
+      "category": "creation",
+      "fixture": "empty",
+      "intent": "สร้างเสากลมรัศมี 0.30 เมตร สูง 3 เมตร ชื่อ Column",
+      "goal": "create",
+      "execution": "apply_safe_changes",
+      "expected": {"action_types": ["create_cylinder"], "preview": true, "clarification": false}
+    },
+    {
+      "id": "selection-describe",
+      "category": "read",
+      "fixture": "two-boxes-one-selected",
+      "intent": "Describe the selected object.",
+      "goal": "explain",
+      "execution": "analysis_only",
+      "expected": {"action_types": [], "preview": false, "clarification": false}
+    },
+    {
+      "id": "selection-hide",
+      "category": "property",
+      "fixture": "two-boxes-one-selected",
+      "intent": "Hide the selected object.",
+      "goal": "revise",
+      "execution": "apply_safe_changes",
+      "expected": {"action_types": ["set_visibility"], "preview": true, "clarification": false}
+    },
+    {
+      "id": "selection-lock",
+      "category": "property",
+      "fixture": "two-boxes-one-selected",
+      "intent": "Lock the selected object.",
+      "goal": "revise",
+      "execution": "apply_safe_changes",
+      "expected": {"action_types": ["set_lock"], "preview": true, "clarification": false}
+    },
+    {
+      "id": "selection-assign-tag",
+      "category": "tag",
+      "fixture": "two-boxes-one-selected-active-structure",
+      "intent": "Assign the active tag 'Structure' to the selected object.",
+      "goal": "revise",
+      "execution": "apply_safe_changes",
+      "expected": {"action_types": ["assign_tag"], "preview": true, "clarification": false}
+    },
+    {
+      "id": "model-check",
+      "category": "read",
+      "fixture": "mixed-state-model",
+      "intent": "Check the visible model for hidden, locked, or inconsistently tagged objects.",
+      "goal": "check",
+      "execution": "analysis_only",
+      "expected": {"action_types": [], "preview": false, "clarification": false}
+    },
+    {
+      "id": "ambiguous-move",
+      "category": "clarification",
+      "fixture": "two-boxes-one-selected",
+      "intent": "Move this over there.",
+      "goal": "revise",
+      "execution": "apply_safe_changes",
+      "expected": {"action_types": [], "preview": false, "clarification": true}
+    }
+  ]
+}
