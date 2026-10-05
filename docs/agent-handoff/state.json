@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 44,
-    "open": 44,
+    "pull_requests_total": 45,
+    "open": 45,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -101,5 +101,13 @@
     "pull_request": 46,
     "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/46",
     "draft": true
+  },
+  "ui_fix_delivery": {
+    "branch": "fix/ai-assistant-review-controls",
+    "commit": "5ae2b323f7f93e3e208cea82927b4a0652ba52e2",
+    "pull_request": 47,
+    "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/47",
+    "draft": true,
+    "validation": "46 Assistant UI tests passed; installed Windows build unchanged"
   }
 }

@@ -102,8 +102,10 @@ provider was called. GitHub snapshot: 44 total, 44 open, 0 merged. The
 installed Windows binary still contains code through `b0dce0f` and does not
 include this new slice.
 
-Current UI fix on `fix/ai-assistant-review-controls` follows PR #46. In the
+Latest UI fix: [draft PR #47](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/47),
+`fix/ai-assistant-review-controls`, follows PR #46. In the
 narrow AI tray, suggestion buttons now use two columns and the suggestion
 container keeps the tray width; disabled review export explains that a
 current-revision two-specialist review must finish first. The focused
-Assistant UI suite passed 46 tests. The installed Windows binary is unchanged.
+Assistant UI suite passed 46 tests. GitHub snapshot: 45 total, 45 open,
+0 merged. The installed Windows binary is unchanged.
