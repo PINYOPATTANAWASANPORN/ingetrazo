@@ -454,6 +454,17 @@
       "draft": true,
       "updated_at": "2026-10-05T23:02:50Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/47"
+    },
+    {
+      "number": 48,
+      "state": "open",
+      "title": "Measure specialist review failures without provider text",
+      "base": "fix/ai-assistant-review-controls",
+      "head": "feature/ai-review-measurement-evidence",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-05T23:23:58Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/48"
     }
   ]
 }

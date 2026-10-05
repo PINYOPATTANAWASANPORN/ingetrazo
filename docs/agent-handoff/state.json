@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 45,
-    "open": 45,
+    "pull_requests_total": 46,
+    "open": 46,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -48,7 +48,7 @@
   },
   "validation": {
     "scope": "selected review benchmark, cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
-    "passed": 128,
+    "passed": 136,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -86,7 +86,7 @@
     }
   ],
   "next_recommended_work": [
-    "run the deterministic review corpus against named real provider/model versions and manually assess finding quality; current records contain no real-provider results",
+    "compare additional named local or hosted models against the public review corpus; the first local pairing completed 0/3 in two runs and quality remains unmeasured",
     "extend provider adapters to capture reported token usage without estimating missing usage",
     "consider signed or independently anchored audit evidence; current saved history is unsigned",
     "design independently authenticated specialist identities if external agents need trust separation",
@@ -118,5 +118,13 @@
     "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/47",
     "draft": true,
     "validation": "46 Assistant UI tests passed at a fixed 340 px tray width; installed build 3815ef8 passed hash, --check, and 22-tool MCP verification"
+  },
+  "review_measurement_delivery": {
+    "branch": "feature/ai-review-measurement-evidence",
+    "commit": "d337e5d1e45b3cf7430d43b6150943bbd8018d17",
+    "pull_request": 48,
+    "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/48",
+    "draft": true,
+    "validation": "136 selected AI tests passed with PYTHONUTF8=1; local Ollama pairing completed 0/3 public review cases in two runs; no token or quality measurement"
   }
 }

@@ -113,3 +113,12 @@ installed-path `--check`, both SHA-256 comparisons, and MCP `tools/list`
 (22 tools). A verified backup of the prior installation is available; see
 [`INSTALLATION.md`](INSTALLATION.md).
 The full-width row refinement is included in that installed build.
+
+Latest measurement: [draft PR #48](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/48),
+`feature/ai-review-measurement-evidence` on #47, implementation `d337e5d`.
+The benchmark now records bounded failure codes without provider response text.
+The first local Ollama pairing completed 0/3 public cases in two runs; the
+diagnostic run found two invalid schemas and two out-of-scope entity references
+across the six role outcomes. The selected AI suite passed 136 tests with
+`PYTHONUTF8=1`. GitHub snapshot: 46 total PRs, 46 open, 0 merged. The
+installed Windows build remains at `3815ef8`.
