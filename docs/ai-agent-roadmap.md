@@ -272,7 +272,10 @@ visible-model, or stable-selection state without calling a provider or sending
 automatically. The Assistant now runs two read-only provider-backed specialists
 over one bounded metadata snapshot, retains conflicting findings and rejects
 stale/cancelled results. See [specialist review](ai-specialist-review.md).
-General MCP orchestration and modeler proposals remain. The
+An external MCP coordinator can now obtain role-bound snapshots, submit
+validated findings, retrieve combined conflicts and cancel pending reviews.
+Role tokens correlate results within the authenticated session; they do not
+establish independent agent identities. General modeler orchestration remains. The
 in-app Assistant now exposes compact Scope, Goal, and Execution controls plus
 editable per-request assumptions, includes the resulting task contract in
 the model context, and enforces Analysis only by refusing returned recipes.

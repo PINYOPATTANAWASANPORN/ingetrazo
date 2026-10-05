@@ -79,6 +79,7 @@ class _Bridge(QObject):
         self.last_error = ""
         self._changes = None
         self._tasks = None
+        self._reviews = None
         # Queued to a BOUND method of this main-thread QObject — connecting a
         # lambda would run the slot on the worker thread (CLAUDE.md gotcha).
         self._dispatch.connect(self._run_on_main, Qt.QueuedConnection)
@@ -117,6 +118,10 @@ class _Bridge(QObject):
 
     def stop(self) -> None:
         self._stop.set()
+        if self._reviews is not None:
+            for review_id in list(self._reviews.reviews):
+                self._reviews.cancel(review_id)
+            self._reviews = None
         if self._changes is not None and self._changes.summary() is not None:
             self._changes.discard(self._changes.summary()["task_id"])
         if self._server is not None:
@@ -168,6 +173,13 @@ class _Bridge(QObject):
             self._changes = AIChangeService(self._viewport.scene,
                                             self._viewport.history, tasks)
         return self._changes
+
+    def review_service(self):
+        tasks = self.task_service()
+        if self._reviews is None or self._reviews.tasks is not tasks:
+            from core.ai_external_review import ExternalReviewService
+            self._reviews = ExternalReviewService(self._viewport.scene, tasks)
+        return self._reviews
 
     @staticmethod
     def _wire_error(message: str, req_id=None) -> bytes:
@@ -340,7 +352,24 @@ class _Bridge(QObject):
             acceptance_criteria)
 
     def _tool_get_task(self, task_id: str = "") -> dict:
+        if self._reviews is not None:
+            for review in self._reviews.reviews.values():
+                if review["packet"]["task_id"] == task_id:
+                    self._reviews.get(review["review_id"])
         return self.task_service().get(task_id)
+
+    def _tool_begin_specialist_review(self, task_id: str = "") -> dict:
+        return self.review_service().begin(task_id)
+
+    def _tool_get_specialist_review(self, review_id: str = "") -> dict:
+        return self.review_service().get(review_id)
+
+    def _tool_submit_specialist_review(self, review_id="", role="",
+                                     submission_token="", snapshot_id="", result=None):
+        return self.review_service().submit(review_id, role, submission_token, snapshot_id, result)
+
+    def _tool_cancel_specialist_review(self, review_id: str = "") -> dict:
+        return self.review_service().cancel(review_id)
 
     def _tool_propose_actions(self, task_id: str = "", intent: str = "",
                               base_revision=None, idempotency_key: str = "",

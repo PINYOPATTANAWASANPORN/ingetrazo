@@ -148,3 +148,14 @@ Review-only controls must not overwrite normal goal/execution preferences.
 The UI tests caught this leakage and a misapplied scene-variable edit; both
 were corrected before the 85-test regression run passed. Keep a GUI lifecycle
 test as well as worker tests: Qt slot exceptions can otherwise leave the UI busy.
+
+## External role assignment is correlation, not identity
+
+A role token binds submission to one review and snapshot, but a coordinator
+with the bridge credential receives all assignments. Do not claim isolated
+agent identities or independent authorship. Keep transport authentication,
+role correlation and document write authority distinct. Idempotent identical
+retries are safe; a different repeated submission must not overwrite findings.
+Invalidate historical review reports on content changes before returning them.
+Bridge cancellation rejects results but cannot cancel a provider owned by an
+external process. Advertise that boundary and cap retained/active sessions.
