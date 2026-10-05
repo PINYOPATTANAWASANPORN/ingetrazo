@@ -13,8 +13,8 @@
     "pull_request": 33
   },
   "delivery": {
-    "pull_requests_total": 37,
-    "open": 37,
+    "pull_requests_total": 38,
+    "open": 38,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -78,7 +78,7 @@
   ],
   "implementation_delivery": {
     "branch": "feature/mcp-specialist-protocol",
-    "commit": null,
-    "pull_request": null
+    "commit": "970438a",
+    "pull_request": 40
   }
 }

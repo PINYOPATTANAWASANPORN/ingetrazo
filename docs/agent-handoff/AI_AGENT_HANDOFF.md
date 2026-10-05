@@ -101,4 +101,5 @@ repository release certification is claimed.
 ## Stack base for continuation
 
 `feature/mcp-specialist-protocol` is stacked on `feature/ai-specialist-review`
-(PR #39). Refer to `state.json` for delivery identity after publication.
+(PR #39). Delivered by [#40](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/40)
+at code commit `970438a`. Verify the latest branch head before continuation.
