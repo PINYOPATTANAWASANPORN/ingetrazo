@@ -134,3 +134,14 @@ Branch `feature/ai-cross-provider-review` builds on PR #44. Assistant can choose
 
 
 Latest delivery: [PR #45](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/45), `feature/ai-cross-provider-review` on #44; implementation `23da695`. Selected regression suite: 123 passed with simulated providers. GitHub snapshot: 43 total, 43 open, 0 merged. Earlier counts are historical. Installed build unchanged.
+
+
+## Installed stack (2026-10-06)
+
+The Windows installation now includes code through `b0dce0f`, including the
+cross-provider read-only review workflow. Its main executable passed the
+installed-path self-check and GUI launch; its MCP executable returned 22 tools,
+including specialist review and audit endpoints. This does not supply the
+missing real-provider quality or latency baseline. The source commit, hashes,
+rollback location, and packaging failure analysis are in
+[`INSTALLATION.md`](INSTALLATION.md).

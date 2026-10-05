@@ -208,3 +208,21 @@ A paged in-memory event trail is useful live but vanishes at session end. Add an
 
 ## Separate provider routing for read-only reviewers (2026-10-05)
 Resolve each reviewer connection on the GUI thread before dispatch and freeze both credential bundles for workers. A missing key must stop the entire review before a partial provider request is sent. Reuse existing provider-scoped saved keys; persist only role provider/model choices, and never serialize keys into task reports or audit exports. Exception text from provider libraries may contain a key, so redact every configured key before surfacing a role failure. Distinct connections still do not prove independent reviewer identities or quality.
+
+
+## Windows frozen-build verification (2026-10-06)
+
+A successful PyInstaller run did not guarantee a runnable executable. The
+build environment's PATH exposed Poppler's `icuuc.dll`; PyInstaller copied it
+into `_internal`, and `PySide6.QtCore` failed with "The specified procedure
+could not be found." Qt6Core imported unversioned ICU symbols, while that DLL
+exported versioned symbols. Comparing PE imports with DLL exports isolated the
+conflict; removing the foreign ICU pair made the frozen `--check` pass. The
+Windows spec now excludes those DLLs. Always test the frozen executable before
+deployment, then test the copy under `Program Files` independently.
+
+An active MCP host can restart `ingetrazo-mcp.exe` immediately after it is
+stopped. Overwriting its file then fails with a sharing violation. Stage the
+new executable beside the old one, rename the old image, and rename the staged
+image into place; keep a verified backup and roll back if a later check fails.
+The deployment's first failed self-check exercised that rollback successfully.

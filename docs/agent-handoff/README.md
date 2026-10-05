@@ -5,10 +5,13 @@ work performed on the `PINYOPATTANAWASANPORN/ingetrazo` fork. It records what
 exists in the stacked branches, what has actually been validated, what remains,
 and the engineering knowledge extracted from the work.
 
-- Snapshot date: **2026-10-05**
+- Snapshot date: **2026-10-06**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- Delivery state: **39 open PRs; none merged into the fork's `main`**
+- PR inventory: **43 open PRs in the 2026-10-05 snapshot**; check GitHub
+  before treating that count as current.
+- Local installation: **verified on Windows 10** from code commit `b0dce0f`;
+  see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
 
 ## Read in this order
 
@@ -20,6 +23,7 @@ and the engineering knowledge extracted from the work.
 4. [`LESSONS_LEARNED.md`](LESSONS_LEARNED.md) — reusable engineering knowledge
    and failure patterns.
 5. [`pr-index.json`](pr-index.json) — GitHub API snapshot of every fork PR.
+6. [`INSTALLATION.md`](INSTALLATION.md) — verified local build and rollback record.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
@@ -55,7 +59,9 @@ The detailed design documents remain authoritative for their domains:
   the recorded targeted validation.
 - **Merged** means GitHub reports a non-null merge time into the intended base.
 - **Installed** means a build containing the commit was deployed on the local
-  machine. This pack does not claim that deployment.
+  machine and checked at the installed path. The Windows installation now
+  contains code through `b0dce0f`; later documentation-only commits do not
+  change its binary.
 - Percentages are planning estimates derived from acceptance targets. They are
   not test coverage or proof of release readiness.
 

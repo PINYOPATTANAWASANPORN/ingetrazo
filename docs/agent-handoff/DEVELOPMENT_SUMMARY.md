@@ -119,4 +119,8 @@ Latest delivery: [PR #44](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pul
 Branch `feature/ai-cross-provider-review` builds on PR #44. Assistant can choose a provider and model per read-only specialist. Role overrides reuse provider-scoped connection settings and validate all required keys before dispatch. The same detached snapshot goes to both workers; keys are absent from reports and error text is redacted. External MCP review protocol is unchanged. Selected suite: 123 passed with simulated providers; no real-provider baseline or installed build update.
 
 
-Latest delivery: [PR #45](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/45), `feature/ai-cross-provider-review` on #44; implementation `23da695`. Selected regression suite: 123 passed with simulated providers. GitHub snapshot: 43 total, 43 open, 0 merged. Earlier counts are historical. Installed build unchanged.
+Latest delivery: [PR #45](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/45), `feature/ai-cross-provider-review` on #44; implementation `23da695`. Selected regression suite: 123 passed with simulated providers. GitHub snapshot: 43 total, 43 open, 0 merged. Earlier counts are historical. The installed-build claim below supersedes the historical installation status.
+
+## Local Windows installation (2026-10-06)
+
+The stacked code through `b0dce0f` is installed under `C:\Program Files\IngeTrazo`. The main executable and MCP bridge match the recorded SHA-256 build manifest. The installed `--check` exits 0, the GUI opens an untitled document, and MCP `tools/list` returns 22 tools. This is a local installation check, not a claim that the stack was merged or that all real-provider workflows were tested. See [`INSTALLATION.md`](INSTALLATION.md).

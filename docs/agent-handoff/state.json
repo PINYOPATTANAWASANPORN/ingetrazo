@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "snapshot_date": "2026-10-05",
+  "snapshot_date": "2026-10-06",
   "repository": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo",
   "upstream_main_commit": "6be29fe437a7cd992d4e079f71720821b25216b9",
   "handoff_base": {
@@ -20,7 +20,21 @@
       18,
       27
     ],
-    "installed_build_verified": false
+    "installed_build_verified": true
+  },
+  "installed_build": {
+    "platform": "Windows 10 x64",
+    "path": "C:\\Program Files\\IngeTrazo",
+    "source_commit": "b0dce0f7d483d8eeca1a3788d8aa286a8e18bde2",
+    "installed_at_utc": "2026-10-05T22:09:40.8710750Z",
+    "main_sha256": "65176134443C6BB7EA152841E46E5467DF685D6317C483E0F62C0861E31982A2",
+    "mcp_sha256": "09F687096E4B398ADAEA89E81D396778EA67ACF86FDE55CB3A931A3FD830BB4B",
+    "checks": [
+      "installed executable --check exit 0",
+      "installed GUI opened IngeTrazo — Untitled",
+      "installed MCP tools/list returned 22 tools",
+      "installed executable hashes match the build manifest"
+    ]
   },
   "validation": {
     "scope": "selected cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
@@ -69,6 +83,7 @@
   ],
   "documents": [
     "docs/agent-handoff/README.md",
+    "docs/agent-handoff/INSTALLATION.md",
     "docs/agent-handoff/DEVELOPMENT_SUMMARY.md",
     "docs/agent-handoff/AI_AGENT_HANDOFF.md",
     "docs/agent-handoff/LESSONS_LEARNED.md",
