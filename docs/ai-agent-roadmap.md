@@ -458,3 +458,13 @@ Assistant now saves the complete session history to a user-chosen JSON file and 
 
 ### Cross-provider reviewer update — 2026-10-05
 Assistant's two read-only reviewers can now select different providers and models while sharing the same bounded snapshot. Each role resolves its own previously saved provider key before dispatch; missing keys block the review. Credentials stay out of reports and review exports. This adds routing flexibility but no claim of independent reviewer identity or measured quality; provider compatibility and real token baselines remain pending.
+
+### Specialist review measurement update — 2026-10-06
+
+The public `benchmarks/ai/review-corpus-v1.json` and
+`scripts/ai_review_benchmark.py` now provide deterministic, metadata-only
+snapshots for repeatable two-role review runs. Provider/model settings refer
+to environment variable names rather than literal credentials. The runner
+records elapsed time, request size, parse outcomes and finding counts without
+saving review prose. Tokens and quality scores remain null until measured by
+the provider and independently reviewed; no real-provider baseline is claimed.

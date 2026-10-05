@@ -22,6 +22,14 @@ Choosing different model names does not imply independent
 model expertise, and no live-provider quality or latency benchmark has been
 recorded. Tests use deterministic fake provider responses.
 
+Each Assistant role now reports its own elapsed milliseconds, including
+provider retries and JSON validation. The public, metadata-only benchmark
+runner in [`../benchmarks/ai/README.md`](../benchmarks/ai/README.md) can
+capture per-role latency, parse success, and finding counts against chosen
+providers without saving credentials or review prose. No real-provider results
+are included in this repository; token counts and quality scores stay unknown
+until measured and reviewed separately.
+
 ## Data and authority
 
 The GUI thread captures one detached JSON snapshot tied to the task's content

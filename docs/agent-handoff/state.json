@@ -13,8 +13,9 @@
     "pull_request": 33
   },
   "delivery": {
-    "pull_requests_total": 43,
-    "open": 43,
+    "github_snapshot_date": "2026-10-06",
+    "pull_requests_total": 44,
+    "open": 44,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -37,8 +38,8 @@
     ]
   },
   "validation": {
-    "scope": "selected cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
-    "passed": 123,
+    "scope": "selected review benchmark, cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
+    "passed": 128,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -76,7 +77,8 @@
     }
   ],
   "next_recommended_work": [
-    "measure real-provider review quality, compatibility, latency and token usage with the versioned corpus",
+    "run the deterministic review corpus against named real provider/model versions and manually assess finding quality; current records contain no real-provider results",
+    "extend provider adapters to capture reported token usage without estimating missing usage",
     "consider signed or independently anchored audit evidence; current saved history is unsigned",
     "design independently authenticated specialist identities if external agents need trust separation",
     "extend architectural editing to existing-wall openings, arbitrary slab profiles and isolated geometry previews"
@@ -88,12 +90,16 @@
     "docs/agent-handoff/AI_AGENT_HANDOFF.md",
     "docs/agent-handoff/LESSONS_LEARNED.md",
     "docs/agent-handoff/pr-index.json",
+    "benchmarks/ai/README.md",
+    "benchmarks/ai/review-corpus-v1.json",
     "docs/ai-creation-contract.md",
     "docs/ai-specialist-review.md"
   ],
   "implementation_delivery": {
-    "branch": "feature/ai-cross-provider-review",
-    "commit": "23da695",
-    "pull_request": 45
+    "branch": "feature/ai-review-benchmark",
+    "commit": "a33fb8aebe6886ff3aede8512718a3696291d49f",
+    "pull_request": 46,
+    "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/46",
+    "draft": true
   }
 }

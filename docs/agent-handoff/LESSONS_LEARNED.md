@@ -226,3 +226,16 @@ stopped. Overwriting its file then fails with a sharing violation. Stage the
 new executable beside the old one, rename the old image, and rename the staged
 image into place; keep a verified backup and roll back if a later check fails.
 The deployment's first failed self-check exercised that rollback successfully.
+
+
+## Review benchmarks need reproducible inputs and honest missing values
+
+Task IDs and group UIDs are random in normal documents. A benchmark that
+builds the same scene twice can therefore send different snapshots to each
+provider. Fix those IDs only in the public fixture path and assert the whole
+snapshot is identical across runs. The default runner must validate without
+making provider calls; live runs require explicit configuration and `--run`.
+Save timing and parse metadata, not raw reviewer prose or credentials. A
+successful parse is not a finding-quality score, and the current `ai.chat`
+return type does not expose token usage: record both as null until separately
+measured instead of estimating them from text length.

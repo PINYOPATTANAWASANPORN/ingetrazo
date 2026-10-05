@@ -145,3 +145,18 @@ including specialist review and audit endpoints. This does not supply the
 missing real-provider quality or latency baseline. The source commit, hashes,
 rollback location, and packaging failure analysis are in
 [`INSTALLATION.md`](INSTALLATION.md).
+
+
+## Review measurement slice (2026-10-06)
+
+`feature/ai-review-benchmark` at `a33fb8a` adds three deterministic public
+metadata fixtures, per-role elapsed time, an explicit `--run` benchmark CLI,
+and offline p50/p95 summaries. `--run` resolves credentials from environment
+variable names, not config literals; JSONL excludes snapshots, reviewer prose,
+keys and error text. Reported tokens and quality scores remain null. The
+selected AI regression suite passed 128 tests with fake providers, and the
+default CLI validation contacted no provider. Read
+[`../../benchmarks/ai/README.md`](../../benchmarks/ai/README.md) before a live
+run. No real-provider results have been captured. The branch is in
+[draft PR #46](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/46),
+stacked on PR #45.
