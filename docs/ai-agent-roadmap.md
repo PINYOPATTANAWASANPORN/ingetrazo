@@ -445,3 +445,7 @@ the three read-only APIs — document context, entity search, and entity detail
 tool. This sequence provides immediate value and establishes the contracts
 required by preview, typed writes, and multiple agents without risking model
 mutations.
+
+
+### Review export update — 2026-10-05
+Assistant and MCP now export revision-checked, allowlisted JSON review bundles with an unsigned SHA-256 checksum. See [review contract](ai-specialist-review.md). Persistent audit history and real-provider baselines remain pending.

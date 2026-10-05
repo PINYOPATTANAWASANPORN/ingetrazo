@@ -232,6 +232,17 @@ TOOLS = [
             "additionalProperties": False},
     },
     {
+        "name": "export_specialist_review",
+        "description": (
+            "Return a versioned JSON review bundle with role findings, conflicts, "
+            "revision and an unsigned SHA-256 payload checksum. Only finished current "
+            "reviews can export. Excludes connection settings, role tokens and raw snapshots; "
+            "review prose is included. Returns data only, never writes a file."),
+        "inputSchema": {"type": "object", "properties": {
+            "review_id": {"type": "string"}}, "required": ["review_id"],
+            "additionalProperties": False},
+    },
+    {
         "name": "cancel_specialist_review",
         "description": (
             "Cancel a collecting review and reject late submissions. Does not stop an "

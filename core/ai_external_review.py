@@ -137,3 +137,9 @@ class ExternalReviewService:
         if review["status"] == "collecting":
             self._terminate(review, "cancelled")
         return self._public(review)
+
+    def export(self, review_id=""):
+        current = self.get(review_id)
+        if not current.get("ok"):
+            return current
+        return self.tasks.export_review(current["task_id"])

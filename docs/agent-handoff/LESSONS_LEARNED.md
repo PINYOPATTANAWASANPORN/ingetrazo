@@ -168,3 +168,31 @@ and freeze the resolved choices before starting parallel requests. Preserve
 requested model identity on failures as well as successes; do not silently
 fallback or put credentials in a review report. Recorded names describe the
 request, not proof of the backend model a remote service actually used.
+
+
+## Review export (2026-10-05)
+
+Finished current-revision reviews can be exported with Assistant **Export review…**
+or MCP `export_specialist_review(review_id)`. MCP returns data only; the caller
+chooses whether and where to save it. Assistant writes UTF-8 JSON atomically via
+QSaveFile and rechecks document/task identity and revision after the save dialog.
+Completed, partial and failed two-role outcomes are retained; unfinished,
+cancelled and stale reviews cannot be exported. Export does not modify geometry
+or Undo history.
+
+Schema 1.0 includes UTC export time, revision, snapshot digest, role outcomes,
+requested provider/model labels when available, findings and unresolved conflicts.
+Only allowlisted report fields are serialized: connection settings, API keys,
+submission tokens, raw snapshots and project-memory records are excluded.
+Reviewer prose is included and can contain project-sensitive information; this
+is not a general-purpose secret redactor. External roles may have no model label.
+
+`integrity.payload_digest` is SHA-256 over UTF-8 JSON of `payload` with sorted
+keys, no ASCII escaping, compact comma/colon separators and no NaN values
+(Python `json.dumps(..., ensure_ascii=False, sort_keys=True,
+separators=(",", ":"), allow_nan=False)`). It is an unsigned corruption check,
+not proof of authorship or a tamper-proof audit trail. Reports are advisory
+metadata checks, not geometric validation or regulatory certification.
+
+Next: append-only audit history, provider compatibility/real token baselines,
+and separately scoped cross-provider role credentials before modeler agents.

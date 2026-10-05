@@ -245,7 +245,7 @@ def capabilities() -> dict:
         "schema_version": SCHEMA_VERSION,
         "read_tools": ["get_document_context", "find_entities",
                        "get_entities", "get_capabilities", "get_task",
-                       "get_specialist_review"],
+                       "get_specialist_review", "export_specialist_review"],
         "session_tools": ["begin_specialist_review", "submit_specialist_review",
                           "cancel_specialist_review"],
         "write_tools": ["propose_actions", "preview_changes",
@@ -270,7 +270,7 @@ def capabilities() -> dict:
         "external_specialist_review": {
             "read_only": True, "dispatch": "external_coordinator",
             "tools": ["begin_specialist_review", "submit_specialist_review",
-                      "get_specialist_review", "cancel_specialist_review"],
+                      "get_specialist_review", "cancel_specialist_review", "export_specialist_review"],
             "role_tokens_are_identities": False},
         "assistant_specialist_review": {
             "roles": ["model_structure", "task_requirements"],

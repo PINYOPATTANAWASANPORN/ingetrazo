@@ -23,8 +23,8 @@
     "installed_build_verified": false
   },
   "validation": {
-    "scope": "selected external-review, review, Assistant, task, context, bridge and change regression suite",
-    "passed": 107,
+    "scope": "selected review export, external-review, review, Assistant, task, context, bridge and change regression suite",
+    "passed": 113,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -63,9 +63,9 @@
   ],
   "next_recommended_work": [
     "extend architectural editing to existing-wall openings, arbitrary slab profiles and isolated geometry previews",
-    "add audit export, cross-provider role credentials and measured review baselines before modeler orchestration",
+    "add append-only audit history, cross-provider role credentials and measured review baselines before modeler orchestration",
     "capture provider baselines with the versioned corpus and real token telemetry",
-    "add audit export and provider compatibility tests"
+    "add append-only audit history and provider compatibility tests"
   ],
   "documents": [
     "docs/agent-handoff/README.md",

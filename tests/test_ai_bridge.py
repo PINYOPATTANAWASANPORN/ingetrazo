@@ -78,10 +78,14 @@ def test_external_specialists_over_authenticated_bridge(monkeypatch, tmp_path):
                 "role": assignment["role"], "submission_token": assignment["submission_token"],
                 "result": {"summary": "Reviewed available metadata", "findings": []}})["result"]
         assert result["status"] == "completed"
+        exported = _ask(bridge, "export_specialist_review", {"review_id": begun["review_id"]})["result"]
+        assert exported["ok"] and exported["bundle"]["payload"]["current_revision"] == revision
+        assert "submission_token" not in json.dumps(exported)
         assert len(win.viewport.history.undo_stack) == undo_count
         assert scene.content_version == revision
         scene.version += 1
         task_state = _ask(bridge, "get_task", {"task_id": task["task_id"]})["result"]
+        assert not _ask(bridge, "export_specialist_review", {"review_id": begun["review_id"]})["result"]["ok"]
         assert task_state["status"] == "stale"
         assert task_state["review"]["status"] == "stale"
         bridge.stop()

@@ -186,3 +186,7 @@ alto total 2,30") — una foto no trae dimensiones, y lo que el asistente
 estime del ojo lo declara como supuesto para que lo corrijas. La foto se
 reescala a 1280 px y viaja como JPEG solo en ese mensaje. Necesita un
 proveedor con visión (Anthropic, OpenAI, Gemini, OpenRouter).
+
+
+### Review export update — 2026-10-05
+Assistant and MCP now export revision-checked, allowlisted JSON review bundles with an unsigned SHA-256 checksum. See [review contract](ai-specialist-review.md). Persistent audit history and real-provider baselines remain pending.

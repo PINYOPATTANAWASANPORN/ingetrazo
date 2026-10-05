@@ -316,3 +316,7 @@ class AITaskService:
             task.review = json.loads(json.dumps(report))
             self.transition(task_id, report["status"], {"changed": False})
 
+    def export_review(self, task_id):
+        from core.ai_review_export import export_review
+        return export_review(self.get(task_id), self.scene.content_version)
+
