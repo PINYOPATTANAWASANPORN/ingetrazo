@@ -60,6 +60,44 @@ def test_malformed_or_write_responses_fail_without_model_changes(monkeypatch, ba
     assert group.name == "Chair" and scene.content_version == task["base_revision"]
 
 
+@pytest.mark.parametrize("bad, code", [
+    ("not JSON", "invalid_json"),
+    ('{"summary":"ok","findings":[],"actions":[]}', "invalid_schema"),
+    (reply("outside-scope"), "out_of_scope_entity"),
+    ("x" * (ai_review.MAX_REPLY_CHARS + 1), "response_too_large"),
+])
+def test_failed_review_has_bounded_diagnostic_code(monkeypatch, bad, code):
+    scene, _group, _tasks, task = model()
+    monkeypatch.setattr(ai, "chat", lambda *a, **k: bad)
+    report = ai_review.run_review(ai_review.snapshot(scene, task), "ollama", "m", "", "url",
+                                  ai_review.ReviewCancellation())
+    assert {item["failure_code"] for item in report["specialists"]} == {code}
+
+
+def test_provider_failure_code_does_not_contain_provider_message(monkeypatch):
+    scene, _group, _tasks, task = model()
+    monkeypatch.setattr(ai, "chat", lambda *a, **k: (_ for _ in ()).throw(
+        RuntimeError("private provider response")))
+    report = ai_review.run_review(ai_review.snapshot(scene, task), "ollama", "m", "", "url",
+                                  ai_review.ReviewCancellation())
+    assert {item["failure_code"] for item in report["specialists"]} == {"provider_error"}
+
+
+def test_empty_snapshot_prompt_disallows_invented_entity_findings(monkeypatch):
+    scene = Scene()
+    task = AITaskService(scene).create("explain empty model", execution="analysis_only")
+    systems = []
+    def chat(_provider, _model, _key, system, _messages, **_kwargs):
+        systems.append(system)
+        return '{"summary":"No model entities were supplied.","findings":[]}'
+    monkeypatch.setattr(ai, "chat", chat)
+    report = ai_review.run_review(ai_review.snapshot(scene, task), "ollama", "m", "", "url",
+                                  ai_review.ReviewCancellation())
+    assert report["status"] == "completed"
+    assert all("If that array is empty, return findings: []" in system
+               for system in systems)
+
+
 def test_one_provider_failure_retains_other_review_as_partial(monkeypatch):
     scene, group, _tasks, task = model()
     def chat(_p, _m, _k, system, *_args, **_kwargs):

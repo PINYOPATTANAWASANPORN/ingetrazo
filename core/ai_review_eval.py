@@ -92,6 +92,7 @@ def run_case(case: dict, connections: dict) -> dict:
             "provider": result["provider"], "model": result["model"],
             "ok": result["ok"], "latency_ms": role_ms,
             "finding_count": len(result.get("findings", [])),
+            "failure_code": result.get("failure_code") if not result["ok"] else None,
         }
     return {
         "case_id": case["id"], "status": report["status"],
@@ -128,6 +129,11 @@ def summarize_review_records(cases: list[dict], records: list[dict]) -> dict:
                     not isinstance(model, str) or not model or
                     not isinstance(outcome.get("ok"), bool)):
                 raise ValueError("invalid role identity or status")
+            failure_code = outcome.get("failure_code")
+            if (outcome["ok"] and failure_code is not None) or (
+                    not outcome["ok"] and failure_code is not None and
+                    failure_code not in ai_review.FAILURE_CODES):
+                raise ValueError("invalid specialist failure code")
             _number(outcome.get("latency_ms"))
             groups.setdefault((role, provider, model), []).append(outcome)
     by_role = []
@@ -137,6 +143,13 @@ def summarize_review_records(cases: list[dict], records: list[dict]) -> dict:
             "samples": len(outcomes),
             "ok_rate": sum(item["ok"] for item in outcomes) / len(outcomes),
             "latency_ms": _latencies([item["latency_ms"] for item in outcomes]),
+            "failures": {code: sum(not item["ok"] and
+                                   (item.get("failure_code") or "unclassified") == code
+                                   for item in outcomes)
+                         for code in sorted(ai_review.FAILURE_CODES | {"unclassified"})
+                         if any(not item["ok"] and
+                                (item.get("failure_code") or "unclassified") == code
+                                for item in outcomes)},
         })
     return {
         "schema_version": SCHEMA_VERSION,
