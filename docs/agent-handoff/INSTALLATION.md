@@ -53,3 +53,17 @@ saved and closed, the installer completed successfully at 05:51 on 2026-10-06
 hashes, 823 runtime files, `ingetrazo.exe --check` exit 0, and 22 MCP tools.
 The GUI was not relaunched during this verification; actual display of the
 new tray layout remains a manual visual check on next launch.
+
+## Full-width row refinement installed
+
+On 2026-10-06 at 06:07 (Asia/Bangkok), build `3815ef8` replaced the prior
+`b2573b7` installation after a verified backup to
+`backups/IngeTrazo-installed-before-20261006-rowfix`. This build gives
+Export review its own row and places suggestions in full-width rows. The
+manifest and rollback-capable installer are `build-latest-3815ef8.json` and
+`install-latest-3815ef8.ps1` in the workspace root. The installed executable
+hashes match the manifest: main
+`0F6B8364DA2084D67A374F1A318E2116913995D4732C85D88BC80846BA6D4937`,
+MCP `141905CFE38CC9545610EBBE3DB9308D9C6D52867EEDB414CE40601F5710AE66`.
+Independent installed-path checks found 823 runtime files, `--check` exit 0,
+and 22 MCP tools. The GUI was not relaunched for visual verification.

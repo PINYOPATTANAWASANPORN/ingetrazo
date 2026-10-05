@@ -138,3 +138,10 @@ providers; no live provider benchmark has been run. It is in
 This code is included in the Windows build installed from `b2573b7` on
 2026-10-06. The installed executable passed `--check` and the bridge returned
 22 tools; no real-provider benchmark has been run.
+
+The later narrow-tray control fix in
+[draft PR #47](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/47)
+was installed from `3815ef8` on 2026-10-06. At a fixed 340 px width, Export
+review occupies its own row and suggestion labels use full-width rows. The
+46 Assistant UI tests passed. The installed binaries passed hash comparison,
+`--check`, and MCP `tools/list` (22 tools); the GUI was not visually relaunched.

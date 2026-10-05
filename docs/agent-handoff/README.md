@@ -108,9 +108,8 @@ narrow AI tray, suggestion buttons now use full-width rows and the suggestion
 container keeps the tray width; Export review has its own row and explains that a
 current-revision two-specialist review must finish first. The focused
 Assistant UI suite passed 46 tests. GitHub snapshot: 45 total, 45 open,
-0 merged. The Windows build from `b2573b7` is now installed and passed
+0 merged. The Windows build from `3815ef8` is now installed and passed
 installed-path `--check`, both SHA-256 comparisons, and MCP `tools/list`
 (22 tools). A verified backup of the prior installation is available; see
 [`INSTALLATION.md`](INSTALLATION.md).
-The later full-width row refinement is pushed to PR #47 but is not yet in
-that installed build.
+The full-width row refinement is included in that installed build.
