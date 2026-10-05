@@ -420,8 +420,18 @@
       "base": "feature/ai-review-audit-trail",
       "head": "feature/ai-review-audit-file",
       "merged": false,
-      "updated_at": "2026-10-05T12:43:59Z",
+      "updated_at": "2026-10-05T12:44:41Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/44"
+    },
+    {
+      "number": 45,
+      "state": "open",
+      "title": "Allow separate provider connections for AI specialist roles",
+      "base": "feature/ai-review-audit-file",
+      "head": "feature/ai-cross-provider-review",
+      "merged": false,
+      "updated_at": "2026-10-05T12:59:56Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/45"
     }
   ]
 }
