@@ -8,6 +8,14 @@ follow [SemVer](https://semver.org).
 
 ### Añadido
 
+- **Sugerencias locales y corpus de evaluación IA:** el Asistente muestra
+  atajos determinados por el documento vacío, el modelo visible o una
+  selección estable. Un clic rellena intención, alcance, objetivo y modo, pero
+  nunca envía ni ejecuta automáticamente. El corpus versionado incluye ocho
+  tareas y fixtures reproducibles; `scripts/ai_eval.py` valida registros y
+  calcula finalización, rollback, correcciones, tokens, llamadas, latencia y
+  tiempo hasta la primera vista previa sin inventar medidas ausentes.
+
 - **Respuesta progresiva y cancelación del Asistente IA:** Anthropic y los
   proveedores compatibles con OpenAI muestran el texto conforme llega. El
   botón Cancelar cierra la respuesta HTTP, interrumpe también la espera de un

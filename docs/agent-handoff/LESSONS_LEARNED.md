@@ -64,6 +64,19 @@ proposal, and advance a local generation ID. The generation check is what
 prevents already queued chunks or a late complete response from executing
 after the user cancelled. A socket timeout by itself is not cancellation.
 
+## Suggestions should be deterministic controls, not hidden prompts
+
+A useful suggestion can be derived from empty/visible/selected document state
+without spending tokens. A chip should fill the same visible Scope, Goal,
+Execution, and prompt fields the user could edit manually; it must not send,
+execute, or write project memory. Only selections with stable group/component
+IDs may produce selection-scoped suggestions under the current contract.
+
+A versioned corpus is evidence infrastructure, not evidence. Keep fixture
+builders and required telemetry fields beside it, return null for metrics with
+no samples, and report measured provider/model/hardware runs separately from
+the task definitions.
+
 ## Revision semantics prevent false conflicts
 
 Camera movement and selection changes are view state. They must not stale a

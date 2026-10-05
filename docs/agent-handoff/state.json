@@ -24,7 +24,7 @@
   },
   "validation": {
     "scope": "selected regression suite, not full repository",
-    "passed": 102,
+    "passed": 105,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -39,7 +39,7 @@
     {
       "phase": 2,
       "name": "typed writes and preview",
-      "percent": 85,
+      "percent": 90,
       "status": "partial"
     },
     {
@@ -62,9 +62,9 @@
     }
   ],
   "next_recommended_work": [
-    "add deterministic context-aware suggestion chips and evaluation corpus",
     "expand typed architectural creation with an explicit parent and local-coordinate contract",
     "execute two revision-pinned read-only specialists with conflict reporting",
+    "capture provider baselines with the versioned corpus and real token telemetry",
     "add audit export and provider compatibility tests"
   ],
   "documents": [

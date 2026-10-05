@@ -40,34 +40,36 @@
   Assistant. More architectural primitives, nested world-space transforms,
   and branch-rendered geometry previews remain. Raw Python is off by default
   and requires an explicit session permission.
-- **Phase 3 — 85%:** task engine, compact controls, assumptions, project
-  memory, in-app typed approval, streaming, and cooperative cancellation work.
-  Suggestion chips, a richer visible plan, and corpus evaluation remain.
+- **Phase 3 — 90%:** task engine, compact controls, assumptions, project
+  memory, in-app typed approval, streaming, cooperative cancellation, local
+  suggestion chips, and the versioned evaluation corpus work. A richer visible
+  plan and measured provider baselines remain.
 - **Phase 4 — 15%:** plans name roles, but no specialist actually executes.
 - **Phase 5 — 35%:** the early local-security gate exists; audit export,
   recovery, resources/prompts, compatibility tests, and benchmarks remain.
 
 ## Recommended next sequence
 
-### 1. Context-aware suggestions and measurable evaluation
-
-Generate local suggestion chips from deterministic document state before
-asking a model. Establish a fixed request corpus and record completion,
-tokens, provider/tool calls, p50/p95 latency, time to first preview, rollback,
-and manual corrections. Never report projected savings as measured results.
-
-### 2. Expand typed architectural creation
+### 1. Expand typed architectural creation
 
 Build wall, opening, slab, and component-instance actions on the same pure
 preview contract. Do not wrap the existing in-process recipe executor; build
 prepared entities off-scene and commit them through commands. Add an explicit
 parent/local-coordinate contract before allowing nested creation.
 
-### 3. Read-only specialist execution
+### 2. Read-only specialist execution
 
 Start with two concurrent reviewers pinned to one revision. Specialists return
 structured findings and cannot mutate the live scene. Add conflict detection
 before permitting modeler proposals, then coordinator-only merge/commit.
+
+### 3. Capture measurable provider baselines
+
+Run `benchmarks/ai/task-corpus-v1.json` against named provider/model versions
+and save the required JSONL telemetry. Record hardware and application commit
+with each run. Compare completion, tokens, tool calls, p50/p95 latency, first
+preview, rollback, and manual corrections; keep absent samples as null rather
+than estimates.
 
 ## Validation evidence
 
@@ -83,17 +85,17 @@ $env:PYTHONUTF8='1'
   tests/test_document_camera.py
 ```
 
-Result: **102 passed**. The streaming slice adds focused SSE parsing,
-response-close cancellation, terminal task state, partial-output isolation,
-and late-generation rejection tests. Python compilation for touched modules and
+Result: **105 passed**. The suggestion/evaluation slice adds deterministic
+empty/visible/selection suggestions, non-sending UI fill behaviour, corpus
+fixtures, schema validation, and metric aggregation tests. Python compilation
+for touched modules and
 `git diff --check` also passed. Run the relevant subset again
 after every contract change; run the full suite before claiming release
 readiness.
 
 ## Stack base for continuation
 
-The streaming/cancellation slice is on `feature/ai-streaming-cancel`, stacked
-on `feature/ai-typed-creation` and delivered by
-[#36](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/36) at code commit
-`1e64bbf`. Verify GitHub and the branch head before starting the next narrow PR.
+The context-suggestion/evaluation slice is on
+`feature/ai-context-suggestions`, stacked on `feature/ai-streaming-cancel`.
+Verify GitHub and the branch head before starting the next narrow PR.
 
