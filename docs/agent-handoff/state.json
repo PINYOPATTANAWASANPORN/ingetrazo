@@ -13,8 +13,8 @@
     "pull_request": 33
   },
   "delivery": {
-    "pull_requests_total": 32,
-    "open": 32,
+    "pull_requests_total": 33,
+    "open": 33,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -75,8 +75,8 @@
     "docs/agent-handoff/pr-index.json"
   ],
   "implementation_delivery": {
-    "branch": "feature/ai-assistant-typed-preview",
-    "commit": "0a96098",
-    "pull_request": 34
+    "branch": "feature/ai-typed-creation",
+    "commit": "f9cca37",
+    "pull_request": 35
   }
 }

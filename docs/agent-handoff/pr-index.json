@@ -320,8 +320,18 @@
       "base": "docs/ai-development-handoff",
       "head": "feature/ai-assistant-typed-preview",
       "merged": false,
-      "updated_at": "2026-10-05T01:35:11Z",
+      "updated_at": "2026-10-05T01:36:33Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/34"
+    },
+    {
+      "number": 35,
+      "state": "open",
+      "title": "Add typed AI primitive creation",
+      "base": "feature/ai-assistant-typed-preview",
+      "head": "feature/ai-typed-creation",
+      "merged": false,
+      "updated_at": "2026-10-05T01:51:57Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/35"
     }
   ]
 }

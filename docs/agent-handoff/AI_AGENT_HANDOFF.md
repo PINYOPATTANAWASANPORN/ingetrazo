@@ -100,6 +100,7 @@ readiness.
 ## Stack base for continuation
 
 The primitive-creation slice is on `feature/ai-typed-creation`, stacked on
-`feature/ai-assistant-typed-preview`. Verify GitHub and the branch head before
-starting the next narrow PR.
+`feature/ai-assistant-typed-preview` and delivered by
+[#35](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/35) at code commit
+`f9cca37`. Verify GitHub and the branch head before starting the next narrow PR.
 

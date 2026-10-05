@@ -2,13 +2,13 @@
 
 ## Delivery topology
 
-The fork uses one long stacked chain. GitHub reported **31 open PRs and zero
+The fork uses one long stacked chain. GitHub reported **33 open PRs and zero
 merged PRs** on 2026-10-05. PR numbers 18 and 27 are absent from the pull list;
 do not invent them. The chain begins at fork `main` (`6be29fe`) and currently
-ends at `feature/ai-project-memory` (`6c8364c`). Merging or rebasing a lower PR
+ends at `feature/ai-typed-creation` (`f9cca37`). Merging or rebasing a lower PR
 changes every PR above it, so preserve order and revalidate the affected stack.
-The documentation handoff is the next stack layer in
-[#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33).
+The latest stack layer is
+[#35](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/35).
 
 ## Product workstreams
 
@@ -22,7 +22,7 @@ The documentation handoff is the next stack layer in
 | Extension Manager | 75% | Enable/disable, local install/remove, safe manifests | Online catalog, version resolution, URL updates |
 | File exchange | 30% | Windows SKP long-texture-path repair | IFC import, fuller SKP hierarchy fidelity, cross-platform DWG |
 | Architectural tools | 10% | Existing BIM/export/composer/terrain foundations | Contours, axes/grid, room labels, doors/windows, schedules |
-| AI Agent roadmap | about 58% overall | Bounded context, security gate, typed preview writes, task engine, concise UI, project memory | In-app typed loop, streaming/cancel, suggestions, real specialists, evals |
+| AI Agent roadmap | about 64% overall | Bounded context, security gate, typed preview writes and primitive creation, task engine, concise UI, project memory, session-only Python gate | Streaming/cancel, suggestions, architectural primitives, real specialists, evals |
 
 ## PR chain by capability
 
@@ -67,11 +67,14 @@ The documentation handoff is the next stack layer in
 - [#30](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/30) — scoped task engine.
 - [#31](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/31) — compact intent controls.
 - [#32](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/32) — explicit project AI memory.
+- [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33) — durable AI development handoff pack.
+- [#34](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/34) — typed previews in the in-app Assistant.
+- [#35](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/35) — typed box/cylinder creation and session-only advanced Python permission.
 
 ## Claims that must stay qualified
 
 All items above are implemented **in the open stack**. They are not on the
 fork's `main`, not upstream, and not necessarily in the installed IngeTrazo
-binary. The latest selected regression run covered 89 tests; it was not the
+binary. The latest selected regression run covered 99 tests; it was not the
 repository's complete test suite.
 
