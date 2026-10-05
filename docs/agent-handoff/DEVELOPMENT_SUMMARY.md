@@ -133,6 +133,6 @@ roles. It records elapsed time, status, finding and conflict counts without
 saving credentials, raw snapshots or reviewer prose. Offline summaries report
 p50/p95 and role success rates. Tokens and quality scores remain null until
 measured separately. The selected AI suite passed 128 tests with fake
-providers; no live provider benchmark has been run. The PR is pending because
-the GitHub integration returned 403 on creation. This code is not yet in the
-installed Windows build.
+providers; no live provider benchmark has been run. It is in
+[draft PR #46](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/46).
+This code is not yet in the installed Windows build.

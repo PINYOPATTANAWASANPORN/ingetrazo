@@ -94,9 +94,10 @@ Current development slice: `feature/ai-cross-provider-review` on PR #44 enables 
 Latest delivery: [PR #45](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/45), `feature/ai-cross-provider-review` on #44; implementation `23da695`. Selected regression suite: 123 passed with simulated providers. GitHub snapshot: 43 total, 43 open, 0 merged. Earlier counts are historical. Installed build unchanged.
 
 
-Current code branch: `feature/ai-review-benchmark` on PR #45's branch,
-implementation `a33fb8a`. It adds a deterministic metadata-only specialist
-review corpus and opt-in measurement runner. The selected AI suite passed 128
-tests, but no real provider was called. The branch is pushed; the GitHub
-integration returned 403 when opening its PR. The installed Windows binary
-still contains code through `b0dce0f` and does not include this new slice.
+Latest delivery: [draft PR #46](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/46),
+`feature/ai-review-benchmark` on PR #45's branch, implementation `a33fb8a`.
+It adds a deterministic metadata-only specialist review corpus and opt-in
+measurement runner. The selected AI suite passed 128 tests, but no real
+provider was called. GitHub snapshot: 44 total, 44 open, 0 merged. The
+installed Windows binary still contains code through `b0dce0f` and does not
+include this new slice.

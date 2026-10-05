@@ -157,5 +157,6 @@ keys and error text. Reported tokens and quality scores remain null. The
 selected AI regression suite passed 128 tests with fake providers, and the
 default CLI validation contacted no provider. Read
 [`../../benchmarks/ai/README.md`](../../benchmarks/ai/README.md) before a live
-run. No real-provider results have been captured. The branch is pushed, but
-the GitHub integration denied PR creation with 403; its PR is still pending.
+run. No real-provider results have been captured. The branch is in
+[draft PR #46](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/46),
+stacked on PR #45.
