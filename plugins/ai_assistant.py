@@ -21,7 +21,7 @@ import base64
 import json
 import threading
 
-from PySide6.QtCore import QBuffer, QIODevice, QSettings, QTimer, Qt, Signal
+from PySide6.QtCore import QBuffer, QIODevice, QSaveFile, QSettings, QTimer, Qt, Signal
 from PySide6.QtGui import QFontDatabase, QImageReader, QPalette
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -391,6 +391,10 @@ class AsistentePanel(QWidget):
             "Edit explicit project facts saved in this document"))
         self._project_memory.clicked.connect(self._on_project_memory)
         memory_row.addWidget(self._project_memory)
+        self._export_review = QPushButton(tr("Export review…"))
+        self._export_review.setEnabled(False)
+        self._export_review.clicked.connect(self._on_export_review)
+        memory_row.addWidget(self._export_review)
         bl.addLayout(memory_row)
         self._refresh_project_memory()
         suggestion_row = QHBoxLayout()
@@ -596,8 +600,47 @@ class AsistentePanel(QWidget):
         self._set_task_controls_enabled(not self._busy and not self._pending_task_id)
 
     def _refresh_context_controls(self) -> None:
+        self._refresh_review_export()
         self._refresh_project_memory()
         self._refresh_suggestions(force=True)
+
+    def _refresh_review_export(self):
+        if hasattr(self, "_export_review"):
+            available = (not self._busy and bool(self._active_task_id) and
+                         self._task_service().export_review(self._active_task_id).get("ok"))
+            self._export_review.setEnabled(bool(available))
+
+    def _on_export_review(self):
+        if self._busy or not self._active_task_id:
+            return
+        service, task_id = self._task_service(), self._active_task_id
+        result = service.export_review(task_id)
+        if not result.get("ok"):
+            self._append(result["message"], "err")
+            return
+        path, _ = QFileDialog.getSaveFileName(self, tr("Export review"),
+                                             "ai-review.json", "JSON (*.json)")
+        if not path:
+            return
+        # Modal dialogs process events: recheck document identity and revision.
+        if service is not self._task_service() or task_id != self._active_task_id:
+            self._append(tr("The document or task changed; run the review again."), "err")
+            return
+        result = service.export_review(task_id)
+        if not result.get("ok"):
+            self._append(result["message"], "err")
+            return
+        data = (json.dumps(result["bundle"], ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+        output = QSaveFile(path)
+        if not output.open(QIODevice.WriteOnly):
+            self._append(output.errorString(), "err")
+            return
+        if output.write(data) != len(data):
+            output.cancelWriting()
+            self._append(tr("Could not write the review file."), "err")
+            return
+        if not output.commit():
+            self._append(output.errorString(), "err")
 
     def _refresh_project_memory(self) -> None:
         count = len(getattr(self._viewport.scene, "ai_memory", []))
@@ -1406,6 +1449,8 @@ class AsistentePanel(QWidget):
                     self._active_task_id, status,
                     {"changed": self._task_changed,
                      "content_revision": self._viewport.scene.content_version})
+
+        self._refresh_review_export()
 
     def _screenshot_b64(self) -> str | None:
         try:

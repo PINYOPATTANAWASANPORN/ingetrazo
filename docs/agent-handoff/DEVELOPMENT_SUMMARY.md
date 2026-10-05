@@ -92,3 +92,10 @@ repository's complete test suite.
 Architectural creation now includes walls with door/window openings, rectangular
 slabs, component copies, and scoped parent-coordinate primitives. See
 [`ai-creation-contract.md`](../ai-creation-contract.md) for supported cases and limits.
+
+
+## Latest increment: AI review export
+Branch `feature/ai-review-export`, based on `feature/specialist-model-selection`. Adds revision-checked JSON export in Assistant and MCP, atomic local saving and unsigned integrity digest. Settings/tokens excluded; prose may contain sensitive project content. No installed build update. See `docs/ai-specialist-review.md`.
+
+
+Latest delivery: [PR #42](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/42), `feature/ai-review-export` on #41; implementation `5f1763b`. Selected regression suite: 113 passed with simulated providers. GitHub snapshot: 40 total, 40 open, 0 merged. Earlier snapshot counts above are historical. Installed build unchanged.

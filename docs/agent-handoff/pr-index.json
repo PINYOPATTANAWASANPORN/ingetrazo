@@ -390,8 +390,18 @@
       "base": "feature/mcp-specialist-protocol",
       "head": "feature/specialist-model-selection",
       "merged": false,
-      "updated_at": "2026-10-05T12:09:24Z",
+      "updated_at": "2026-10-05T12:10:05Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/41"
+    },
+    {
+      "number": 42,
+      "state": "open",
+      "title": "Export revision-checked AI specialist review bundles",
+      "base": "feature/specialist-model-selection",
+      "head": "feature/ai-review-export",
+      "merged": false,
+      "updated_at": "2026-10-05T12:18:00Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/42"
     }
   ]
 }

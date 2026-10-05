@@ -364,6 +364,9 @@ class _Bridge(QObject):
     def _tool_get_specialist_review(self, review_id: str = "") -> dict:
         return self.review_service().get(review_id)
 
+    def _tool_export_specialist_review(self, review_id: str = "") -> dict:
+        return self.review_service().export(review_id)
+
     def _tool_submit_specialist_review(self, review_id="", role="",
                                      submission_token="", snapshot_id="", result=None):
         return self.review_service().submit(review_id, role, submission_token, snapshot_id, result)

@@ -105,3 +105,10 @@ repository release certification is claimed.
 `feature/specialist-model-selection` is stacked on `feature/mcp-specialist-protocol`
 (PR #40). Delivered by [#41](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/41)
 at code commit `b7a181f`. Verify the latest branch head before continuation.
+
+
+## Latest increment: AI review export
+Branch `feature/ai-review-export`, based on `feature/specialist-model-selection`. Adds revision-checked JSON export in Assistant and MCP, atomic local saving and unsigned integrity digest. Settings/tokens excluded; prose may contain sensitive project content. No installed build update. See `docs/ai-specialist-review.md`.
+
+
+Latest delivery: [PR #42](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/42), `feature/ai-review-export` on #41; implementation `5f1763b`. Selected regression suite: 113 passed with simulated providers. GitHub snapshot: 40 total, 40 open, 0 merged. Earlier snapshot counts above are historical. Installed build unchanged.
