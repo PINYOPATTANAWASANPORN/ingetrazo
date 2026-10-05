@@ -110,3 +110,6 @@ Latest delivery: [PR #43](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pul
 
 ## Explicit review history file (2026-10-05)
 Branch `feature/ai-review-audit-file` builds on PR #43. Assistant can atomically save the complete current session metadata trail to a user-selected JSON file and independently verify that saved file after restart. The verifier checks bounded schema, ordered chain, head and payload digest. No automatic persistence or model mutation. Saved files are unsigned and can be rehashed by their holder; authenticated audit evidence is pending. Selected suite: 118 passed with simulated providers; installed build unchanged.
+
+
+Latest delivery: [PR #44](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/44), `feature/ai-review-audit-file` on #43; implementation `703a156`. Selected regression suite: 118 passed with simulated providers. GitHub snapshot: 42 total, 42 open, 0 merged. Earlier counts are historical. Installed build unchanged.
