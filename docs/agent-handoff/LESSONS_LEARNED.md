@@ -239,3 +239,13 @@ Save timing and parse metadata, not raw reviewer prose or credentials. A
 successful parse is not a finding-quality score, and the current `ai.chat`
 return type does not expose token usage: record both as null until separately
 measured instead of estimating them from text length.
+
+## Narrow Assistant controls must remain legible
+
+Applying `narrow()` to a whole suggestion container gave it an ignored
+horizontal size policy, so its text was clipped to fragments in the AI tray.
+Apply shrink rules to the buttons instead and place suggestions in a bounded
+two-column layout. A disabled export button also needs visible context:
+exporting the latest review requires a completed, current-revision
+two-specialist review. The UI can explain this without enabling an invalid
+export action.

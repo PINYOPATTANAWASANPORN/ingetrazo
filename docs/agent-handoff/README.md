@@ -101,3 +101,9 @@ measurement runner. The selected AI suite passed 128 tests, but no real
 provider was called. GitHub snapshot: 44 total, 44 open, 0 merged. The
 installed Windows binary still contains code through `b0dce0f` and does not
 include this new slice.
+
+Current UI fix on `fix/ai-assistant-review-controls` follows PR #46. In the
+narrow AI tray, suggestion buttons now use two columns and the suggestion
+container keeps the tray width; disabled review export explains that a
+current-revision two-specialist review must finish first. The focused
+Assistant UI suite passed 46 tests. The installed Windows binary is unchanged.
