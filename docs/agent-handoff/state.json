@@ -23,8 +23,8 @@
     "installed_build_verified": false
   },
   "validation": {
-    "scope": "selected review audit, export, external review, Assistant, task, context, bridge and changes regression suite",
-    "passed": 115,
+    "scope": "selected review audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
+    "passed": 118,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -57,12 +57,12 @@
     {
       "phase": 5,
       "name": "hardening and ecosystem",
-      "percent": 40,
-      "status": "session_review_audit_partial"
+      "percent": 45,
+      "status": "explicit_audit_file_unsigned"
     }
   ],
   "next_recommended_work": [
-    "add user-controlled durable audit storage and integrity verification; session history is unsigned and resets",
+    "consider signed or independently anchored audit evidence; current saved history is unsigned",
     "capture provider baselines with the versioned corpus and real token telemetry",
     "add provider compatibility and separately scoped cross-provider role credentials",
     "extend architectural editing to existing-wall openings, arbitrary slab profiles and isolated geometry previews"

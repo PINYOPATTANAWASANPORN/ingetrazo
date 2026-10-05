@@ -20,6 +20,7 @@ from __future__ import annotations
 import base64
 import json
 import threading
+from pathlib import Path
 
 from PySide6.QtCore import QBuffer, QIODevice, QSaveFile, QSettings, QTimer, Qt, Signal
 from PySide6.QtGui import QFontDatabase, QImageReader, QPalette
@@ -396,6 +397,16 @@ class AsistentePanel(QWidget):
         self._export_review.clicked.connect(self._on_export_review)
         memory_row.addWidget(self._export_review)
         bl.addLayout(memory_row)
+        audit_row = QHBoxLayout()
+        self._export_audit = QPushButton(tr("Export review history…"))
+        self._export_audit.setEnabled(False)
+        self._export_audit.clicked.connect(self._on_export_audit)
+        audit_row.addWidget(self._export_audit)
+        self._verify_audit = QPushButton(tr("Verify history file…"))
+        self._verify_audit.clicked.connect(self._on_verify_audit)
+        audit_row.addWidget(self._verify_audit)
+        audit_row.addStretch()
+        bl.addLayout(audit_row)
         self._refresh_project_memory()
         suggestion_row = QHBoxLayout()
         suggestion_row.setContentsMargins(0, 0, 0, 0)
@@ -609,6 +620,8 @@ class AsistentePanel(QWidget):
             available = (not self._busy and bool(self._active_task_id) and
                          self._task_service().export_review(self._active_task_id).get("ok"))
             self._export_review.setEnabled(bool(available))
+            self._export_audit.setEnabled(not self._busy and bool(
+                self._task_service().review_audit(limit=1)["total_events"]))
 
     def _on_export_review(self):
         if self._busy or not self._active_task_id:
@@ -630,7 +643,10 @@ class AsistentePanel(QWidget):
         if not result.get("ok"):
             self._append(result["message"], "err")
             return
-        data = (json.dumps(result["bundle"], ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+        self._save_json_bundle(path, result["bundle"])
+
+    def _save_json_bundle(self, path, bundle):
+        data = (json.dumps(bundle, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
         output = QSaveFile(path)
         if not output.open(QIODevice.WriteOnly):
             self._append(output.errorString(), "err")
@@ -641,6 +657,51 @@ class AsistentePanel(QWidget):
             return
         if not output.commit():
             self._append(output.errorString(), "err")
+
+    def _on_export_audit(self):
+        if self._busy:
+            return
+        service = self._task_service()
+        result = service.export_review_audit()
+        if not result.get("ok"):
+            self._append(result["message"], "err")
+            return
+        if not result["bundle"]["payload"]["events"]:
+            return
+        path, _ = QFileDialog.getSaveFileName(self, tr("Export review history"),
+                                             "ai-review-history.json", "JSON (*.json)")
+        if not path:
+            return
+        if service is not self._task_service():
+            self._append(tr("The document changed; export its history again."), "err")
+            return
+        result = service.export_review_audit()
+        if not result.get("ok"):
+            self._append(result["message"], "err")
+            return
+        self._save_json_bundle(path, result["bundle"])
+
+    def _on_verify_audit(self):
+        from core.ai_review_audit import MAX_INPUT_BYTES, verify_bundle
+        path, _ = QFileDialog.getOpenFileName(self, tr("Verify review history"),
+                                             "", "JSON (*.json)")
+        if not path:
+            return
+        try:
+            source = Path(path)
+            if source.stat().st_size > MAX_INPUT_BYTES:
+                self._append(tr("Review history file is too large."), "err")
+                return
+            bundle = json.loads(source.read_text(encoding="utf-8"))
+        except (OSError, ValueError, UnicodeError):
+            self._append(tr("Could not read review history JSON."), "err")
+            return
+        result = verify_bundle(bundle)
+        if result["ok"]:
+            self._append(tr("Review history verified: {count} events. Unsigned file.",
+                            count=result["event_count"]), "ok")
+        else:
+            self._append(result["message"], "err")
 
     def _refresh_project_memory(self) -> None:
         count = len(getattr(self._viewport.scene, "ai_memory", []))

@@ -12,7 +12,67 @@ from core.ai_review_export import canonical
 
 GENESIS = "0" * 64
 MAX_PAGE = 100
+MAX_FILE_EVENTS = 10000
+MAX_FILE_BYTES = 16 * 1024 * 1024
+MAX_INPUT_BYTES = 32 * 1024 * 1024  # pretty-printed JSON may exceed canonical size
 STATUSES = {"completed", "partial", "failed", "stale", "cancelled"}
+EVENT_KEYS = {"sequence", "recorded_at", "task_id", "base_revision",
+              "snapshot_id", "status", "report_digest", "previous_digest", "digest"}
+
+
+def _digest(value):
+    return hashlib.sha256(canonical(value)).hexdigest()
+
+
+def _invalid(message):
+    return {"ok": False, "code": "invalid_audit_bundle", "message": message}
+
+
+def verify_bundle(bundle):
+    """Verify a saved bundle independently of any live document or bridge."""
+    if not isinstance(bundle, dict) or set(bundle) != {"payload", "integrity"}:
+        return _invalid("Expected payload and integrity objects.")
+    payload, integrity = bundle["payload"], bundle["integrity"]
+    if (not isinstance(payload, dict) or set(payload) != {
+            "schema_version", "exported_at", "session_only", "genesis_digest",
+            "events", "total_events", "head_digest"} or
+            not isinstance(integrity, dict) or set(integrity) != {
+                "algorithm", "payload_digest", "signed"} or
+            payload["schema_version"] != "1.0" or payload["session_only"] is not True or
+            payload["genesis_digest"] != GENESIS or integrity["algorithm"] != "sha256" or
+            integrity["signed"] is not False):
+        return _invalid("Unsupported audit bundle format.")
+    events = payload["events"]
+    if (not isinstance(events, list) or len(events) > MAX_FILE_EVENTS or
+            type(payload["total_events"]) is not int or
+            payload["total_events"] != len(events) or
+            not isinstance(payload["exported_at"], str)):
+        return _invalid("Invalid event count or export time.")
+    try:
+        raw = canonical(payload)
+    except (TypeError, ValueError, OverflowError):
+        return _invalid("Invalid JSON values in audit bundle.")
+    if len(raw) > MAX_FILE_BYTES or _digest(payload) != integrity["payload_digest"]:
+        return _invalid("Audit payload checksum does not match.")
+    previous = GENESIS
+    for sequence, event in enumerate(events, 1):
+        if (not isinstance(event, dict) or set(event) != EVENT_KEYS or
+                type(event["sequence"]) is not int or event["sequence"] != sequence or
+                type(event["base_revision"]) is not int or
+                not all(isinstance(event[key], str) for key in (
+                    "recorded_at", "task_id", "snapshot_id", "status",
+                    "report_digest", "previous_digest", "digest")) or
+                event["status"] not in STATUSES or
+                event["previous_digest"] != previous or
+                len(event["report_digest"]) != 64 or
+                _digest({key: value for key, value in event.items()
+                         if key != "digest"}) != event["digest"]):
+            return _invalid(f"Audit chain breaks at event {sequence}.")
+        previous = event["digest"]
+    if payload["head_digest"] != previous:
+        return _invalid("Audit head digest does not match.")
+    return {"ok": True, "event_count": len(events), "head_digest": previous,
+            "signed": False}
 
 
 class ReviewAuditTrail:
@@ -60,3 +120,24 @@ class ReviewAuditTrail:
             "has_more": after_sequence + len(selected) < len(self._events),
             "head_digest": self._events[-1]["digest"] if self._events else GENESIS,
         })
+
+    def bundle(self):
+        """Capture the complete in-memory trail for an explicit local save."""
+        if len(self._events) > MAX_FILE_EVENTS:
+            return {"ok": False, "code": "audit_too_large",
+                    "message": "Audit has too many events for one file; page through MCP."}
+        payload = {
+            "schema_version": "1.0",
+            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "session_only": True,
+            "genesis_digest": GENESIS,
+            "events": copy.deepcopy(self._events),
+            "total_events": len(self._events),
+            "head_digest": self._events[-1]["digest"] if self._events else GENESIS,
+        }
+        if len(canonical(payload)) > MAX_FILE_BYTES:
+            return {"ok": False, "code": "audit_too_large",
+                    "message": "Audit exceeds the maximum file size; page through MCP."}
+        result = {"payload": payload, "integrity": {
+            "algorithm": "sha256", "payload_digest": _digest(payload), "signed": False}}
+        return {"ok": True, "bundle": result}

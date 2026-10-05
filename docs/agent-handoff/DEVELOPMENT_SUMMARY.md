@@ -106,3 +106,7 @@ Branch `feature/ai-review-audit-trail` builds on PR #42. `AITaskService` appends
 
 
 Latest delivery: [PR #43](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/43), `feature/ai-review-audit-trail` on #42; implementation `bf3ee67`. Selected regression suite: 115 passed with simulated providers. GitHub snapshot: 41 total, 41 open, 0 merged. Earlier counts are historical. Installed build unchanged.
+
+
+## Explicit review history file (2026-10-05)
+Branch `feature/ai-review-audit-file` builds on PR #43. Assistant can atomically save the complete current session metadata trail to a user-selected JSON file and independently verify that saved file after restart. The verifier checks bounded schema, ordered chain, head and payload digest. No automatic persistence or model mutation. Saved files are unsigned and can be rehashed by their holder; authenticated audit evidence is pending. Selected suite: 118 passed with simulated providers; installed build unchanged.
