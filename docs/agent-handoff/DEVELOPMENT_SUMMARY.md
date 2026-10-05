@@ -3,7 +3,7 @@
 ## Delivery topology
 
 The fork uses one long stacked chain. GitHub reported **31 open PRs and zero
-merged PRs** on 2026-10-04. PR numbers 18 and 27 are absent from the pull list;
+merged PRs** on 2026-10-05. PR numbers 18 and 27 are absent from the pull list;
 do not invent them. The chain begins at fork `main` (`6be29fe`) and currently
 ends at `feature/ai-project-memory` (`6c8364c`). Merging or rebasing a lower PR
 changes every PR above it, so preserve order and revalidate the affected stack.

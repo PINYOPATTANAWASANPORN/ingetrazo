@@ -5,10 +5,10 @@ work performed on the `PINYOPATTANAWASANPORN/ingetrazo` fork. It records what
 exists in the stacked branches, what has actually been validated, what remains,
 and the engineering knowledge extracted from the work.
 
-Snapshot date: **2026-10-04**  
-Upstream/fork `main` baseline: **`6be29fe`**  
-Handoff base: **`feature/ai-project-memory` at `6c8364c`**  
-Delivery state: **31 open PRs; none merged into the fork's `main`**
+- Snapshot date: **2026-10-05**
+- Upstream/fork `main` baseline: **`6be29fe`**
+- Handoff base: **`feature/ai-project-memory` at `6c8364c`**
+- Delivery state: **31 open PRs; none merged into the fork's `main`**
 
 ## Read in this order
 
