@@ -423,6 +423,39 @@ def test_context_suggestion_fills_prompt_and_task_controls():
         win.close()
 
 
+def test_assistant_suggestions_fit_narrow_tray_and_explain_review_export():
+    from PySide6.QtWidgets import QApplication
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    try:
+        dlg = AsistenteDialog(win.viewport)
+        dlg.setFixedWidth(340)
+        dlg.resize(340, 760)
+        dlg.show()
+        QApplication.processEvents()
+        assert dlg.width() == 340
+        assert dlg._suggestion_bar.width() >= 300
+        assert not dlg._review_export_hint.isHidden()
+        assert not dlg._export_review.isEnabled()
+        assumptions = dlg._intent_assumptions.geometry()
+        memory = dlg._project_memory.geometry()
+        export = dlg._export_review.geometry()
+        assert assumptions.right() < memory.left()
+        assert export.top() > max(assumptions.bottom(), memory.bottom())
+        assert memory.width() >= dlg._project_memory.fontMetrics().horizontalAdvance(
+            dlg._project_memory.text()) + 12
+        for button in dlg._suggestion_buttons[:3]:
+            assert not button.isHidden()
+            assert button.width() >= button.fontMetrics().horizontalAdvance(
+                button.text()) + 12
+    finally:
+        dlg.close()
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
 def test_assistant_typed_preview_waits_for_apply_and_commits_one_undo(monkeypatch):
     from core.group import Group
     from plugins.ai_assistant import AsistenteDialog

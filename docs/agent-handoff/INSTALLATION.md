@@ -36,3 +36,34 @@ verify the installed-path hashes, self-check, and GUI. A successful PyInstaller
 exit alone is insufficient. The local installer and build manifest used for
 this deployment are in the workspace root as `install-latest-b0dce0f.ps1`
 and `build-latest-b0dce0f.json`.
+
+## Installed build with the AI tray UI fix
+
+On 2026-10-06 a new Windows bundle was built from `b2573b7` on
+`fix/ai-assistant-review-controls`. Its frozen `--check` passed and the MCP
+executable returned 22 tools. SHA-256: main
+`C7B365032C35EA2CBF675E3F6A78E1E56C933157DF67CC3E8BE6DA409CE92959`,
+MCP `287125D075FB34C7A6D7AC879BBCD49AAEC918C21E5F8FDC15960EBD6B617937`.
+The manifest and rollback-capable installer are in the workspace root as
+`build-latest-b2573b7.json` and `install-latest-b2573b7.ps1`. A separate
+backup of the previous installation was verified at
+`backups/IngeTrazo-installed-before-20261006-pr47`. After the open GUI was
+saved and closed, the installer completed successfully at 05:51 on 2026-10-06
+(Asia/Bangkok). Independent installed-path checks confirmed both executable
+hashes, 823 runtime files, `ingetrazo.exe --check` exit 0, and 22 MCP tools.
+The GUI was not relaunched during this verification; actual display of the
+new tray layout remains a manual visual check on next launch.
+
+## Full-width row refinement installed
+
+On 2026-10-06 at 06:07 (Asia/Bangkok), build `3815ef8` replaced the prior
+`b2573b7` installation after a verified backup to
+`backups/IngeTrazo-installed-before-20261006-rowfix`. This build gives
+Export review its own row and places suggestions in full-width rows. The
+manifest and rollback-capable installer are `build-latest-3815ef8.json` and
+`install-latest-3815ef8.ps1` in the workspace root. The installed executable
+hashes match the manifest: main
+`0F6B8364DA2084D67A374F1A318E2116913995D4732C85D88BC80846BA6D4937`,
+MCP `141905CFE38CC9545610EBBE3DB9308D9C6D52867EEDB414CE40601F5710AE66`.
+Independent installed-path checks found 823 runtime files, `--check` exit 0,
+and 22 MCP tools. The GUI was not relaunched for visual verification.

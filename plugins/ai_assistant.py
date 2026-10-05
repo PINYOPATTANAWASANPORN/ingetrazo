@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileDialog,
+    QGridLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -409,9 +410,15 @@ class AsistentePanel(QWidget):
         memory_row.addWidget(self._project_memory)
         self._export_review = QPushButton(tr("Export review…"))
         self._export_review.setEnabled(False)
+        self._export_review.setToolTip(tr(
+            "Available after a two-specialist review finishes for the current model revision"))
         self._export_review.clicked.connect(self._on_export_review)
-        memory_row.addWidget(self._export_review)
         bl.addLayout(memory_row)
+        bl.addWidget(self._export_review)
+        self._review_export_hint = QLabel(tr(
+            "Run a two-specialist review to enable Export review."))
+        self._review_export_hint.setWordWrap(True)
+        bl.addWidget(self._review_export_hint)
         audit_row = QHBoxLayout()
         self._export_audit = QPushButton(tr("Export review history…"))
         self._export_audit.setEnabled(False)
@@ -423,17 +430,17 @@ class AsistentePanel(QWidget):
         audit_row.addStretch()
         bl.addLayout(audit_row)
         self._refresh_project_memory()
-        suggestion_row = QHBoxLayout()
+        suggestion_row = QGridLayout()
         suggestion_row.setContentsMargins(0, 0, 0, 0)
-        suggestion_row.addWidget(QLabel(tr("Try:")))
+        suggestion_row.addWidget(QLabel(tr("Try:")), 0, 0)
         self._suggestion_buttons = []
         for index in range(ai_suggestions.MAX_SUGGESTIONS):
             button = QPushButton()
             button.clicked.connect(
                 lambda _checked=False, i=index: self._apply_suggestion(i))
-            suggestion_row.addWidget(button)
+            suggestion_row.addWidget(button, index + 1, 0)
             self._suggestion_buttons.append(button)
-        suggestion_row.addStretch()
+        suggestion_row.setColumnStretch(0, 1)
         self._suggestion_bar = QWidget()
         self._suggestion_bar.setLayout(suggestion_row)
         bl.addWidget(self._suggestion_bar)
@@ -464,8 +471,8 @@ class AsistentePanel(QWidget):
         self._preview_buttons.setVisible(False)
         bl.addWidget(self._preview_buttons)
         narrow(self._intent_scope, self._intent_goal, self._intent_mode,
-               self._intent_assumptions, self._project_memory,
-               self._suggestion_bar, *self._suggestion_buttons,
+               self._intent_assumptions,
+               *self._suggestion_buttons,
                self._task_chip, self._stream_preview, self._change_preview,
                self._apply_changes, self._discard_changes)
 
@@ -635,6 +642,7 @@ class AsistentePanel(QWidget):
             available = (not self._busy and bool(self._active_task_id) and
                          self._task_service().export_review(self._active_task_id).get("ok"))
             self._export_review.setEnabled(bool(available))
+            self._review_export_hint.setVisible(not available and not self._busy)
             self._export_audit.setEnabled(not self._busy and bool(
                 self._task_service().review_audit(limit=1)["total_events"]))
 

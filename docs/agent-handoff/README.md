@@ -101,3 +101,15 @@ measurement runner. The selected AI suite passed 128 tests, but no real
 provider was called. GitHub snapshot: 44 total, 44 open, 0 merged. The
 installed Windows binary still contains code through `b0dce0f` and does not
 include this new slice.
+
+Latest UI fix: [draft PR #47](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/47),
+`fix/ai-assistant-review-controls`, follows PR #46. In the
+narrow AI tray, suggestion buttons now use full-width rows and the suggestion
+container keeps the tray width; Export review has its own row and explains that a
+current-revision two-specialist review must finish first. The focused
+Assistant UI suite passed 46 tests. GitHub snapshot: 45 total, 45 open,
+0 merged. The Windows build from `3815ef8` is now installed and passed
+installed-path `--check`, both SHA-256 comparisons, and MCP `tools/list`
+(22 tools). A verified backup of the prior installation is available; see
+[`INSTALLATION.md`](INSTALLATION.md).
+The full-width row refinement is included in that installed build.

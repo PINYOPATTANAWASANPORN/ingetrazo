@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 44,
-    "open": 44,
+    "pull_requests_total": 45,
+    "open": 45,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -26,16 +26,25 @@
   "installed_build": {
     "platform": "Windows 10 x64",
     "path": "C:\\Program Files\\IngeTrazo",
-    "source_commit": "b0dce0f7d483d8eeca1a3788d8aa286a8e18bde2",
-    "installed_at_utc": "2026-10-05T22:09:40.8710750Z",
-    "main_sha256": "65176134443C6BB7EA152841E46E5467DF685D6317C483E0F62C0861E31982A2",
-    "mcp_sha256": "09F687096E4B398ADAEA89E81D396778EA67ACF86FDE55CB3A931A3FD830BB4B",
+    "source_commit": "3815ef8c672ada7f086eee1bcf1bba1e96d75449",
+    "installed_at_utc": "2026-10-05T23:07:03.629272Z",
+    "main_sha256": "0F6B8364DA2084D67A374F1A318E2116913995D4732C85D88BC80846BA6D4937",
+    "mcp_sha256": "141905CFE38CC9545610EBBE3DB9308D9C6D52867EEDB414CE40601F5710AE66",
     "checks": [
       "installed executable --check exit 0",
-      "installed GUI opened IngeTrazo — Untitled",
+      "installed GUI was closed for the update; launch not rechecked after this installation",
       "installed MCP tools/list returned 22 tools",
       "installed executable hashes match the build manifest"
     ]
+  },
+  "staged_build": {
+    "source_commit": "3815ef8c672ada7f086eee1bcf1bba1e96d75449",
+    "manifest": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-latest-3815ef8.json",
+    "installer": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\install-latest-3815ef8.ps1",
+    "bundle_check": "passed",
+    "mcp_tools": 22,
+    "installed": true,
+    "installed_at_utc": "2026-10-05T23:07:03.629272Z"
   },
   "validation": {
     "scope": "selected review benchmark, cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
@@ -101,5 +110,13 @@
     "pull_request": 46,
     "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/46",
     "draft": true
+  },
+  "ui_fix_delivery": {
+    "branch": "fix/ai-assistant-review-controls",
+    "commit": "d88c470c28d36bd2d4d16fb8fd90e3765b38215e",
+    "pull_request": 47,
+    "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/47",
+    "draft": true,
+    "validation": "46 Assistant UI tests passed at a fixed 340 px tray width; installed build 3815ef8 passed hash, --check, and 22-tool MCP verification"
   }
 }
