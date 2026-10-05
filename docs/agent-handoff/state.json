@@ -24,7 +24,7 @@
   },
   "validation": {
     "scope": "selected regression suite, not full repository",
-    "passed": 99,
+    "passed": 102,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -45,7 +45,7 @@
     {
       "phase": 3,
       "name": "concise assistant workflow",
-      "percent": 78,
+      "percent": 85,
       "status": "partial"
     },
     {
@@ -62,10 +62,10 @@
     }
   ],
   "next_recommended_work": [
-    "add streaming and cooperative cancellation",
     "add deterministic context-aware suggestion chips and evaluation corpus",
     "expand typed architectural creation with an explicit parent and local-coordinate contract",
-    "execute two revision-pinned read-only specialists with conflict reporting"
+    "execute two revision-pinned read-only specialists with conflict reporting",
+    "add audit export and provider compatibility tests"
   ],
   "documents": [
     "docs/agent-handoff/README.md",

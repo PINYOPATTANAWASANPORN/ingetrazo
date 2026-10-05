@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import threading
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
@@ -84,10 +85,60 @@ def test_parse_reply_and_extract_code():
     assert ai.parse_reply("anthropic", anth.encode()) == "hola mundo"
     oai = json.dumps({"choices": [{"message": {"content": "ok"}}]})
     assert ai.parse_reply("openai", oai.encode()) == "ok"
-
     text = "Voy a dibujar:\n```python\nmesh.add_edge(a, b)\n```\nlisto"
     assert ai.extract_code(text) == "mesh.add_edge(a, b)"
     assert ai.extract_code("sin código") is None
+
+
+def test_stream_request_and_sse_parsers(monkeypatch):
+    class Response:
+        def __init__(self):
+            self.lines = iter([
+                b'data: {"choices":[{"delta":{"content":"hel"}}]}\n',
+                b'\n',
+                b'data: {"choices":[{"delta":{"content":"lo"}}]}\n',
+                b'data: [DONE]\n',
+            ])
+            self.closed = False
+
+        def readline(self):
+            return next(self.lines, b"")
+
+        def close(self):
+            self.closed = True
+
+    response = Response()
+    monkeypatch.setattr(ai.urllib.request, "urlopen",
+                        lambda *_a, **_k: response)
+    chunks = []
+    text = ai.chat(
+        "openai", "gpt-test", "sk-test", "SYS",
+        [{"role": "user", "text": "hi"}], stream=True,
+        on_chunk=chunks.append, retries=0)
+    assert text == "hello" and chunks == ["hel", "lo"]
+    assert response.closed
+
+    _url, _headers, payload = ai.build_request(
+        "anthropic", "claude-test", "sk-ant-test", "SYS",
+        [{"role": "user", "text": "hi"}], stream=True)
+    assert json.loads(payload)["stream"] is True
+    event = ('data: {"type":"content_block_delta","delta":'
+             '{"type":"text_delta","text":"สวัสดี"}}')
+    assert ai.parse_stream_event("anthropic", event) == "สวัสดี"
+
+
+def test_cancellation_token_closes_bound_response():
+    class Response:
+        closed = False
+
+        def close(self):
+            self.closed = True
+
+    response = Response()
+    token = ai.CancellationToken()
+    token.bind_response(response)
+    token.cancel()
+    assert token.cancelled and response.closed
 
 
 def test_extract_typed_actions_is_strict_and_never_hides_broken_json():
@@ -277,6 +328,67 @@ def _wait_for_assistant(dlg):
         if not dlg._busy:
             break
     assert not dlg._busy
+
+
+def test_assistant_streams_and_cancel_ignores_late_action(monkeypatch):
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    started = threading.Event()
+
+    def fake_chat(*_args, on_chunk=None, cancel_token=None,
+                  stream=False, **_kwargs):
+        assert stream and on_chunk is not None and cancel_token is not None
+        on_chunk('{"actions":[{"action":"create_box"')
+        started.set()
+        cancel_token.wait(2.0)
+        raise ai.CancelledError("request cancelled")
+
+    monkeypatch.setattr(ai, "chat", fake_chat)
+    win = MainWindow()
+    try:
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._key.setText("sk-ant-test")
+        dlg._shots.setChecked(False)
+        dlg._intent_goal.setCurrentIndex(
+            dlg._intent_goal.findData("create"))
+        dlg._intent_mode.setCurrentIndex(
+            dlg._intent_mode.findData("apply_safe_changes"))
+        groups = list(win.viewport.scene.groups)
+        history = len(win.viewport.history.undo_stack)
+        dlg._input.setText("create a box")
+        dlg._on_send()
+
+        app = QApplication.instance()
+        for _ in range(2000):
+            app.processEvents()
+            if started.is_set() and dlg._stream_preview.toPlainText():
+                break
+        assert dlg._busy and not dlg._cancel.isHidden()
+        assert dlg._stream_preview.toPlainText().startswith('{"actions"')
+        old_generation = dlg._generation
+
+        dlg._on_cancel()
+        app.processEvents()
+        assert not dlg._busy and dlg._cancel.isHidden()
+        assert dlg._send.isEnabled()
+        assert win.viewport.scene.groups == groups
+        assert len(win.viewport.history.undo_stack) == history
+        task = dlg._task_service().get(dlg._active_task_id)
+        assert task["status"] == "cancelled" and not task["stale"]
+        assert task["result"]["code"] == "cancelled"
+
+        # A complete answer already queued by a slow provider belongs to the
+        # invalidated generation and must never become a proposal.
+        late = {"actions": [{"action": "create_box", "name": "Late",
+                              "size": [1, 1, 1]}]}
+        dlg._on_reply({"ok": True, "generation": old_generation,
+                       "text": f"```json\n{json.dumps(late)}\n```"})
+        assert win.viewport.scene.groups == groups
+        assert not dlg._pending_task_id
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
 
 
 def test_assistant_typed_preview_waits_for_apply_and_commits_one_undo(monkeypatch):

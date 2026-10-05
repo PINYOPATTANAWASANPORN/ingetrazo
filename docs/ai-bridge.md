@@ -140,6 +140,13 @@ para edición de geometría aún no cubierta. `create_box` y `create_cylinder`
 permiten crear masas básicas mediante la misma vista previa sin recurrir a
 Python.
 
+La respuesta del proveedor aparece progresivamente en una vista temporal. El
+botón **Cancelar** cierra la conexión activa, interrumpe la espera entre
+reintentos y termina la tarea como `cancelled`. El texto parcial nunca se
+interpreta como JSON o Python; solo una respuesta terminada puede producir una
+vista previa. Los eventos que lleguen tarde después de cancelar se descartan
+por su identificador de generación.
+
 El botón **Memoria** abre los hechos duraderos del proyecto, uno por línea.
 Se guardan dentro del `.igz`, la edición participa en Deshacer/Rehacer y cada
 tarea nueva recibe una copia fija bajo `project_memory`. Esta memoria tiene

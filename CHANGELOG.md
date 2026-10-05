@@ -8,6 +8,14 @@ follow [SemVer](https://semver.org).
 
 ### Añadido
 
+- **Respuesta progresiva y cancelación del Asistente IA:** Anthropic y los
+  proveedores compatibles con OpenAI muestran el texto conforme llega. El
+  botón Cancelar cierra la respuesta HTTP, interrumpe también la espera de un
+  reintento, marca la tarea como cancelada y descarta cualquier propuesta en
+  espera. Los fragmentos recibidos son solo presentación: nunca se analizan ni
+  ejecutan hasta que la respuesta termina, y las respuestas tardías de una
+  generación cancelada se ignoran.
+
 - **Creación tipada y permiso avanzado del Asistente IA:** `create_box` y
   `create_cylinder` preparan grupos o componentes de nivel superior con
   dimensiones, etiqueta y material validados, sin añadir geometría hasta que

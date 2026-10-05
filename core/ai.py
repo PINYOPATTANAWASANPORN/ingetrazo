@@ -22,6 +22,7 @@ import io
 import json
 import math
 import sys
+import threading
 import traceback
 import urllib.error
 import time
@@ -502,10 +503,52 @@ def _message_image(m: dict) -> tuple[str | None, str]:
     return shot, mime
 
 
+class CancelledError(RuntimeError):
+    """A provider request was cooperatively cancelled by its caller."""
+
+
+class CancellationToken:
+    """Thread-safe request token that can also close a blocking response."""
+
+    def __init__(self) -> None:
+        self._event = threading.Event()
+        self._lock = threading.Lock()
+        self._response = None
+
+    @property
+    def cancelled(self) -> bool:
+        return self._event.is_set()
+
+    def wait(self, timeout: float) -> bool:
+        return self._event.wait(timeout)
+
+    def bind_response(self, response) -> None:
+        with self._lock:
+            if self._event.is_set():
+                response.close()
+                raise CancelledError("request cancelled")
+            self._response = response
+
+    def unbind_response(self, response) -> None:
+        with self._lock:
+            if self._response is response:
+                self._response = None
+
+    def cancel(self) -> None:
+        self._event.set()
+        with self._lock:
+            response = self._response
+        if response is not None:
+            try:
+                response.close()
+            except OSError:
+                pass
+
+
 def build_request(provider: str, model: str, api_key: str,
                   system: str, messages: list,
                   ollama_url: str = "http://localhost:11434",
-                  max_tokens: int = 4096):
+                  max_tokens: int = 4096, stream: bool = False):
     """(url, headers, payload-bytes) for one chat turn.
 
     ``messages``: [{"role": "user"/"assistant", "text": str,
@@ -525,6 +568,8 @@ def build_request(provider: str, model: str, api_key: str,
             content_msgs.append({"role": m["role"], "content": blocks})
         payload = {"model": model, "max_tokens": max_tokens,
                    "system": system, "messages": content_msgs}
+        if stream:
+            payload["stream"] = True
         return ("https://api.anthropic.com/v1/messages",
                 {"Content-Type": "application/json",
                  "User-Agent": USER_AGENT,
@@ -551,6 +596,8 @@ def build_request(provider: str, model: str, api_key: str,
         headers["Authorization"] = f"Bearer {api_key}"
     payload = {"model": model, "max_tokens": max_tokens,
                "messages": oai_msgs}
+    if stream:
+        payload["stream"] = True
     return (f"{base}/chat/completions", headers,
             json.dumps(payload).encode())
 
@@ -565,11 +612,41 @@ def parse_reply(provider: str, raw: bytes) -> str:
     return choices[0].get("message", {}).get("content", "") or ""
 
 
+def parse_stream_event(provider: str, raw: bytes | str) -> str:
+    """Return text from one SSE data event, ignoring metadata events."""
+    if isinstance(raw, bytes):
+        raw = raw.decode("utf-8", errors="replace")
+    raw = raw.strip()
+    if raw.startswith("data:"):
+        raw = raw[5:].strip()
+    if not raw or raw == "[DONE]":
+        return ""
+    data = json.loads(raw)
+    if data.get("error"):
+        raise RuntimeError(str(data["error"])[:400])
+    if provider == "anthropic":
+        if data.get("type") != "content_block_delta":
+            return ""
+        delta = data.get("delta") or {}
+        return delta.get("text", "") if delta.get("type") == "text_delta" else ""
+    choices = data.get("choices") or []
+    if not choices:
+        return ""
+    content = (choices[0].get("delta") or {}).get("content", "")
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "".join(str(part.get("text", "")) for part in content
+                       if isinstance(part, dict))
+    return ""
+
+
 #: HTTP statuses worth another try: the provider is busy or rate-limited
 #: (Gemini's 503 «high demand», 429, the 5xx family, Anthropic's 529).
 RETRY_STATUSES = frozenset({429, 500, 502, 503, 504, 529})
 #: Seconds before retry n (1-based): 2, 4, 8, 16 — capped.
 RETRY_BACKOFF = (2.0, 4.0, 8.0, 16.0)
+MAX_STREAM_BYTES = 4 * 1024 * 1024
 
 
 def _urlopen(url: str, headers: dict, payload: bytes | None = None,
@@ -618,14 +695,124 @@ def _urlopen(url: str, headers: dict, payload: bytes | None = None,
 def chat(provider: str, model: str, api_key: str, system: str,
          messages: list, ollama_url: str = "http://localhost:11434",
          timeout: float = 180.0, max_tokens: int = 4096,
-         retries: int = 4, on_retry=None) -> str:
+         retries: int = 4, on_retry=None, on_chunk=None,
+         cancel_token: CancellationToken | None = None,
+         stream: bool = False) -> str:
     """One blocking chat turn. Raises with a readable message on failure —
     callers run this in a worker thread, never on the UI thread. A busy
     provider is retried ``retries`` times (see :func:`_urlopen`)."""
+    if stream:
+        return chat_stream(
+            provider, model, api_key, system, messages, ollama_url=ollama_url,
+            timeout=timeout, max_tokens=max_tokens, retries=retries,
+            on_retry=on_retry, on_chunk=on_chunk,
+            cancel_token=cancel_token)
     url, headers, payload = build_request(
         provider, model, api_key, system, messages, ollama_url, max_tokens)
     return parse_reply(provider, _urlopen(url, headers, payload, timeout,
                                           retries=retries, on_retry=on_retry))
+
+
+def chat_stream(provider: str, model: str, api_key: str, system: str,
+                messages: list, ollama_url: str = "http://localhost:11434",
+                timeout: float = 180.0, max_tokens: int = 4096,
+                retries: int = 4, on_retry=None, on_chunk=None,
+                cancel_token: CancellationToken | None = None) -> str:
+    """Stream one chat turn and return the same complete text as ``chat``.
+
+    Partial text is presentation-only: callers receive it through
+    ``on_chunk`` but must wait for this function to return before parsing or
+    executing actions. Cancellation closes the active response and interrupts
+    retry backoff. A request is retried only before its first text chunk, so a
+    transient disconnect cannot duplicate visible output.
+    """
+    from core.tls import https_context
+
+    token = cancel_token or CancellationToken()
+    url, headers, payload = build_request(
+        provider, model, api_key, system, messages, ollama_url, max_tokens,
+        stream=True)
+    headers = dict(headers)
+    headers["Accept"] = "text/event-stream"
+    context = https_context()
+    attempt = 0
+    chunks: list[str] = []
+    while True:
+        if token.cancelled:
+            raise CancelledError("request cancelled")
+        req = urllib.request.Request(url, data=payload, headers=headers,
+                                     method="POST")
+        response = None
+        raw_lines: list[bytes] = []
+        saw_sse = False
+        total_bytes = 0
+        try:
+            response = urllib.request.urlopen(
+                req, timeout=timeout, context=context)
+            token.bind_response(response)
+            while True:
+                if token.cancelled:
+                    raise CancelledError("request cancelled")
+                line = response.readline()
+                if not line:
+                    break
+                total_bytes += len(line)
+                if total_bytes > MAX_STREAM_BYTES:
+                    raise RuntimeError(
+                        f"stream exceeds {MAX_STREAM_BYTES} bytes")
+                raw_lines.append(line)
+                if not line.lstrip().startswith(b"data:"):
+                    continue
+                saw_sse = True
+                piece = parse_stream_event(provider, line)
+                if piece:
+                    chunks.append(piece)
+                    if on_chunk is not None:
+                        on_chunk(piece)
+            if not saw_sse and raw_lines:
+                # Some OpenAI-compatible local servers accept stream=true but
+                # still answer with the ordinary JSON shape. Preserve support
+                # for them while exposing the complete reply as one chunk.
+                text = parse_reply(provider, b"".join(raw_lines))
+                if text and on_chunk is not None:
+                    on_chunk(text)
+                return text
+            return "".join(chunks)
+        except CancelledError:
+            raise
+        except urllib.error.HTTPError as exc:
+            detail = ""
+            try:
+                detail = exc.read().decode()[:400]
+            except OSError:
+                pass
+            reason = f"HTTP {exc.code}: {detail or exc.reason}"
+            retryable = exc.code in RETRY_STATUSES
+        except urllib.error.URLError as exc:
+            reason = f"sin conexión: {exc.reason}"
+            retryable = True
+        except (OSError, ValueError) as exc:
+            if token.cancelled:
+                raise CancelledError("request cancelled") from exc
+            reason = str(exc)
+            retryable = True
+        finally:
+            if response is not None:
+                token.unbind_response(response)
+                try:
+                    response.close()
+                except OSError:
+                    pass
+        if chunks or not retryable or attempt >= retries:
+            if attempt:
+                reason += f" (tras {attempt + 1} intentos)"
+            raise RuntimeError(reason)
+        wait = RETRY_BACKOFF[min(attempt, len(RETRY_BACKOFF) - 1)]
+        attempt += 1
+        if on_retry is not None:
+            on_retry(attempt, retries, wait, reason)
+        if token.wait(wait):
+            raise CancelledError("request cancelled")
 
 
 #: Substrings of model ids that are not chat models (speech, safety,
