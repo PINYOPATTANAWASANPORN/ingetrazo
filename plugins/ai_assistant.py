@@ -181,6 +181,34 @@ class ProjectMemoryDialog(QDialog):
         return self.editor.toPlainText().splitlines()
 
 
+class SpecialistModelsDialog(QDialog):
+    """Per-provider model names; blanks inherit the main Assistant model."""
+
+    def __init__(self, provider, models, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(tr("Specialist models"))
+        layout = QVBoxLayout(self)
+        label = QLabel(tr("Provider: {provider}. Both reviewers use this connection. Leave blank to use the main model.", provider=provider))
+        label.setWordWrap(True)
+        layout.addWidget(label)
+        self.editors = {}
+        for role, title in (("model_structure", tr("Model structure")),
+                            ("task_requirements", tr("Task requirements"))):
+            layout.addWidget(QLabel(title))
+            editor = QLineEdit(models.get(role, ""))
+            editor.setMaxLength(200)
+            editor.setPlaceholderText(tr("Use main model"))
+            layout.addWidget(editor)
+            self.editors[role] = editor
+        buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def models(self):
+        return {role: editor.text().strip() for role, editor in self.editors.items()}
+
+
 class AsistentePanel(QWidget):
     """The assistant as the «AI» tab of the side tray: the connection
     settings fold away, the chat takes the rest of the height."""
@@ -269,6 +297,10 @@ class AsistentePanel(QWidget):
         self._probar.clicked.connect(self._on_probar)
         buttons.addWidget(self._probar)
         form.addRow(buttons)
+        self._specialist_models = QPushButton(tr("Specialist models…"))
+        self._specialist_models.setToolTip(tr("Choose a model for each read-only reviewer on the current provider"))
+        self._specialist_models.clicked.connect(self._on_specialist_models)
+        form.addRow(self._specialist_models)
 
         self._ollama = QLineEdit("http://localhost:11434")
         self._ollama.setToolTip(tr("Local AI server — Ollama: http://localhost:11434, LM Studio: http://localhost:1234 (key left empty)"))
@@ -343,7 +375,7 @@ class AsistentePanel(QWidget):
         bl.addLayout(intent_row)
         self._specialist_review = QCheckBox(tr("Review with 2 specialists (read-only)"))
         self._specialist_review.setToolTip(tr(
-            "Sends two independent requests to the selected provider/model using the same scoped metadata. No model changes."))
+            "Sends two independent requests using the selected provider and each specialist's model choice, with the same scoped metadata. No model changes."))
         self._specialist_review.toggled.connect(self._on_review_mode)
         bl.addWidget(self._specialist_review)
 
@@ -543,7 +575,8 @@ class AsistentePanel(QWidget):
         for widget in (self._intent_scope, self._intent_goal,
                        self._intent_mode, self._intent_assumptions,
                        self._project_memory, self._allow_python,
-                       self._suggestion_bar, self._specialist_review):
+                       self._suggestion_bar, self._specialist_review,
+                       self._specialist_models):
             widget.setEnabled(enabled)
         if self._specialist_review.isChecked():
             self._intent_goal.setEnabled(False)
@@ -696,6 +729,22 @@ class AsistentePanel(QWidget):
         model = (self._model.currentText().strip()
                  or ai.DEFAULT_MODELS[provider])
         return provider, model, key, self._ollama.text().strip()
+
+    def _review_models(self, provider):
+        from core.ai_review import ROLES
+        settings = self._settings()
+        return {role: str(settings.value(f"ia/review_models/{provider}/{role}", "") or "")
+                for role in ROLES}
+
+    def _on_specialist_models(self):
+        if self._busy or self._pending_task_id:
+            return
+        provider = self._effective_provider()
+        dialog = SpecialistModelsDialog(provider, self._review_models(provider), self)
+        if dialog.exec() == QDialog.Accepted:
+            settings = self._settings()
+            for role, model in dialog.models().items():
+                settings.setValue(f"ia/review_models/{provider}/{role}", model)
 
     def _on_modelos(self) -> None:
         if self._busy:
@@ -906,11 +955,12 @@ class AsistentePanel(QWidget):
         token = ai_review.ReviewCancellation()
         self._cancel_token = token
         config = self._config()
+        role_models = self._review_models(config[0])
         self._append(tr("Two specialists are reviewing the same metadata snapshot. Photos and geometry are not included."), "muted")
 
         def worker():
             try:
-                report = ai_review.run_review(packet, *config, token)
+                report = ai_review.run_review(packet, *config, token, role_models=role_models)
                 self._reply.emit({"review": report, "generation": generation})
             except ai.CancelledError:
                 pass

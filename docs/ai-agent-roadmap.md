@@ -270,7 +270,8 @@ their resolved entity scope through preview and commit. Deterministic local
 suggestion chips now fill the prompt and task controls from empty-model,
 visible-model, or stable-selection state without calling a provider or sending
 automatically. The Assistant now runs two read-only provider-backed specialists
-over one bounded metadata snapshot, retains conflicting findings and rejects
+over one bounded metadata snapshot, with per-role model names saved by provider,
+retains conflicting findings and rejects
 stale/cancelled results. See [specialist review](ai-specialist-review.md).
 An external MCP coordinator can now obtain role-bound snapshots, submit
 validated findings, retrieve combined conflicts and cancel pending reviews.

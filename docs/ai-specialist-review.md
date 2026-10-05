@@ -6,8 +6,16 @@ independent requests: `model_structure` reviews organisation, naming, tags
 and material metadata; `task_requirements` reviews the request, constraints,
 assumptions and explicit project memory against that metadata.
 
+Open **Specialist models…** in the connection section to select a model name
+for each role. Blank fields inherit the main Assistant model. Choices are saved
+per provider; switching providers does not reuse another provider's model names.
+Both roles share the selected provider, connection and credential. The report
+records the requested provider/model for each role, including failed requests.
+These identifiers describe the request, not an attestation of server-side routing.
+Unknown model names produce a visible role failure; no automatic fallback hides it.
+
 This is provider-backed parallel execution, not a local rule-based checker.
-Both roles currently use the same provider/model. It does not imply independent
+Choosing different model names does not imply independent
 model expertise, and no live-provider quality or latency benchmark has been
 recorded. Tests use deterministic fake provider responses.
 
@@ -46,7 +54,7 @@ session-only and preserves the user's ordinary goal/execution preferences.
 The Assistant dispatches provider requests itself. MCP also provides an
 external coordination protocol, advertised as `external_specialist_review`.
 `multi_agent` remains false for general autonomous modeler orchestration.
-Per-role provider configuration inside the app, audit export, geometry evidence
+Different providers/credentials for each role, audit export, geometry evidence
 and coordinator-approved modeler proposals remain future work.
 
 ## External MCP workflow

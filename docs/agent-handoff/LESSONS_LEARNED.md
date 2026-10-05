@@ -159,3 +159,12 @@ retries are safe; a different repeated submission must not overwrite findings.
 Invalidate historical review reports on content changes before returning them.
 Bridge cancellation rejects results but cannot cancel a provider owned by an
 external process. Advertise that boundary and cap retained/active sessions.
+
+## Model preferences belong to a provider and role
+
+A model name accepted by one provider may fail on another. Store per-role
+model choices under the provider, inherit the main model for blank fields,
+and freeze the resolved choices before starting parallel requests. Preserve
+requested model identity on failures as well as successes; do not silently
+fallback or put credentials in a review report. Recorded names describe the
+request, not proof of the backend model a remote service actually used.

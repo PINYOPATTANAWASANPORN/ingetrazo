@@ -169,7 +169,9 @@ preferencia permanente sin que el usuario la vea.
 
 Para una revisión paralela, activa **Review with 2 specialists (read-only)**
 en el Asistente. Dos solicitudes al proveedor/modelo seleccionado revisan los
-mismos metadatos y muestran discrepancias sin cambiar el documento. Esta
+mismos metadatos y muestran discrepancias sin cambiar el documento. **Specialist
+models…** permite elegir un modelo por rol dentro del mismo proveedor; un campo
+vacío utiliza el modelo principal. Las preferencias se guardan por proveedor. Esta
 función no usa fotos ni certifica geometría. Los clientes MCP pueden usar
 `begin_specialist_review`, `submit_specialist_review`,
 `get_specialist_review` y `cancel_specialist_review` para coordinar sus propios

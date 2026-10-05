@@ -380,8 +380,18 @@
       "base": "feature/ai-specialist-review",
       "head": "feature/mcp-specialist-protocol",
       "merged": false,
-      "updated_at": "2026-10-05T12:03:21Z",
+      "updated_at": "2026-10-05T12:04:00Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/40"
+    },
+    {
+      "number": 41,
+      "state": "open",
+      "title": "Add per-role specialist model selection",
+      "base": "feature/mcp-specialist-protocol",
+      "head": "feature/specialist-model-selection",
+      "merged": false,
+      "updated_at": "2026-10-05T12:09:24Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/41"
     }
   ]
 }
