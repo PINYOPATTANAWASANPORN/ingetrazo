@@ -263,8 +263,7 @@ Phase 3 backend slice is also implemented:
 selection/current-group/visible-model scope, constraints, assumptions,
 acceptance criteria, and a deterministic role plan. Registered tasks enforce
 their resolved entity scope through preview and commit. Context-aware
-suggestion chips, streaming, cancellation, and actual specialist execution
-remain. The
+suggestion chips and actual specialist execution remain. The
 in-app Assistant now exposes compact Scope, Goal, and Execution controls plus
 editable per-request assumptions, includes the resulting task contract in
 the model context, and enforces Analysis only by refusing returned recipes.
@@ -279,6 +278,11 @@ Project memory is also implemented as an explicit bounded list owned by the
 open document: the user edits it visibly, the edit is undoable, it persists
 in `.igz`, and every new task snapshots the facts so a running contract cannot
 silently drift. Chat and external task creation cannot write durable memory.
+Provider responses now stream into a bounded live preview. Cancel closes the
+active HTTP response, interrupts retry backoff, terminates the task as
+`cancelled`, releases any pending proposal, and invalidates queued chunks from
+that generation. Partial output remains display-only and cannot reach action
+parsing or the transactional executor.
 
 ### Phase 1 — shared context and typed read tools
 

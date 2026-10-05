@@ -21,7 +21,7 @@ import base64
 import json
 import threading
 
-from PySide6.QtCore import QBuffer, QIODevice, QSettings, Qt, Signal
+from PySide6.QtCore import QBuffer, QIODevice, QSettings, QTimer, Qt, Signal
 from PySide6.QtGui import QFontDatabase, QImageReader, QPalette
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -193,6 +193,10 @@ class AsistentePanel(QWidget):
         self._task_changed = False
         self._analysis_nudged = False
         self._python_nudged = False
+        self._generation = 0
+        self._cancel_token = None
+        self._stream_text = ""
+        self._stream_flush_scheduled = False
         self._pending_task_id = ""
         self._pending_idempotency_key = ""
         self._foto: tuple[str, str, str] | None = None  # (b64, mime, name)
@@ -338,6 +342,12 @@ class AsistentePanel(QWidget):
         self._task_chip = QLabel("")
         self._task_chip.setVisible(False)
         bl.addWidget(self._task_chip)
+        self._stream_preview = QPlainTextEdit()
+        self._stream_preview.setReadOnly(True)
+        self._stream_preview.setMaximumHeight(120)
+        self._stream_preview.setPlaceholderText(tr("AI response in progress…"))
+        self._stream_preview.setVisible(False)
+        bl.addWidget(self._stream_preview)
         self._change_preview = QPlainTextEdit()
         self._change_preview.setReadOnly(True)
         self._change_preview.setMaximumHeight(120)
@@ -357,7 +367,7 @@ class AsistentePanel(QWidget):
         bl.addWidget(self._preview_buttons)
         narrow(self._intent_scope, self._intent_goal, self._intent_mode,
                self._intent_assumptions, self._project_memory,
-               self._task_chip, self._change_preview,
+               self._task_chip, self._stream_preview, self._change_preview,
                self._apply_changes, self._discard_changes)
 
         self._input = PromptEdit()
@@ -385,6 +395,12 @@ class AsistentePanel(QWidget):
         self._adjuntar.clicked.connect(self._on_foto)
         row3.addWidget(self._adjuntar)
         row3.addStretch()
+        self._cancel = QPushButton(tr("Cancel"))
+        self._cancel.setToolTip(tr(
+            "Stop the current AI response; partial output will not be executed"))
+        self._cancel.clicked.connect(self._on_cancel)
+        self._cancel.setVisible(False)
+        row3.addWidget(self._cancel)
         self._send = QPushButton(tr("Send"))
         self._send.clicked.connect(self._on_send)
         row3.addWidget(self._send)
@@ -769,6 +785,11 @@ class AsistentePanel(QWidget):
     def _next_turn(self) -> None:
         self._busy = True
         self._send.setEnabled(False)
+        self._cancel.setVisible(True)
+        self._cancel.setEnabled(True)
+        self._stream_text = ""
+        self._stream_preview.clear()
+        self._stream_preview.setVisible(True)
         self._append(tr("thinking…"), "muted")
         provider, model, key, ollama = self._config()
         convo = ai.compact_messages(ai.slim_messages(
@@ -795,21 +816,36 @@ class AsistentePanel(QWidget):
                                     separators=(",", ":")))
 
         budget = TOKENS_BY_PROVIDER.get(provider, MAX_TOKENS)
+        self._generation += 1
+        generation = self._generation
+        token = ai.CancellationToken()
+        self._cancel_token = token
 
         def on_retry(n, total, wait, reason) -> None:
             # A busy provider (Gemini's 503 «high demand»): say so and
             # wait, instead of ending the recipe at the walls.
-            self._reply.emit({"retry": True, "n": n, "total": total,
+            self._reply.emit({"retry": True, "generation": generation,
+                              "n": n, "total": total,
                               "wait": wait, "reason": reason})
+
+        def on_chunk(text: str) -> None:
+            self._reply.emit({"stream": True, "generation": generation,
+                              "text": text})
 
         def worker() -> None:
             try:
                 text = ai.chat(provider, model, key, system, convo,
                                ollama_url=ollama, max_tokens=budget,
-                               on_retry=on_retry)
-                self._reply.emit({"ok": True, "text": text})
+                               on_retry=on_retry, on_chunk=on_chunk,
+                               cancel_token=token, stream=True)
+                self._reply.emit({"ok": True, "generation": generation,
+                                  "text": text})
+            except ai.CancelledError:
+                self._reply.emit({"cancelled": True,
+                                  "generation": generation})
             except Exception as exc:  # noqa: BLE001 — shown in the chat
-                self._reply.emit({"ok": False, "error": str(exc)})
+                self._reply.emit({"ok": False, "generation": generation,
+                                  "error": str(exc)})
 
         threading.Thread(target=worker, daemon=True).start()
 
@@ -917,6 +953,20 @@ class AsistentePanel(QWidget):
         self._finish()
 
     def _on_reply(self, msg: dict) -> None:
+        generation = msg.get("generation")
+        if generation is not None and generation != self._generation:
+            return
+        if msg.get("stream"):
+            self._stream_text += str(msg.get("text", ""))
+            if not self._stream_flush_scheduled:
+                self._stream_flush_scheduled = True
+                # Providers often emit token-sized chunks. Coalesce all
+                # queued chunks for this event-loop turn instead of replacing
+                # the whole preview document once per token.
+                QTimer.singleShot(0, self._flush_stream_preview)
+            return
+        if msg.get("cancelled"):
+            return
         if msg.get("retry"):
             reason = str(msg.get("reason", ""))
             short = reason.split(":", 1)[0]
@@ -958,6 +1008,9 @@ class AsistentePanel(QWidget):
                         'That model no longer exists for your key — press '
                         '"Models" to list the available ones.'), "err")
             return
+        self._cancel_token = None
+        self._cancel.setVisible(False)
+        self._stream_preview.setVisible(False)
         if not msg.get("ok"):
             self._append(tr("Error: {err}", err=msg.get("error")), "err")
             self._finish()
@@ -1092,14 +1145,58 @@ class AsistentePanel(QWidget):
                             **({"image_png_b64": shot} if shot else {})})
         self._next_turn()
 
+    def _flush_stream_preview(self) -> None:
+        self._stream_flush_scheduled = False
+        if not self._busy or self._stream_preview.isHidden():
+            return
+        self._stream_preview.setPlainText(self._stream_text)
+        bar = self._stream_preview.verticalScrollBar()
+        bar.setValue(bar.maximum())
+
+    def _on_cancel(self) -> None:
+        """Stop generation and invalidate every queued event from that turn."""
+        if not self._busy:
+            return
+        token = self._cancel_token
+        self._cancel_token = None
+        self._generation += 1
+        if token is not None:
+            token.cancel()
+        self._stream_preview.setVisible(False)
+        self._stream_text = ""
+        self._stream_flush_scheduled = False
+        if self._active_task_id:
+            service = self._change_service()
+            summary = service.summary()
+            if summary and summary.get("task_id") == self._active_task_id:
+                service.discard(self._active_task_id)
+            self._task_service().transition(
+                self._active_task_id, "cancelled",
+                {"changed": self._task_changed, "code": "cancelled",
+                 "message": "cancelled by user",
+                 "content_revision": self._viewport.scene.content_version})
+        if self._task_changed:
+            self._append(tr(
+                "Cancelled. Partial AI output was not executed; changes from earlier completed steps remain undoable."),
+                "muted")
+        else:
+            self._append(tr(
+                "Cancelled. Partial AI output was not executed and the model is unchanged."),
+                "muted")
+        self._finish()
+
     def _finish(self) -> None:
         self._busy = False
+        self._cancel_token = None
+        self._cancel.setVisible(False)
+        self._stream_preview.setVisible(False)
         pending = bool(self._pending_task_id)
         self._send.setEnabled(not pending)
         self._set_task_controls_enabled(not pending)
         if self._active_task_id:
             current = self._task_service().get(self._active_task_id)
-            terminal = {"committed", "completed", "discarded", "stale"}
+            terminal = {"committed", "completed", "discarded", "stale",
+                        "cancelled"}
             if current.get("status") not in terminal and not pending:
                 status = "committed" if self._task_changed else "completed"
                 self._task_service().transition(

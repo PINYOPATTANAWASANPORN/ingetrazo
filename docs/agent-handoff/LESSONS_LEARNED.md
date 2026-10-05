@@ -55,6 +55,15 @@ permission in its task contract, and the UI still blocks returned code below
 the prompt layer. A checkbox is explicit authorization for the current panel
 session only and must not be persisted silently.
 
+## Streaming output is not executable output
+
+Provider chunks may be displayed as they arrive, but action parsing starts
+only after the stream closes successfully. Cancellation must close the active
+response, interrupt retry backoff, mark the task terminal, release a pending
+proposal, and advance a local generation ID. The generation check is what
+prevents already queued chunks or a late complete response from executing
+after the user cancelled. A socket timeout by itself is not cancellation.
+
 ## Revision semantics prevent false conflicts
 
 Camera movement and selection changes are view state. They must not stale a

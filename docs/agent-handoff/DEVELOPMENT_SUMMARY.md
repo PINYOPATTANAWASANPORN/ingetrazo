@@ -2,13 +2,13 @@
 
 ## Delivery topology
 
-The fork uses one long stacked chain. GitHub reported **33 open PRs and zero
+The fork uses one long stacked chain. GitHub reported **34 open PRs and zero
 merged PRs** on 2026-10-05. PR numbers 18 and 27 are absent from the pull list;
 do not invent them. The chain begins at fork `main` (`6be29fe`) and currently
-ends at `feature/ai-typed-creation` (`f9cca37`). Merging or rebasing a lower PR
+ends at `feature/ai-streaming-cancel` (`1e64bbf`). Merging or rebasing a lower PR
 changes every PR above it, so preserve order and revalidate the affected stack.
 The latest stack layer is
-[#35](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/35).
+[#36](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/36).
 
 ## Product workstreams
 
@@ -22,7 +22,7 @@ The latest stack layer is
 | Extension Manager | 75% | Enable/disable, local install/remove, safe manifests | Online catalog, version resolution, URL updates |
 | File exchange | 30% | Windows SKP long-texture-path repair | IFC import, fuller SKP hierarchy fidelity, cross-platform DWG |
 | Architectural tools | 10% | Existing BIM/export/composer/terrain foundations | Contours, axes/grid, room labels, doors/windows, schedules |
-| AI Agent roadmap | about 64% overall | Bounded context, security gate, typed preview writes and primitive creation, task engine, concise UI, project memory, session-only Python gate | Streaming/cancel, suggestions, architectural primitives, real specialists, evals |
+| AI Agent roadmap | about 68% overall | Bounded context, security gate, typed preview writes and primitive creation, task engine, concise UI, project memory, streaming/cancel, session-only Python gate | Suggestions, architectural primitives, real specialists, evals |
 
 ## PR chain by capability
 
@@ -70,6 +70,7 @@ The latest stack layer is
 - [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33) — durable AI development handoff pack.
 - [#34](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/34) — typed previews in the in-app Assistant.
 - [#35](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/35) — typed box/cylinder creation and session-only advanced Python permission.
+- [#36](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/36) — streamed provider responses and cooperative cancellation.
 
 ## Claims that must stay qualified
 

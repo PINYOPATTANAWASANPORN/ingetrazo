@@ -40,37 +40,30 @@
   Assistant. More architectural primitives, nested world-space transforms,
   and branch-rendered geometry previews remain. Raw Python is off by default
   and requires an explicit session permission.
-- **Phase 3 — 78%:** task engine, compact controls, assumptions, project
-  memory, and in-app typed approval work. Suggestion chips, streaming,
-  cooperative cancel, visible plan, and corpus evaluation remain.
+- **Phase 3 — 85%:** task engine, compact controls, assumptions, project
+  memory, in-app typed approval, streaming, and cooperative cancellation work.
+  Suggestion chips, a richer visible plan, and corpus evaluation remain.
 - **Phase 4 — 15%:** plans name roles, but no specialist actually executes.
 - **Phase 5 — 35%:** the early local-security gate exists; audit export,
   recovery, resources/prompts, compatibility tests, and benchmarks remain.
 
 ## Recommended next sequence
 
-### 1. Streaming and cooperative cancellation
-
-Stream provider text without allowing partial model writes. Add Cancel to stop
-network generation immediately and long typed work between bounded steps.
-Cancellation must transition the task to a terminal state and release leases.
-A timeout or disconnected socket alone is not proof of cancellation.
-
-### 2. Context-aware suggestions and measurable evaluation
+### 1. Context-aware suggestions and measurable evaluation
 
 Generate local suggestion chips from deterministic document state before
 asking a model. Establish a fixed request corpus and record completion,
 tokens, provider/tool calls, p50/p95 latency, time to first preview, rollback,
 and manual corrections. Never report projected savings as measured results.
 
-### 3. Expand typed architectural creation
+### 2. Expand typed architectural creation
 
 Build wall, opening, slab, and component-instance actions on the same pure
 preview contract. Do not wrap the existing in-process recipe executor; build
 prepared entities off-scene and commit them through commands. Add an explicit
 parent/local-coordinate contract before allowing nested creation.
 
-### 4. Read-only specialist execution
+### 3. Read-only specialist execution
 
 Start with two concurrent reviewers pinned to one revision. Specialists return
 structured findings and cannot mutate the live scene. Add conflict detection
@@ -90,17 +83,17 @@ $env:PYTHONUTF8='1'
   tests/test_document_camera.py
 ```
 
-Result: **99 passed**. The primitive-creation slice adds focused off-scene
-preview, material/tag, component, undo/redo, MCP approval, and session
-permission tests. Python compilation for touched modules and
+Result: **102 passed**. The streaming slice adds focused SSE parsing,
+response-close cancellation, terminal task state, partial-output isolation,
+and late-generation rejection tests. Python compilation for touched modules and
 `git diff --check` also passed. Run the relevant subset again
 after every contract change; run the full suite before claiming release
 readiness.
 
 ## Stack base for continuation
 
-The primitive-creation slice is on `feature/ai-typed-creation`, stacked on
-`feature/ai-assistant-typed-preview` and delivered by
-[#35](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/35) at code commit
-`f9cca37`. Verify GitHub and the branch head before starting the next narrow PR.
+The streaming/cancellation slice is on `feature/ai-streaming-cancel`, stacked
+on `feature/ai-typed-creation` and delivered by
+[#36](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/36) at code commit
+`1e64bbf`. Verify GitHub and the branch head before starting the next narrow PR.
 

@@ -330,8 +330,18 @@
       "base": "feature/ai-assistant-typed-preview",
       "head": "feature/ai-typed-creation",
       "merged": false,
-      "updated_at": "2026-10-05T01:51:57Z",
+      "updated_at": "2026-10-05T01:53:01Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/35"
+    },
+    {
+      "number": 36,
+      "state": "open",
+      "title": "Stream AI responses with cooperative cancellation",
+      "base": "feature/ai-typed-creation",
+      "head": "feature/ai-streaming-cancel",
+      "merged": false,
+      "updated_at": "2026-10-05T02:05:41Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/36"
     }
   ]
 }

@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-05**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- Delivery state: **33 open PRs; none merged into the fork's `main`**
+- Delivery state: **34 open PRs; none merged into the fork's `main`**
 
 ## Read in this order
 
@@ -26,7 +26,9 @@ The handoff pack itself is delivered by
 #32. The typed Assistant implementation continues in
 [#34](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/34), followed by
 typed box/cylinder creation and the session-only advanced Python gate in
-[#35](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/35). New code
+[#35](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/35), followed by
+streaming and cooperative cancellation in
+[#36](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/36). New code
 should preserve this documentation layer or update it in the same change.
 
 The detailed design documents remain authoritative for their domains:
