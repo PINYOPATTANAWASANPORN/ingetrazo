@@ -93,6 +93,7 @@ readiness.
 ## Stack base for continuation
 
 The streaming/cancellation slice is on `feature/ai-streaming-cancel`, stacked
-on `feature/ai-typed-creation`. Verify GitHub and the branch head before
-starting the next narrow PR.
+on `feature/ai-typed-creation` and delivered by
+[#36](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/36) at code commit
+`1e64bbf`. Verify GitHub and the branch head before starting the next narrow PR.
 
