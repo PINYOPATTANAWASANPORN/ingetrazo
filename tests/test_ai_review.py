@@ -169,3 +169,46 @@ def test_invalid_model_overrides_fail_before_provider_call(monkeypatch, choices)
     with pytest.raises(ValueError):
         ai_review.run_review(ai_review.snapshot(scene, task), "local", "m", "", "url",
                              ai_review.ReviewCancellation(), choices)
+
+
+def test_each_role_uses_its_own_provider_and_key_without_leaking_secrets(monkeypatch):
+    scene, _group, _tasks, task = model()
+    packet = ai_review.snapshot(scene, task)
+    calls = []
+    def chat(provider, selected_model, key, _system, messages, **kwargs):
+        calls.append((provider, selected_model, key, messages[0]["text"]))
+        if provider == "gemini":
+            raise RuntimeError("request failed with " + key)
+        return json.dumps({"summary": "checked", "findings": []})
+    monkeypatch.setattr(ai, "chat", chat)
+    connections = {
+        "model_structure": {"provider": "anthropic", "model": "structure", "key": "sk-ant-secret",
+                            "ollama_url": ""},
+        "task_requirements": {"provider": "gemini", "model": "requirements", "key": "AIza-secret",
+                              "ollama_url": ""},
+    }
+    report = ai_review.run_review(packet, "ollama", "unused", "", "localhost",
+                                  ai_review.ReviewCancellation(), role_connections=connections)
+    assert report["status"] == "partial"
+    assert {(p, m, k) for p, m, k, _ in calls} == {
+        ("anthropic", "structure", "sk-ant-secret"),
+        ("gemini", "requirements", "AIza-secret")}
+    assert calls[0][3] == calls[1][3]
+    assert "sk-ant-secret" not in json.dumps(report)
+    assert "AIza-secret" not in json.dumps(report)
+    assert "[redacted]" in json.dumps(report)
+
+
+@pytest.mark.parametrize("connections", [
+    {},
+    {"model_structure": {}, "task_requirements": {}},
+    {"model_structure": {"provider": "openai", "model": "x", "key": "", "ollama_url": ""},
+     "task_requirements": {"provider": "ollama", "model": "x", "key": "", "ollama_url": ""}},
+])
+def test_bad_role_connections_fail_before_any_provider_request(monkeypatch, connections):
+    _scene, _group, _tasks, task = model()
+    monkeypatch.setattr(ai, "chat", lambda *args, **kwargs:
+                        pytest.fail("invalid connections must not dispatch"))
+    with pytest.raises(ValueError):
+        ai_review.run_review(ai_review.snapshot(_scene, task), "ollama", "m", "", "url",
+                             ai_review.ReviewCancellation(), role_connections=connections)

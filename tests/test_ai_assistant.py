@@ -690,6 +690,56 @@ def test_specialist_model_settings_are_provider_scoped_and_used(monkeypatch, tmp
         win.close()
 
 
+def test_specialists_can_use_distinct_saved_provider_connections(monkeypatch, tmp_path):
+    from PySide6.QtCore import QSettings
+    import plugins.ai_assistant as plugin
+    from views.main_window import MainWindow
+
+    calls = []
+    def fake_chat(provider, model, key, _system, _messages, **_kwargs):
+        calls.append((provider, model, key))
+        return json.dumps({"summary": "Reviewed", "findings": []})
+    monkeypatch.setattr(ai, "chat", fake_chat)
+    win = MainWindow()
+    try:
+        dlg = plugin.AsistenteDialog(win.viewport, parent=win)
+        monkeypatch.setattr(dlg, "_settings", lambda:
+            QSettings(str(tmp_path / "connections.ini"), QSettings.IniFormat))
+        dlg._provider.setCurrentIndex(dlg._provider.findData("anthropic"))
+        dlg._key.setText("sk-ant-main-secret")
+        dlg._model.setEditText(ai.DEFAULT_MODELS["anthropic"])
+        dlg._specialist_review.setChecked(True)
+
+        def choose(dialog):
+            selector = dialog.provider_selectors["task_requirements"]
+            selector.setCurrentIndex(selector.findData("gemini"))
+            dialog.editors["task_requirements"].setText("gemini-review")
+            return plugin.QDialog.Accepted
+        monkeypatch.setattr(plugin.SpecialistModelsDialog, "exec", choose)
+        dlg._on_specialist_models()
+        dlg._input.setText("check model")
+        dlg._on_send()
+        assert dlg._input.text() == "check model"  # missing Gemini key: no dispatch
+        assert not calls
+
+        settings = dlg._settings()
+        settings.setValue("ia/claves/gemini", "AIza-role-secret")
+        dlg._on_send()
+        _wait_for_assistant(dlg)
+        assert {(p, m, k) for p, m, k in calls} == {
+            ("anthropic", ai.DEFAULT_MODELS["anthropic"], "sk-ant-main-secret"),
+            ("gemini", "gemini-review", "AIza-role-secret")}
+        report = dlg._task_service().get(dlg._active_task_id)["review"]
+        assert {item["provider"] for item in report["specialists"]} == {"anthropic", "gemini"}
+        assert "sk-ant-main-secret" not in json.dumps(report)
+        assert "AIza-role-secret" not in json.dumps(report)
+        assert not dlg._review_role_connections
+        assert len(win.viewport.history.undo_stack) == 0
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
 def test_specialist_results_are_rejected_after_edit_or_cancel(monkeypatch):
     import threading
     from plugins.ai_assistant import AsistenteDialog

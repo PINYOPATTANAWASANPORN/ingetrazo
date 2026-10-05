@@ -96,7 +96,8 @@ def _parse(text, packet):
     return data
 
 
-def run_review(packet, provider, model, key, ollama_url, cancellation, role_models=None):
+def run_review(packet, provider, model, key, ollama_url, cancellation,
+               role_models=None, role_connections=None):
     """Blocking worker entry point; two requests, no write path or live state."""
     if role_models is None:
         role_models = {}
@@ -108,9 +109,31 @@ def run_review(packet, provider, model, key, ollama_url, cancellation, role_mode
         if not isinstance(value, str) or len(value) > 200:
             raise ValueError("specialist model names must contain at most 200 characters")
         selected[role] = value.strip() or model
+    if role_connections is not None:
+        if not isinstance(role_connections, dict) or set(role_connections) != set(ROLES):
+            raise ValueError("each specialist needs one connection")
+        connections = {}
+        for role in ROLES:
+            connection = role_connections[role]
+            if not isinstance(connection, dict) or set(connection) != {
+                    "provider", "model", "key", "ollama_url"}:
+                raise ValueError("invalid specialist connection")
+            p, m, k, url = (connection[field] for field in
+                            ("provider", "model", "key", "ollama_url"))
+            if (not isinstance(p, str) or p not in ai.PROVIDERS or
+                    not isinstance(m, str) or not 1 <= len(m.strip()) <= 200 or
+                    not isinstance(k, str) or len(k) > 512 or
+                    not isinstance(url, str) or len(url) > 2048 or
+                    (p != "ollama" and not k.strip())):
+                raise ValueError("invalid or incomplete specialist connection")
+            connections[role] = (p, m.strip(), k if p != "ollama" else "", url)
+    else:
+        connections = {role: (provider, selected[role], key, ollama_url)
+                       for role in ROLES}
     payload = json.dumps(packet, ensure_ascii=False, separators=(",", ":"))
 
     def run_role(role):
+        role_provider, role_model, role_key, role_url = connections[role]
         token = cancellation.tokens[role]
         if token.cancelled:
             raise ai.CancelledError("review cancelled")
@@ -125,18 +148,22 @@ def run_review(packet, provider, model, key, ollama_url, cancellation, role_mode
             "At most 20 findings, one per entity/topic; summary <=1000 characters, "
             "evidence <=500 characters. Use the user's language. Missing evidence means unknown.")
         try:
-            text = ai.chat(provider, selected[role], key, system,
+            text = ai.chat(role_provider, role_model, role_key, system,
                            [{"role": "user", "text": payload}],
-                           ollama_url=ollama_url, max_tokens=1500, cancel_token=token)
+                           ollama_url=role_url, max_tokens=1500, cancel_token=token)
             if token.cancelled:
                 raise ai.CancelledError("review cancelled")
-            return {"role": role, "ok": True, "provider": provider,
-                    "model": selected[role], **_parse(text, packet)}
+            return {"role": role, "ok": True, "provider": role_provider,
+                    "model": role_model, **_parse(text, packet)}
         except ai.CancelledError:
             raise
         except Exception as exc:
-            return {"role": role, "ok": False, "provider": provider,
-                    "model": selected[role], "error": str(exc)[:300]}
+            message = str(exc)
+            for configured in connections.values():
+                if configured[2]:
+                    message = message.replace(configured[2], "[redacted]")
+            return {"role": role, "ok": False, "provider": role_provider,
+                    "model": role_model, "error": message[:300]}
 
     with ThreadPoolExecutor(max_workers=2, thread_name_prefix="ai-review") as pool:
         futures = [pool.submit(run_role, role) for role in ROLES]

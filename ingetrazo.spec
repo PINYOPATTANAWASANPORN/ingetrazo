@@ -306,6 +306,15 @@ if sys.platform == 'win32':
     a.binaries = [b for b in a.binaries
                   if not (Path(b[0]).name.lower() in _DWG_DLLS
                           and Path(b[0]).parent == Path('.'))]
+    # Qt6Core uses the unversioned ICU exports supplied by Windows. A build
+    # environment may put an unrelated ICU build (for example Poppler's) on
+    # PATH; PyInstaller then picks that icuuc.dll and the frozen app fails to
+    # import PySide6.QtCore with "procedure could not be found". Keep the
+    # Windows ICU DLL and do not bundle the foreign data library alongside it.
+    _FOREIGN_ICU_DLLS = {'icuuc.dll', 'icudt78.dll'}
+    a.binaries = [b for b in a.binaries
+                  if not (Path(b[0]).name.lower() in _FOREIGN_ICU_DLLS
+                          and Path(b[0]).parent == Path('.'))]
 
 pyz = PYZ(a.pure, a.zipped_data)
 

@@ -1,15 +1,18 @@
 # Read-only specialist review
 
 In the AI Assistant, enable **Review with 2 specialists (read-only)**, choose
-the scope and enter a short request. The selected provider/model receives two
-independent requests: `model_structure` reviews organisation, naming, tags
+the scope and enter a short request. Two independent requests share one
+snapshot: `model_structure` reviews organisation, naming, tags
 and material metadata; `task_requirements` reviews the request, constraints,
 assumptions and explicit project memory against that metadata.
 
-Open **Specialist models…** in the connection section to select a model name
-for each role. Blank fields inherit the main Assistant model. Choices are saved
-per provider; switching providers does not reuse another provider's model names.
-Both roles share the selected provider, connection and credential. The report
+Open **Specialist connections…** in the connection section to choose a provider
+and model for each role. **Same as Assistant** uses the current connection.
+Another provider uses the API key already saved in its main connection settings;
+the UI rejects a missing key before sending either request. Blank role models
+use the current model on the main provider, or that other provider's saved or
+default model. Role choices are saved, but credentials are not copied to role
+settings or reports. The report
 records the requested provider/model for each role, including failed requests.
 These identifiers describe the request, not an attestation of server-side routing.
 Unknown model names produce a visible role failure; no automatic fallback hides it.
@@ -54,8 +57,8 @@ session-only and preserves the user's ordinary goal/execution preferences.
 The Assistant dispatches provider requests itself. MCP also provides an
 external coordination protocol, advertised as `external_specialist_review`.
 `multi_agent` remains false for general autonomous modeler orchestration.
-Different providers/credentials for each role, persistent signed audit, geometry evidence
-and coordinator-approved modeler proposals remain future work.
+Persistent signed audit, geometry evidence and coordinator-approved modeler
+proposals remain future work.
 
 ## External MCP workflow
 
@@ -162,5 +165,4 @@ Someone who can rewrite the whole file can recompute every checksum. Do not
 interpret successful verification as proof of provider identity or authorship.
 
 Next: authenticated signatures or an independently anchored audit store,
-provider compatibility and real token baselines, and separately scoped
-cross-provider role credentials.
+provider compatibility and real token baselines.
