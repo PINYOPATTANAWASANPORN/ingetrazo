@@ -13,8 +13,8 @@
     "pull_request": 33
   },
   "delivery": {
-    "pull_requests_total": 37,
-    "open": 37,
+    "pull_requests_total": 38,
+    "open": 38,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -23,8 +23,8 @@
     "installed_build_verified": false
   },
   "validation": {
-    "scope": "selected review/Assistant/task/context/bridge/change regression suite; 2 specialist UI tests rerun after control polish",
-    "passed": 85,
+    "scope": "selected external-review, review, Assistant, task, context, bridge and change regression suite",
+    "passed": 101,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -51,8 +51,8 @@
     {
       "phase": 4,
       "name": "multi-agent orchestration",
-      "percent": 35,
-      "status": "read_only_assistant_specialists"
+      "percent": 45,
+      "status": "read_only_assistant_and_external_mcp_reviews"
     },
     {
       "phase": 5,
@@ -63,7 +63,7 @@
   ],
   "next_recommended_work": [
     "extend architectural editing to existing-wall openings, arbitrary slab profiles and isolated geometry previews",
-    "add external MCP specialist orchestration and per-role provider configuration with coordinator-only writes",
+    "add per-role provider configuration, audit export and measured review baselines before modeler orchestration",
     "capture provider baselines with the versioned corpus and real token telemetry",
     "add audit export and provider compatibility tests"
   ],
@@ -77,8 +77,8 @@
     "docs/ai-specialist-review.md"
   ],
   "implementation_delivery": {
-    "branch": "feature/ai-specialist-review",
-    "commit": "c5ed391",
-    "pull_request": 39
+    "branch": "feature/mcp-specialist-protocol",
+    "commit": "970438a",
+    "pull_request": 40
   }
 }

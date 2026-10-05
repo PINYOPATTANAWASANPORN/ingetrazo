@@ -370,8 +370,18 @@
       "base": "feature/ai-architectural-creation",
       "head": "feature/ai-specialist-review",
       "merged": false,
-      "updated_at": "2026-10-05T07:22:13Z",
+      "updated_at": "2026-10-05T07:22:51Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/39"
+    },
+    {
+      "number": 40,
+      "state": "open",
+      "title": "Add external MCP specialist review protocol",
+      "base": "feature/ai-specialist-review",
+      "head": "feature/mcp-specialist-protocol",
+      "merged": false,
+      "updated_at": "2026-10-05T12:03:21Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/40"
     }
   ]
 }

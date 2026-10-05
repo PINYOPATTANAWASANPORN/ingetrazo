@@ -131,6 +131,11 @@ def run_review(packet, provider, model, key, ollama_url, cancellation):
         results = [future.result() for future in futures]
     if any(token.cancelled for token in cancellation.tokens.values()):
         raise ai.CancelledError("review cancelled")
+    return combine_reports(packet, results)
+
+
+def combine_reports(packet, results):
+    """Retain both role outcomes and surface disagreements without choosing a winner."""
     by_topic = {}
     for result in results:
         for finding in result.get("findings", []):

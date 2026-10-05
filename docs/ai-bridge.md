@@ -170,7 +170,10 @@ preferencia permanente sin que el usuario la vea.
 Para una revisión paralela, activa **Review with 2 specialists (read-only)**
 en el Asistente. Dos solicitudes al proveedor/modelo seleccionado revisan los
 mismos metadatos y muestran discrepancias sin cambiar el documento. Esta
-función no usa fotos ni certifica geometría; todavía no tiene endpoint MCP.
+función no usa fotos ni certifica geometría. Los clientes MCP pueden usar
+`begin_specialist_review`, `submit_specialist_review`,
+`get_specialist_review` y `cancel_specialist_review` para coordinar sus propios
+especialistas externos sobre una tarea `analysis_only`.
 Consulta [la revisión con especialistas](ai-specialist-review.md).
 
 Con el botón **Foto…** adjuntas la imagen de un objeto (una fuente, un

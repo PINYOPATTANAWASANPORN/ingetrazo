@@ -191,6 +191,57 @@ TOOLS = [
             "task_id": {"type": "string"}}, "required": ["task_id"]},
     },
     {
+        "name": "begin_specialist_review",
+        "description": (
+            "Begin read-only external review of an analysis_only task. Returns one "
+            "bounded metadata snapshot and two role assignments with submission tokens. "
+            "The external coordinator dispatches specialists (possibly in parallel); "
+            "IngeTrazo does not call a provider here. Pass each role its snapshot and "
+            "own token, then submit findings. Tokens correlate roles, not trusted identities. "
+            "Same task retries reuse the review. No document changes or provider credentials."),
+        "inputSchema": {"type": "object", "properties": {
+            "task_id": {"type": "string"}}, "required": ["task_id"],
+            "additionalProperties": False},
+    },
+    {
+        "name": "submit_specialist_review",
+        "description": (
+            "Submit a role's read-only findings for the assigned snapshot. Result is "
+            "{summary,findings:[{entity_id,topic,verdict,evidence}]} or {error}. "
+            "At most 20 findings using snapshot IDs; summary <=1000 characters, "
+            "evidence <=500, error <=300. Topics: structure/tag/material/requirements; "
+            "verdicts: clear/concern/unknown. Use unknown for missing evidence; metadata "
+            "does not prove geometry or regulatory compliance. No actions or code. "
+            "Identical retries are idempotent; conflicting resubmissions fail. Both roles "
+            "complete the report automatically and disagreements remain unresolved. "
+            "Stale/cancelled reviews reject late results."),
+        "inputSchema": {"type": "object", "properties": {
+            "review_id": {"type": "string"},
+            "role": {"type": "string", "enum": ["model_structure", "task_requirements"]},
+            "submission_token": {"type": "string"},
+            "snapshot_id": {"type": "string"},
+            "result": {"type": "object"}},
+            "required": ["review_id", "role", "submission_token", "snapshot_id", "result"],
+            "additionalProperties": False},
+    },
+    {
+        "name": "get_specialist_review",
+        "description": "Read role submission status and the combined report; rechecks document revision. Never returns role tokens.",
+        "inputSchema": {"type": "object", "properties": {
+            "review_id": {"type": "string"}}, "required": ["review_id"],
+            "additionalProperties": False},
+    },
+    {
+        "name": "cancel_specialist_review",
+        "description": (
+            "Cancel a collecting review and reject late submissions. Does not stop an "
+            "external provider request: the coordinator must cancel those separately. "
+            "Does not modify geometry or history."),
+        "inputSchema": {"type": "object", "properties": {
+            "review_id": {"type": "string"}}, "required": ["review_id"],
+            "additionalProperties": False},
+    },
+    {
         "name": "propose_actions",
         "description": (
             "Propose bounded edits or primitive creation without changing the document. "
@@ -371,7 +422,8 @@ def _call(name: str, args: dict) -> dict:
         parts.append("(changed: %s)" % result.get("changed"))
         return _tool_result("\n".join(p for p in parts if p),
                             is_error=bool(result.get("error")))
-    return _tool_result(json.dumps(result, indent=2, ensure_ascii=False))
+    return _tool_result(json.dumps(result, indent=2, ensure_ascii=False),
+                        is_error=result.get("ok") is False)
 
 
 def handle(msg: dict) -> dict | None:

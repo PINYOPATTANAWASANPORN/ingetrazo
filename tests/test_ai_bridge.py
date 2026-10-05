@@ -56,6 +56,56 @@ def _ask(bridge, tool, args=None):
     return out["reply"]
 
 
+def test_external_specialists_over_authenticated_bridge(monkeypatch, tmp_path):
+    from plugins.ai_bridge import _Bridge
+    from views.main_window import MainWindow
+    monkeypatch.setenv("INGETRAZO_AI_PORT", "0")
+    monkeypatch.setenv("INGETRAZO_AI_CREDENTIAL_FILE", str(tmp_path / "review-session.json"))
+    win = MainWindow()
+    bridge = _Bridge(win.viewport)
+    try:
+        bridge.start()
+        scene = win.viewport.scene
+        revision = scene.content_version
+        undo_count = len(win.viewport.history.undo_stack)
+        task = _ask(bridge, "create_task", {
+            "intent": "review model", "execution": "analysis_only"})["result"]
+        begun = _ask(bridge, "begin_specialist_review", {"task_id": task["task_id"]})["result"]
+        assert begun["status"] == "collecting"
+        for assignment in begun["assignments"]:
+            result = _ask(bridge, "submit_specialist_review", {
+                "review_id": begun["review_id"], "snapshot_id": begun["snapshot_id"],
+                "role": assignment["role"], "submission_token": assignment["submission_token"],
+                "result": {"summary": "Reviewed available metadata", "findings": []}})["result"]
+        assert result["status"] == "completed"
+        assert len(win.viewport.history.undo_stack) == undo_count
+        assert scene.content_version == revision
+        scene.version += 1
+        task_state = _ask(bridge, "get_task", {"task_id": task["task_id"]})["result"]
+        assert task_state["status"] == "stale"
+        assert task_state["review"]["status"] == "stale"
+        bridge.stop()
+        bridge.start()
+        missing = _ask(bridge, "get_specialist_review", {"review_id": begun["review_id"]})["result"]
+        assert missing["code"] == "unknown_review"
+    finally:
+        bridge.stop()
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_mcp_review_tools_advertise_contract_errors(monkeypatch):
+    import ingetrazo_mcp as mcp
+    names = {item["name"] for item in mcp.TOOLS}
+    assert {"begin_specialist_review", "submit_specialist_review",
+            "get_specialist_review", "cancel_specialist_review"} <= names
+    monkeypatch.setattr(mcp, "_bridge", lambda *args: {
+        "ok": True, "result": {"ok": False, "code": "snapshot_mismatch"}})
+    result = mcp.handle({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                        "params": {"name": "submit_specialist_review", "arguments": {}}})
+    assert result["result"]["isError"] is True
+
+
 def test_bridge_runs_python_transactionally(monkeypatch, tmp_path):
     from plugins.ai_bridge import _Bridge
     from views.main_window import MainWindow
