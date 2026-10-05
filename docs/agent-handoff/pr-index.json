@@ -1,0 +1,317 @@
+{
+  "schema_version": 1,
+  "snapshot_date": "2026-10-05",
+  "source": "https://api.github.com/repos/PINYOPATTANAWASANPORN/ingetrazo/pulls?state=all&per_page=100",
+  "pull_requests": [
+    {
+      "number": 1,
+      "state": "open",
+      "title": "Fix native-digit rendering in numeric inputs",
+      "base": "main",
+      "head": "fix/ascii-numeric-inputs",
+      "merged": false,
+      "updated_at": "2026-10-03T05:05:26Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/1"
+    },
+    {
+      "number": 2,
+      "state": "open",
+      "title": "Add active layers and direct vertex editing",
+      "base": "fix/ascii-numeric-inputs",
+      "head": "feature/sketchup-workflow-upgrades",
+      "merged": false,
+      "updated_at": "2026-10-03T06:15:29Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/2"
+    },
+    {
+      "number": 3,
+      "state": "open",
+      "title": "Add a full model outliner",
+      "base": "feature/sketchup-workflow-upgrades",
+      "head": "feature/model-outliner",
+      "merged": false,
+      "updated_at": "2026-10-03T06:57:19Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/3"
+    },
+    {
+      "number": 4,
+      "state": "open",
+      "title": "Preview Autofold edges while moving geometry",
+      "base": "feature/model-outliner",
+      "head": "feature/move-autofold",
+      "merged": false,
+      "updated_at": "2026-10-03T07:07:41Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/4"
+    },
+    {
+      "number": 5,
+      "state": "open",
+      "title": "Rebuild circles and polygons after side count input",
+      "base": "feature/move-autofold",
+      "head": "feature/circle-segment-rebuild",
+      "merged": false,
+      "updated_at": "2026-10-03T11:28:54Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/5"
+    },
+    {
+      "number": 6,
+      "state": "open",
+      "title": "Fix AI photo names on Windows",
+      "base": "feature/circle-segment-rebuild",
+      "head": "fix/windows-ai-photo-filename",
+      "merged": false,
+      "updated_at": "2026-10-03T11:31:26Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/6"
+    },
+    {
+      "number": 7,
+      "state": "open",
+      "title": "Avoid Windows base-map network crash",
+      "base": "fix/windows-ai-photo-filename",
+      "head": "fix/windows-basemap-crash",
+      "merged": false,
+      "updated_at": "2026-10-03T11:47:26Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/7"
+    },
+    {
+      "number": 8,
+      "state": "open",
+      "title": "Add undoable Outliner reordering",
+      "base": "fix/windows-basemap-crash",
+      "head": "feature/outliner-reorder",
+      "merged": false,
+      "updated_at": "2026-10-03T11:58:22Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/8"
+    },
+    {
+      "number": 9,
+      "state": "open",
+      "title": "Add Select By filters for type, material, and tag",
+      "base": "feature/outliner-reorder",
+      "head": "feature/selection-filters",
+      "merged": false,
+      "updated_at": "2026-10-03T12:07:03Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/9"
+    },
+    {
+      "number": 10,
+      "state": "open",
+      "title": "Edit materials for multiple entities in Entity Info",
+      "base": "feature/selection-filters",
+      "head": "feature/entity-info-materials",
+      "merged": false,
+      "updated_at": "2026-10-03T12:23:22Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/10"
+    },
+    {
+      "number": 11,
+      "state": "open",
+      "title": "Edit multi-object position and size in Entity Info",
+      "base": "feature/entity-info-materials",
+      "head": "feature/entity-info-transform",
+      "merged": false,
+      "updated_at": "2026-10-03T19:51:39Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/11"
+    },
+    {
+      "number": 12,
+      "state": "open",
+      "title": "Share prototype geometry across component picking",
+      "base": "feature/entity-info-transform",
+      "head": "perf/shared-instance-pick-geometry",
+      "merged": false,
+      "updated_at": "2026-10-03T20:01:03Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/12"
+    },
+    {
+      "number": 13,
+      "state": "open",
+      "title": "Add an always-visible Active Tag selector",
+      "base": "perf/shared-instance-pick-geometry",
+      "head": "feature/active-tag-statusbar",
+      "merged": false,
+      "updated_at": "2026-10-03T20:11:53Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/13"
+    },
+    {
+      "number": 14,
+      "state": "open",
+      "title": "Show Move Autofold as a distinct inference preview",
+      "base": "feature/active-tag-statusbar",
+      "head": "feature/move-autofold-inference",
+      "merged": false,
+      "updated_at": "2026-10-03T20:23:50Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/14"
+    },
+    {
+      "number": 15,
+      "state": "open",
+      "title": "Open native documents without blocking the UI",
+      "base": "feature/move-autofold-inference",
+      "head": "perf/responsive-igz-open",
+      "merged": false,
+      "updated_at": "2026-10-03T20:42:00Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/15"
+    },
+    {
+      "number": 16,
+      "state": "open",
+      "title": "Add an Extension Manager with safe enable controls",
+      "base": "perf/responsive-igz-open",
+      "head": "feature/extension-manager",
+      "merged": false,
+      "updated_at": "2026-10-04T01:58:11Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/16"
+    },
+    {
+      "number": 17,
+      "state": "open",
+      "title": "Add safe local extension installation and removal",
+      "base": "feature/extension-manager",
+      "head": "feature/extension-manager-install",
+      "merged": false,
+      "updated_at": "2026-10-04T02:07:04Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/17"
+    },
+    {
+      "number": 19,
+      "state": "open",
+      "title": "Add safe extension manifest metadata",
+      "base": "feature/extension-manager-install",
+      "head": "feature/extension-manifests",
+      "merged": false,
+      "updated_at": "2026-10-04T02:14:47Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/19"
+    },
+    {
+      "number": 20,
+      "state": "open",
+      "title": "Reuse loose-edge buffers across selection redraws",
+      "base": "feature/extension-manifests",
+      "head": "perf/loose-edge-selection-cache",
+      "merged": false,
+      "updated_at": "2026-10-04T02:24:03Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/20"
+    },
+    {
+      "number": 21,
+      "state": "open",
+      "title": "Assign active tags to new groups and components",
+      "base": "perf/loose-edge-selection-cache",
+      "head": "feature/active-tag-containers",
+      "merged": false,
+      "updated_at": "2026-10-04T02:30:46Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/21"
+    },
+    {
+      "number": 22,
+      "state": "open",
+      "title": "Preserve SKP textures from long Windows paths",
+      "base": "feature/active-tag-containers",
+      "head": "fix/windows-long-skp-textures",
+      "merged": false,
+      "updated_at": "2026-10-04T02:34:16Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/22"
+    },
+    {
+      "number": 23,
+      "state": "open",
+      "title": "Show hidden and locked tag states consistently",
+      "base": "fix/windows-long-skp-textures",
+      "head": "feature/tag-state-labels",
+      "merged": false,
+      "updated_at": "2026-10-04T02:40:37Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/23"
+    },
+    {
+      "number": 24,
+      "state": "open",
+      "title": "Cycle through overlapping objects with Alt-click",
+      "base": "feature/tag-state-labels",
+      "head": "feature/selection-cycling",
+      "merged": false,
+      "updated_at": "2026-10-04T02:49:35Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/24"
+    },
+    {
+      "number": 25,
+      "state": "open",
+      "title": "Add bounded AI model context APIs",
+      "base": "feature/selection-cycling",
+      "head": "feature/ai-context-contract",
+      "merged": false,
+      "updated_at": "2026-10-04T13:21:01Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/25"
+    },
+    {
+      "number": 26,
+      "state": "open",
+      "title": "Harden AI bridge session permissions",
+      "base": "feature/ai-context-contract",
+      "head": "security/ai-bridge-permissions",
+      "merged": false,
+      "updated_at": "2026-10-04T13:33:19Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/26"
+    },
+    {
+      "number": 28,
+      "state": "open",
+      "title": "Add preview-first typed AI property changes",
+      "base": "security/ai-bridge-permissions",
+      "head": "feature/ai-typed-property-changes",
+      "merged": false,
+      "updated_at": "2026-10-04T13:43:50Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/28"
+    },
+    {
+      "number": 29,
+      "state": "open",
+      "title": "Add typed AI material and transform actions",
+      "base": "feature/ai-typed-property-changes",
+      "head": "feature/ai-material-transform-actions",
+      "merged": false,
+      "updated_at": "2026-10-04T13:59:06Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/29"
+    },
+    {
+      "number": 30,
+      "state": "open",
+      "title": "Add scoped AI task engine",
+      "base": "feature/ai-material-transform-actions",
+      "head": "feature/ai-task-engine",
+      "merged": false,
+      "updated_at": "2026-10-04T14:13:14Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/30"
+    },
+    {
+      "number": 31,
+      "state": "open",
+      "title": "Add compact AI intent controls",
+      "base": "feature/ai-task-engine",
+      "head": "feature/ai-intent-controls",
+      "merged": false,
+      "updated_at": "2026-10-04T14:25:59Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/31"
+    },
+    {
+      "number": 32,
+      "state": "open",
+      "title": "Add explicit AI project memory",
+      "base": "feature/ai-intent-controls",
+      "head": "feature/ai-project-memory",
+      "merged": false,
+      "updated_at": "2026-10-04T14:45:31Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/32"
+    },
+    {
+      "number": 33,
+      "state": "open",
+      "title": "Add AI development handoff pack",
+      "base": "feature/ai-project-memory",
+      "head": "docs/ai-development-handoff",
+      "merged": false,
+      "updated_at": "2026-10-04T14:54:31Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33"
+    }
+  ]
+}
