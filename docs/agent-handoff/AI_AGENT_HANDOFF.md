@@ -116,3 +116,6 @@ Latest delivery: [PR #42](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pul
 
 ## Session review audit trail (2026-10-05)
 Branch `feature/ai-review-audit-trail` builds on PR #42. `AITaskService` appends terminal/stale review metadata to an unsigned SHA-256 chain; MCP `get_review_audit` pages through it. No raw prose, tokens, credentials or snapshot content are in audit events. History resets on bridge restart/document replacement. Targeted suite: 115 passed (simulated providers); installed build unchanged. Persistent, user-controlled audit storage remains future work.
+
+
+Latest delivery: [PR #43](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/43), `feature/ai-review-audit-trail` on #42; implementation `bf3ee67`. Selected regression suite: 115 passed with simulated providers. GitHub snapshot: 41 total, 41 open, 0 merged. Earlier counts are historical. Installed build unchanged.
