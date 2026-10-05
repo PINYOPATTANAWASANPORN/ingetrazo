@@ -78,6 +78,9 @@ def test_external_specialists_over_authenticated_bridge(monkeypatch, tmp_path):
                 "role": assignment["role"], "submission_token": assignment["submission_token"],
                 "result": {"summary": "Reviewed available metadata", "findings": []}})["result"]
         assert result["status"] == "completed"
+        audit = _ask(bridge, "get_review_audit", {"after_sequence": 0, "limit": 10})["result"]
+        assert audit["ok"] and [event["status"] for event in audit["events"]] == ["completed"]
+        assert "submission_token" not in json.dumps(audit)
         exported = _ask(bridge, "export_specialist_review", {"review_id": begun["review_id"]})["result"]
         assert exported["ok"] and exported["bundle"]["payload"]["current_revision"] == revision
         assert "submission_token" not in json.dumps(exported)
@@ -87,9 +90,12 @@ def test_external_specialists_over_authenticated_bridge(monkeypatch, tmp_path):
         task_state = _ask(bridge, "get_task", {"task_id": task["task_id"]})["result"]
         assert not _ask(bridge, "export_specialist_review", {"review_id": begun["review_id"]})["result"]["ok"]
         assert task_state["status"] == "stale"
+        audit = _ask(bridge, "get_review_audit", {})["result"]
+        assert [event["status"] for event in audit["events"]] == ["completed", "stale"]
         assert task_state["review"]["status"] == "stale"
         bridge.stop()
         bridge.start()
+        assert _ask(bridge, "get_review_audit", {})["result"]["events"] == []
         missing = _ask(bridge, "get_specialist_review", {"review_id": begun["review_id"]})["result"]
         assert missing["code"] == "unknown_review"
     finally:
@@ -102,7 +108,8 @@ def test_mcp_review_tools_advertise_contract_errors(monkeypatch):
     import ingetrazo_mcp as mcp
     names = {item["name"] for item in mcp.TOOLS}
     assert {"begin_specialist_review", "submit_specialist_review",
-            "get_specialist_review", "cancel_specialist_review"} <= names
+            "get_specialist_review", "cancel_specialist_review",
+            "get_review_audit"} <= names
     monkeypatch.setattr(mcp, "_bridge", lambda *args: {
         "ok": True, "result": {"ok": False, "code": "snapshot_mismatch"}})
     result = mcp.handle({"jsonrpc": "2.0", "id": 1, "method": "tools/call",

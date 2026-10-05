@@ -119,9 +119,11 @@ class AITaskService:
     """Session task registry for one live document."""
 
     def __init__(self, scene) -> None:
+        from core.ai_review_audit import ReviewAuditTrail
         self.scene = scene
         self._tasks: dict[str, _Task] = {}
         self._active_id: str | None = None
+        self._review_audit = ReviewAuditTrail()
 
     def _scope(self, requested) -> dict:
         groups = self.scene.groups_by_uid()
@@ -315,6 +317,10 @@ class AITaskService:
         if task is not None:
             task.review = json.loads(json.dumps(report))
             self.transition(task_id, report["status"], {"changed": False})
+            self._review_audit.record(task, task.review)
+
+    def review_audit(self, after_sequence=0, limit=100):
+        return self._review_audit.page(after_sequence, limit)
 
     def export_review(self, task_id):
         from core.ai_review_export import export_review
