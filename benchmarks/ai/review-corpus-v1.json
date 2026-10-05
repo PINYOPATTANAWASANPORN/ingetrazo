@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "description": "Small metadata-only specialist review cases; no private projects or geometry.",
+  "cases": [
+    {
+      "id": "selected-object-metadata",
+      "fixture": "two-boxes-one-selected",
+      "scope": "selection",
+      "goal": "explain",
+      "intent": "Review the selected object's naming and metadata.",
+      "expected_scope_count": 1
+    },
+    {
+      "id": "hidden-and-locked-model",
+      "fixture": "mixed-state-model",
+      "scope": "whole_model",
+      "goal": "check",
+      "intent": "Review hidden, locked, and tag metadata across this model.",
+      "expected_scope_count": 2
+    },
+    {
+      "id": "empty-model-thai",
+      "fixture": "empty",
+      "scope": "visible_model",
+      "goal": "check",
+      "intent": "ตรวจสอบชื่อและแท็กของโมเดลที่ว่างอยู่",
+      "expected_scope_count": 0
+    }
+  ]
+}
