@@ -2,7 +2,7 @@
 
 ## Delivery topology
 
-The fork uses one long stacked chain. GitHub reported **35 open PRs and zero
+The fork uses one long stacked chain. GitHub reported **36 open PRs and zero
 merged PRs** on 2026-10-05. PR numbers 18 and 27 are absent from the pull list;
 do not invent them. The chain begins at fork `main` (`6be29fe`) and currently
 ends at `feature/ai-context-suggestions` (`09bd5ce`). Merging or rebasing a lower PR
@@ -22,7 +22,7 @@ The latest stack layer is
 | Extension Manager | 75% | Enable/disable, local install/remove, safe manifests | Online catalog, version resolution, URL updates |
 | File exchange | 30% | Windows SKP long-texture-path repair | IFC import, fuller SKP hierarchy fidelity, cross-platform DWG |
 | Architectural tools | 10% | Existing BIM/export/composer/terrain foundations | Contours, axes/grid, room labels, doors/windows, schedules |
-| AI Agent roadmap | about 72% overall | Bounded context, security gate, typed preview writes and primitive creation, task engine, concise UI, project memory, streaming/cancel, local suggestions, evaluation corpus, session-only Python gate | Architectural primitives, real specialists, measured provider baselines |
+| AI Agent roadmap | about 72% overall | Bounded context, security gate, typed preview writes and architectural creation, task engine, concise UI, project memory, streaming/cancel, local suggestions, evaluation corpus, session-only Python gate | Existing-wall edits, real specialists, measured provider baselines |
 
 ## PR chain by capability
 
@@ -73,10 +73,16 @@ The latest stack layer is
 - [#36](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/36) — streamed provider responses and cooperative cancellation.
 - [#37](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/37) — local context suggestions and a versioned AI evaluation corpus.
 
+- [#38](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/38) — walls with openings, slabs, component copies and scoped parent coordinates.
+
 ## Claims that must stay qualified
 
 All items above are implemented **in the open stack**. They are not on the
 fork's `main`, not upstream, and not necessarily in the installed IngeTrazo
-binary. The latest selected regression run covered 99 tests; it was not the
+binary. The latest selected regression run covered 95 tests; it was not the
 repository's complete test suite.
 
+
+Architectural creation now includes walls with door/window openings, rectangular
+slabs, component copies, and scoped parent-coordinate primitives. See
+[`ai-creation-contract.md`](../ai-creation-contract.md) for supported cases and limits.

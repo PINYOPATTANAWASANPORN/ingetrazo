@@ -8,6 +8,7 @@ primitive-creation changes as one history command.
 from __future__ import annotations
 
 import hashlib
+import copy
 import json
 import math
 from dataclasses import dataclass
@@ -33,7 +34,8 @@ ACTION_FIELDS = {
 }
 
 TRANSFORM_ACTION = "transform_entities"
-CREATE_ACTIONS = {"create_box", "create_cylinder"}
+CREATE_ACTIONS = {"create_box", "create_cylinder", "create_wall",
+                  "create_slab", "create_component_instance"}
 
 
 def _error(code: str, message: str, **extra) -> dict:
@@ -92,21 +94,24 @@ class AIPropertyChangeCommand(Command):
 
 
 class AICreateGroupCommand(Command):
-    """Insert one prepared top-level container without rebuilding geometry."""
+    """Insert one prepared container without rebuilding geometry."""
 
-    def __init__(self, group: Group) -> None:
+    def __init__(self, group: Group, parent: Group | None = None) -> None:
         self.group = group
+        self.parent = parent
 
     def do(self, scene) -> None:
-        if self.group not in scene.groups:
-            scene.groups.append(self.group)
+        target = scene.groups if self.parent is None else self.parent.children
+        if self.group not in target:
+            target.append(self.group)
         scene.selection.clear()
         scene.selection.add(self.group)
         scene.version += 1
 
     def undo(self, scene) -> None:
-        if self.group in scene.groups:
-            scene.groups.remove(self.group)
+        target = scene.groups if self.parent is None else self.parent.children
+        if self.group in target:
+            target.remove(self.group)
         scene.selection.discard(self.group)
         scene.version += 1
 
@@ -176,6 +181,9 @@ class AIChangeService:
         if not all(math.isfinite(item) for item in raw):
             return _error("invalid_transform", f"{label} must contain finite numbers")
         vector = QVector3D(*raw)
+        if not all(math.isfinite(value) for value in
+                   (vector.x(), vector.y(), vector.z())):
+            return _error("invalid_transform", f"{label} exceeds coordinate precision")
         if not allow_zero and vector.lengthSquared() <= 1e-18:
             return _error("invalid_transform", f"{label} must not be zero")
         return raw, vector
@@ -263,20 +271,176 @@ class AIChangeService:
                 edge.soft = True
         return mesh
 
+    @staticmethod
+    def _positive(raw, key: str) -> float | dict:
+        try:
+            value = float(raw.get(key))
+        except (TypeError, ValueError):
+            value = math.nan
+        if not math.isfinite(value) or value <= 0 or value > 1e6:
+            return _error("invalid_dimension",
+                          f"{key} must be finite, positive, and at most 1000000")
+        return value
+
+    def _creation_vector(self, value, label):
+        result = self._vector(value, label)
+        if isinstance(result, dict):
+            return result
+        if any(abs(number) > 1e6 for number in result[0]):
+            return _error("invalid_coordinate", f"{label} values must be within +/-1000000")
+        return result
+
+    @staticmethod
+    def _wall_mesh(start: QVector3D, end: QVector3D, height: float,
+                   thickness: float, openings: list[dict]) -> Mesh:
+        delta = end - start
+        length = math.hypot(delta.x(), delta.y())
+        along = QVector3D(delta.x() / length, delta.y() / length, 0)
+        normal = QVector3D(-along.y() * thickness,
+                           along.x() * thickness, 0)
+
+        def point(offset, z):
+            return start + along * offset + QVector3D(0, 0, z)
+
+        doors = [item for item in openings if item["sill"] == 0]
+        windows = [item for item in openings if item["sill"] > 0]
+        outline = [point(0, 0)]
+        for item in doors:
+            x, w, h = item["offset"], item["width"], item["height"]
+            outline.extend((point(x, 0), point(x, h),
+                            point(x + w, h), point(x + w, 0)))
+        outline.extend((point(length, 0), point(length, height),
+                        point(0, height)))
+        outline = [p for i, p in enumerate(outline)
+                   if i == 0 or (p - outline[i - 1]).length() > 1e-9]
+        holes = [[point(item["offset"], item["sill"]),
+                  point(item["offset"], item["sill"] + item["height"]),
+                  point(item["offset"] + item["width"],
+                        item["sill"] + item["height"]),
+                  point(item["offset"] + item["width"], item["sill"])]
+                 for item in windows]
+        mesh = Mesh()
+        mesh.add_face(outline, holes or None)
+        mesh.add_face([p + normal for p in reversed(outline)],
+                      [[p + normal for p in reversed(h)] for h in holes] or None)
+        for ring in (outline, *holes):
+            for index, a in enumerate(ring):
+                b = ring[(index + 1) % len(ring)]
+                mesh.add_face([a, a + normal, b + normal, b])
+        return mesh
+
+    def _creation_parent(self, raw: dict):
+        space = raw.get("coordinate_space", "model")
+        parent_id = raw.get("parent_id")
+        if space not in ("model", "parent") or \
+                (space == "model") != (parent_id is None):
+            return _error("invalid_coordinate_space",
+                          "model coordinates need no parent_id; parent coordinates need parent_id")
+        if parent_id is None:
+            return None, None
+        parent = self.scene.groups_by_uid().get(str(parent_id))
+        if parent is None:
+            return _error("unknown_entity", "parent_id does not exist")
+        if not parent.is_instance() or parent.is_component():
+            return _error("invalid_parent", "parent must be a non-component instance container")
+        if parent.locked or not self.scene.entity_visible(parent):
+            return _error("unavailable_parent", "parent is hidden or locked")
+        # A component ancestor owns shared definition content. Inserting into
+        # only one copy would silently diverge the other instances.
+        def find(group, ancestors):
+            if group is parent:
+                return ancestors + [group]
+            for child in group.children:
+                found = find(child, ancestors + [group])
+                if found:
+                    return found
+            return None
+        path = next((found for root in self.scene.groups
+                     if (found := find(root, []))), None)
+        if path is None or any(g.is_component() for g in path[:-1]):
+            return _error("invalid_parent", "parent belongs to a shared component definition")
+        if any(not self.scene.entity_selectable(g) or
+               not self.scene.entity_visible(g) for g in path):
+            return _error("unavailable_parent", "parent or ancestor is hidden or locked")
+        frame = QMatrix4x4()
+        for group in path:
+            if group.xform is not None:
+                frame = frame * group.xform
+        return parent, frame
+
+    @staticmethod
+    def _copy_component(source):
+        # copy_group may promote classic children on the live source. A preview
+        # instead prepares fresh placements and shares only immutable meshes.
+        group = Group(source.mesh, source.name)
+        for field in Group.__slots__:
+            if field not in {"mesh", "uid", "children", "xform", "axes",
+                             "owner", "context"}:
+                setattr(group, field, copy.deepcopy(getattr(source, field)))
+        group.xform = QMatrix4x4(source.xform) if source.xform is not None else QMatrix4x4()
+        group.component = source.is_component()
+        group.axes = QMatrix4x4(source.axes) if source.axes is not None else None
+        group.children = [AIChangeService._copy_component(child)
+                          for child in source.children]
+        return group
+
     def _create(self, raw: dict, kind: str):
         if self.scene.edit_group is not None:
             return _error(
                 "nested_creation_unsupported",
-                "typed creation is currently limited to the top-level model")
+                "close the group edit context before proposing typed creation")
+        placement = self._creation_parent(raw)
+        if isinstance(placement, dict):
+            return placement
+        parent, parent_frame = placement
+        space = "parent" if parent is not None else "model"
+        if kind == "create_component_instance":
+            if parent is not None:
+                return _error("invalid_parent", "component copies currently require model coordinates")
+            source_id = str(raw.get("source_id") or "")
+            source = self.scene.groups_by_uid().get(source_id)
+            if source is None or source not in self.scene.groups:
+                return _error("unknown_entity", "source_id must name a top-level component")
+            if (not source.is_component() or not self.scene.entity_selectable(source) or
+                    not self.scene.entity_visible(source)):
+                return _error("unavailable_source", "source must be a visible, unlocked component")
+            from core.group import iter_placements
+            if any(g.xform is None for g, _ in iter_placements(source)):
+                return _error("unsupported_source",
+                              "component contains classic children; convert their placements before copying")
+            parsed = self._creation_vector(raw.get("offset"), "offset")
+            if isinstance(parsed, dict):
+                return parsed
+            offset, delta = parsed
+            name = str(raw.get("name") or source.name).strip()
+            if not name or len(name) > MAX_NAME:
+                return _error("invalid_name", f"name must contain 1-{MAX_NAME} characters")
+            group = self._copy_component(source)
+            translation = QMatrix4x4()
+            translation.translate(delta)
+            group.xform = translation * group.xform
+            group.name = name
+            after = {"shape": "component_instance", "source_id": source_id,
+                     "coordinate_space": space, "offset": offset,
+                     "bounds": self._bounds(group), "component": True}
+            normalised = {"action": kind, "source_id": source_id,
+                          "name": name, "coordinate_space": space,
+                          "offset": offset}
+            change = {"_entity": group, "_command": AICreateGroupCommand(group),
+                      "entity_id": group.uid, "entity_type": "component",
+                      "entity_name": name, "field": "created",
+                      "before": None, "after": after}
+            return normalised, change
         style = self._creation_style(raw)
         if isinstance(style, dict):
             return style
         name, component, tag, material_name, material = style
-        parsed = self._vector(raw.get("origin", [0, 0, 0]), "origin")
+        parsed = self._creation_vector(raw.get("origin", [0, 0, 0]), "origin")
         if isinstance(parsed, dict):
             return parsed
         origin_values, origin = parsed
         local_origin = QVector3D(0, 0, 0) if component else origin
+        placement_origin = origin
 
         if kind == "create_box":
             size_result = self._vector(raw.get("size"), "size")
@@ -288,7 +452,7 @@ class AIChangeService:
                               "box size values must be greater than 0 and at most 1000000")
             mesh = self._box_mesh(local_origin, size)
             parameters = {"origin": origin_values, "size": size}
-        else:
+        elif kind == "create_cylinder":
             try:
                 radius = float(raw.get("radius"))
                 height = float(raw.get("height"))
@@ -307,22 +471,95 @@ class AIChangeService:
             mesh = self._cylinder_mesh(local_origin, radius, height, segments)
             parameters = {"origin": origin_values, "radius": radius,
                           "height": height, "segments": segments}
+        elif kind == "create_slab":
+            size_result = self._vector(raw.get("size"), "size")
+            if isinstance(size_result, dict):
+                return size_result
+            size, _vector = size_result
+            if any(value <= 0 or value > 1e6 for value in size):
+                return _error("invalid_size", "slab size values must be positive and at most 1000000")
+            mesh = self._box_mesh(local_origin, size)
+            parameters = {"origin": origin_values, "size": size}
+        else:  # create_wall, with optional door/window openings
+            start_result = self._creation_vector(raw.get("start"), "start")
+            end_result = self._creation_vector(raw.get("end"), "end")
+            if isinstance(start_result, dict):
+                return start_result
+            if isinstance(end_result, dict):
+                return end_result
+            start_values, start = start_result
+            end_values, end = end_result
+            height = self._positive(raw, "height")
+            thickness = self._positive(raw, "thickness")
+            if isinstance(height, dict):
+                return height
+            if isinstance(thickness, dict):
+                return thickness
+            length = math.hypot(end.x() - start.x(), end.y() - start.y())
+            if length <= 1e-6 or abs(end.z() - start.z()) > 1e-6:
+                return _error("invalid_wall", "start and end need distinct XY positions at the same height")
+            openings = raw.get("openings", [])
+            if not isinstance(openings, list) or len(openings) > 32:
+                return _error("invalid_openings", "openings must be an array of at most 32 items")
+            parsed_openings = []
+            for item in openings:
+                if not isinstance(item, dict):
+                    return _error("invalid_openings", "each opening needs offset, sill, width and height")
+                try:
+                    opening = {key: float(item[key]) for key in
+                               ("offset", "sill", "width", "height")}
+                except (KeyError, TypeError, ValueError):
+                    return _error("invalid_openings", "each opening needs offset, sill, width and height")
+                x, sill, width, opening_height = (opening[key] for key in
+                                                  ("offset", "sill", "width", "height"))
+                if (not all(math.isfinite(v) for v in opening.values()) or
+                        x <= 1e-6 or sill < 0 or width <= 1e-6 or
+                        opening_height <= 1e-6 or x + width >= length - 1e-6 or
+                        sill + opening_height >= height - 1e-6):
+                    return _error("invalid_openings", "opening must fit strictly inside the wall except at the base")
+                parsed_openings.append(opening)
+            parsed_openings.sort(key=lambda item: item["offset"])
+            if any(a["offset"] + a["width"] >= b["offset"] - 1e-6
+                   for a, b in zip(parsed_openings, parsed_openings[1:])):
+                return _error("invalid_openings", "openings must not overlap or touch")
+            placement_origin = start
+            local_start = QVector3D(0, 0, 0) if component else start
+            local_end = local_start + (end - start)
+            mesh = self._wall_mesh(local_start, local_end, height,
+                                   thickness, parsed_openings)
+            parameters = {"start": start_values, "end": end_values,
+                          "height": height, "thickness": thickness,
+                          "openings": parsed_openings}
 
         group = Group(mesh, name)
+        if (len(mesh.faces) < 4 or any(len(edge.faces) != 2 for edge in mesh.edges)
+                or any(not math.isfinite(value) for vertex in mesh.vertices
+                       for value in (vertex.position.x(), vertex.position.y(),
+                                     vertex.position.z()))):
+            return _error("invalid_geometry",
+                          "dimensions do not produce a closed solid at model precision")
         if component:
             group.xform = QMatrix4x4()
-            group.xform.translate(origin)
+            group.xform.translate(placement_origin)
+        elif parent is not None:
+            group.xform = QMatrix4x4()
+            group.component = False
         group.layer = None if tag == DEFAULT_LAYER else tag
         group.material = material.face_attrs() if material is not None else None
         after = {"shape": kind.removeprefix("create_"),
-                 "bounds": self._bounds(group), "tag": tag,
+                 "bounds": self._bounds(group, parent_frame), "tag": tag,
                  "material": material_name or None,
-                 "component": component, **parameters}
+                 "component": component, "coordinate_space": space,
+                 "parent_id": parent.uid if parent is not None else None,
+                 **parameters}
         normalised = {"action": kind, "name": name,
                       "component": component, "tag": tag,
-                      "material": material_name or None, **parameters}
+                      "material": material_name or None,
+                      "coordinate_space": space,
+                      "parent_id": parent.uid if parent is not None else None,
+                      **parameters}
         change = {"_entity": group,
-                  "_command": AICreateGroupCommand(group),
+                  "_command": AICreateGroupCommand(group, parent),
                   "entity_id": group.uid,
                   "entity_type": "component" if component else "group",
                   "entity_name": name, "field": "created",
@@ -441,6 +678,9 @@ class AIChangeService:
             return _error("too_many_actions",
                           f"at most {MAX_ACTIONS} actions are allowed")
         groups = self.scene.groups_by_uid()
+        transform_ids = {str(uid) for action in actions if isinstance(action, dict)
+                         and action.get("action") == TRANSFORM_ACTION
+                         for uid in (action.get("entity_ids") or [])}
         normalised: list[dict] = []
         changes: dict[tuple[str, str], dict] = {}
         transformed: set[str] = set()
@@ -453,6 +693,13 @@ class AIChangeService:
             if field is None and kind != TRANSFORM_ACTION and kind not in CREATE_ACTIONS:
                 return _error("unsupported_action", f"unsupported action {kind!r}")
             if kind in CREATE_ACTIONS:
+                from core.group import iter_placements
+                reference_ids = {str(raw[key]) for key in ("parent_id", "source_id")
+                                 if raw.get(key) is not None}
+                if any(reference_ids.intersection(g.uid for g, _ in iter_placements(groups[uid]))
+                       for uid in transform_ids if uid in groups):
+                    return _error("conflicting_creation_transform",
+                                  "transform the creation parent/source in a separate proposal")
                 total_entities += 1
                 if total_entities > MAX_ENTITIES:
                     return _error("too_many_entities",

@@ -138,7 +138,11 @@ o propuesta tipada devuelta por el proveedor. Actuar usa vista previa tipada
 para las acciones admitidas y mantiene la ruta de recetas como compatibilidad
 para edición de geometría aún no cubierta. `create_box` y `create_cylinder`
 permiten crear masas básicas mediante la misma vista previa sin recurrir a
-Python.
+Python. También existen `create_wall` (huecos de puerta/ventana incluidos),
+`create_slab` rectangular y `create_component_instance`. Las referencias
+`parent_id` y `source_id` quedan limitadas al alcance de la tarea. Consulta el
+[contrato de creación](ai-creation-contract.md) para coordenadas, parámetros
+y restricciones de grupos anidados.
 
 La respuesta del proveedor aparece progresivamente en una vista temporal. El
 botón **Cancelar** cierra la conexión activa, interrumpe la espera entre
