@@ -64,6 +64,10 @@ The JSONL contains only case IDs, provider/model labels, measured elapsed time,
 request size, parse success, bounded failure codes, finding counts, and conflict counts. It omits
 credentials, raw snapshots, review prose, and error text. The runner fixes
 fixture entity/task IDs so all providers receive the same snapshot for a case.
+Each role records `response_mode` (`schema`, `prompt`, or `prompt_fallback`),
+and the run records `application_dirty` alongside its commit. Older records
+without a mode are grouped as `unspecified`. A fallback means the local server
+explicitly rejected the schema request; compare it separately from schema runs.
 Failure codes distinguish provider errors, invalid JSON/schema, oversized
 responses, out-of-scope entity IDs, and duplicate findings. Older records
 without a failure code are summarized as `unclassified`.
@@ -83,3 +87,15 @@ to return no findings for an empty entity array. These small, nondeterministic
 local runs are reliability evidence for those exact model choices, not a
 cross-provider quality comparison. Raw local JSONL remains outside the repo;
 tokens and review quality were not measured.
+
+The next slice requests a snapshot-specific JSON schema for local specialist
+reviews. It constrains topic/verdict values and entity IDs; an empty snapshot
+sets `findings.maxItems` to zero. The existing parser still rejects invalid or
+duplicate findings. Servers that explicitly reject `response_format` with
+HTTP 400/422 get one prompt-only fallback; unrelated failures do not retry.
+Ordinary Assistant chat and cloud specialist requests retain their earlier
+wire format. On committed `5f6215f` (`application_dirty=false`), the same
+local model pairing completed 3/3 cases with schema mode for both roles:
+overall latency p50 19,212 ms and p95 30,747 ms. This is a single three-case
+run, so neither a statistical performance claim nor an assessment of finding
+quality. Tokens and quality scores remain `null`.

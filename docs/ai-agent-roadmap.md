@@ -473,3 +473,16 @@ was captured afterward: three public cases with `llama3.2:latest` and
 separate schema failures from out-of-scope entity references without saving
 provider text. The local results do not establish reviewer quality or general
 provider compatibility; see `benchmarks/ai/README.md` for the measured counts.
+
+### Local structured review update — 2026-10-06
+
+Local specialist requests now carry a snapshot-specific JSON schema while the
+strict parser remains authoritative. The schema restricts entity IDs, topics
+and verdicts, and requires zero findings for an empty snapshot. If a local
+OpenAI-compatible server explicitly rejects the schema format, review makes
+one prompt-only fallback. Benchmark records separate these response modes and
+mark whether the source tree was dirty. The same three public cases completed
+3/3 with Ollama models `llama3.2:latest` and `qwen2.5-coder:1.5b` on clean
+commit `5f6215f`; this measures valid review responses only. Human evaluation
+of finding quality, token reporting, other provider compatibility and larger
+corpora remain outstanding.

@@ -19,16 +19,17 @@ Unknown model names produce a visible role failure; no automatic fallback hides 
 
 This is provider-backed parallel execution, not a local rule-based checker.
 Choosing different model names does not imply independent
-model expertise, and no live-provider quality or latency benchmark has been
-recorded. Tests use deterministic fake provider responses.
+model expertise. Tests use deterministic fake provider responses; a small
+public-fixture Ollama run measured response validity and latency, not review
+quality.
 
 Each Assistant role now reports its own elapsed milliseconds, including
 provider retries and JSON validation. The public, metadata-only benchmark
 runner in [`../benchmarks/ai/README.md`](../benchmarks/ai/README.md) can
 capture per-role latency, parse success, and finding counts against chosen
-providers without saving credentials or review prose. No real-provider results
-are included in this repository; token counts and quality scores stay unknown
-until measured and reviewed separately.
+providers without saving credentials or review prose. The local measurement
+counts and its limits are in the benchmark README; token counts and quality
+scores stay unknown until measured and reviewed separately.
 
 ## Data and authority
 
@@ -47,6 +48,13 @@ write tool is supplied. Responses accept only a summary and bounded findings:
 `entity_id`, `topic`, `verdict`, `evidence`. Findings must reference snapshot
 entities; code, action objects, unknown IDs and malformed responses fail
 validation. Summary text is advisory and is never executed.
+For local Assistant specialists, the request includes a JSON schema derived
+from the detached snapshot: only its entity IDs and the accepted topic/verdict
+values may be generated, and an empty snapshot requires zero findings. The
+parser still validates every response. A local server that explicitly rejects
+the format feature with HTTP 400/422 gets one prompt-only retry, shown in
+benchmark metadata as `prompt_fallback`. Cloud reviewer and ordinary chat
+requests keep their earlier request format.
 
 The coordinator retains both role reports. A `clear`/`concern` disagreement
 on the same entity/topic is shown as an unresolved conflict; it does not

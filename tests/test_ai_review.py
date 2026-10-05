@@ -155,6 +155,21 @@ def test_unrelated_local_http_error_does_not_repeat_request(monkeypatch):
         "provider_error"}
 
 
+def test_cancelled_review_never_uses_schema_fallback(monkeypatch):
+    scene, _group, _tasks, task = model()
+    cancellation = ai_review.ReviewCancellation()
+    calls = []
+    def chat(*_args, **_kwargs):
+        calls.append(True)
+        cancellation.cancel()
+        raise RuntimeError("HTTP 400: unsupported response_format")
+    monkeypatch.setattr(ai, "chat", chat)
+    with pytest.raises(ai.CancelledError):
+        ai_review.run_review(ai_review.snapshot(scene, task), "ollama", "m", "", "url",
+                             cancellation)
+    assert len(calls) <= 2  # both parallel first requests may already have begun
+
+
 def test_one_provider_failure_retains_other_review_as_partial(monkeypatch):
     scene, group, _tasks, task = model()
     def chat(_p, _m, _k, system, *_args, **_kwargs):

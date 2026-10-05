@@ -188,3 +188,20 @@ one local model pairing, not a general provider quality result. Token usage
 and review quality remain unmeasured. The selected AI suite passed 136 tests
 with `PYTHONUTF8=1` on this Thai Windows host. The installed Windows build
 has not been updated with this developer-side measurement slice.
+
+## Snapshot-constrained local review (2026-10-06)
+
+`feature/ai-review-structured-output` requests a JSON schema only for local
+specialist reviews. Entity ID enum, topic/verdict enums, and empty-snapshot
+`maxItems: 0` are generated from the same detached packet sent to each role.
+The existing parser still rejects invalid or duplicate findings. A local
+server that explicitly reports unsupported `response_format`/`json_schema`
+with HTTP 400/422 gets one prompt-only fallback, recorded as
+`response_mode=prompt_fallback`. Ordinary Assistant chat and cloud reviewers
+remain prompt-only. The benchmark also records `application_dirty` so a commit
+hash is not mistaken for an exact uncommitted build. The selected AI suite
+passed 140 tests with `PYTHONUTF8=1`. A clean-tree Ollama run at `5f6215f`
+completed 3/3 public cases in schema mode for both roles, versus 0/3 in two
+earlier prompt-only runs. This is response validity evidence, not reviewed
+finding quality or a cross-provider claim. The installed build remains at
+`3815ef8`.
