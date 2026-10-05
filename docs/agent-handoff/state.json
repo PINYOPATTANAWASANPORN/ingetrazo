@@ -16,25 +16,53 @@
     "pull_requests_total": 31,
     "open": 31,
     "merged": 0,
-    "missing_numbers": [18, 27],
+    "missing_numbers": [
+      18,
+      27
+    ],
     "installed_build_verified": false
   },
   "validation": {
     "scope": "selected regression suite, not full repository",
-    "passed": 89,
+    "passed": 94,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
   },
   "ai_phases": [
-    {"phase": 1, "name": "shared context and typed reads", "percent": 90, "status": "implemented_in_stack"},
-    {"phase": 2, "name": "typed writes and preview", "percent": 70, "status": "partial"},
-    {"phase": 3, "name": "concise assistant workflow", "percent": 70, "status": "partial"},
-    {"phase": 4, "name": "multi-agent orchestration", "percent": 15, "status": "foundation_only"},
-    {"phase": 5, "name": "hardening and ecosystem", "percent": 35, "status": "partial"}
+    {
+      "phase": 1,
+      "name": "shared context and typed reads",
+      "percent": 90,
+      "status": "implemented_in_stack"
+    },
+    {
+      "phase": 2,
+      "name": "typed writes and preview",
+      "percent": 78,
+      "status": "partial"
+    },
+    {
+      "phase": 3,
+      "name": "concise assistant workflow",
+      "percent": 75,
+      "status": "partial"
+    },
+    {
+      "phase": 4,
+      "name": "multi-agent orchestration",
+      "percent": 15,
+      "status": "foundation_only"
+    },
+    {
+      "phase": 5,
+      "name": "hardening and ecosystem",
+      "percent": 35,
+      "status": "partial"
+    }
   ],
   "next_recommended_work": [
-    "share typed preview/apply tools with the in-app Assistant",
+    "add typed creation actions and gate the legacy raw-Python path behind an advanced permission",
     "add streaming and cooperative cancellation",
     "add deterministic context-aware suggestion chips and evaluation corpus",
     "execute two revision-pinned read-only specialists with conflict reporting"

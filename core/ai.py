@@ -714,6 +714,37 @@ def extract_code(text: str) -> str | None:
     return code or None
 
 
+def extract_typed_actions(text: str) -> list[dict] | None:
+    """Return the actions from the first fenced JSON change proposal.
+
+    ``None`` means the reply did not contain a typed proposal.  A present
+    but incomplete or malformed JSON fence raises ``ValueError`` so callers
+    never mistake a broken proposal for prose or fall through to executing a
+    Python recipe.
+    """
+    marker = "```json"
+    start = text.lower().find(marker)
+    if start < 0:
+        return None
+    start += len(marker)
+    end = text.find("```", start)
+    if end < 0:
+        raise ValueError("the typed action JSON block is incomplete")
+    raw = text[start:end].strip()
+    try:
+        payload = json.loads(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"invalid typed action JSON: {exc}") from exc
+    if not isinstance(payload, dict) or set(payload) != {"actions"}:
+        raise ValueError("typed action JSON must contain only an actions field")
+    actions = payload["actions"]
+    if not isinstance(actions, list) or not actions:
+        raise ValueError("typed action JSON needs a non-empty actions array")
+    if not all(isinstance(action, dict) for action in actions):
+        raise ValueError("every typed action must be an object")
+    return actions
+
+
 #: What an executed recipe's code collapses to in old turns. Spanish on
 #: purpose: it is read by the model inside a Spanish conversation.
 CODE_STUB = "[receta ya ejecutada — código omitido]"

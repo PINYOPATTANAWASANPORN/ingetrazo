@@ -8,7 +8,7 @@
 | Permissions | `plugins/ai_bridge.py`, MCP server code | Loopback credential, bounded messages, session-only elevated permissions |
 | Typed changes | `core/ai_changes.py` | Propose → preview → validate → request commit → in-app approval; idempotent and leased |
 | Task contracts | `core/ai_tasks.py` | Short intent becomes a pinned goal, scope, constraints, assumptions, criteria, plan, and lifecycle |
-| Assistant UI | `plugins/ai_assistant.py` | Scope/Goal/Execution controls, visible assumptions, read-only enforcement |
+| Assistant UI | `plugins/ai_assistant.py` | Scope/Goal/Execution controls, typed preview with Apply/Discard, visible assumptions, read-only enforcement |
 | Project memory | `core/ai_memory.py`, `core/scene.py`, `formats/igz.py` | Explicit user-owned facts, bounded, `.igz`-persistent, undoable, snapshotted per task |
 | Undo | `core/history.py` | Document mutations are commands and should be one reversible step |
 
@@ -35,29 +35,25 @@
 
 - **Phase 1 — 90%:** context/read contract works; reproducible baseline corpus
   and token/latency measurements remain.
-- **Phase 2 — 70%:** property, tag, material, and top-level transform actions
-  work through preview and approval. Creation actions, nested world-space
-  transforms, and branch-rendered geometry previews remain.
-- **Phase 3 — 70%:** task engine, compact controls, assumptions, and project
-  memory work. Suggestion chips, streaming, cooperative cancel, visible plan,
-  and corpus evaluation remain.
+- **Phase 2 — 78%:** property, tag, material, and top-level transform actions
+  work through preview and approval in MCP and the in-app Assistant. Creation
+  actions, nested world-space transforms, branch-rendered geometry previews,
+  and retiring the normal raw-Python path remain.
+- **Phase 3 — 75%:** task engine, compact controls, assumptions, project
+  memory, and in-app typed approval work. Suggestion chips, streaming,
+  cooperative cancel, visible plan, and corpus evaluation remain.
 - **Phase 4 — 15%:** plans name roles, but no specialist actually executes.
 - **Phase 5 — 35%:** the early local-security gate exists; audit export,
   recovery, resources/prompts, compatibility tests, and benchmarks remain.
 
 ## Recommended next sequence
 
-### 1. Share typed tools with the in-app Assistant
+### 1. Finish typed creation and gate raw Python
 
-Replace the Assistant's normal write path from generated Python recipes to the
-same typed `AIChangeService` used by MCP. Keep recipes available only under the
-advanced permission. Acceptance criteria:
-
-- a rename/tag/material/top-level transform request produces a visible preview;
-- Apply makes exactly one undo item and Discard makes none;
-- stale revision, scope violation, duplicate idempotency key, and validation
-  failure are visible and leave the model unchanged;
-- read-only goals never create a pending change.
+The Assistant now uses `AIChangeService` for supported existing-entity edits.
+Add typed creation actions and a visible advanced permission before removing
+raw Python from the normal write path. Keep the current strict JSON parser:
+malformed or mixed JSON/Python replies must never fall through to execution.
 
 ### 2. Streaming and cooperative cancellation
 
@@ -93,13 +89,15 @@ $env:PYTHONUTF8='1'
   tests/test_document_camera.py
 ```
 
-Result: **89 passed**. Python compilation for touched modules and
-`git diff --check` also passed. Run the relevant subset again after every
-contract change; run the full suite before claiming release readiness.
+Result: **94 passed**. The typed Assistant slice adds focused parser, apply,
+discard, stale-preview, and no-fallback tests. Python compilation for touched
+modules and `git diff --check` also passed. Run the relevant subset again
+after every contract change; run the full suite before claiming release
+readiness.
 
 ## Stack base for continuation
 
-Start from `feature/ai-project-memory`/`6c8364c` unless the stack has since
-merged or changed. Verify GitHub first, then create one narrow branch and PR
-per independently reviewable slice.
+The typed Assistant slice is on `feature/ai-assistant-typed-preview`, stacked
+on the documentation handoff branch. Verify GitHub and the branch head before
+starting the next narrow PR.
 

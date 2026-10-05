@@ -243,7 +243,7 @@ to reduce latency or cost.
 
 ## Delivery plan
 
-Implementation status (2026-10-04): Phase 1's bounded context contract and
+Implementation status (2026-10-05): Phase 1's bounded context contract and
 MCP read profile are implemented. The first Phase 2 security gate is also in
 place: the loopback bridge authenticates requests with a rotating local
 credential, bounds messages, reports client activity, and keeps raw Python
@@ -265,8 +265,12 @@ remain. The
 in-app Assistant now exposes compact Scope, Goal, and Execution controls plus
 editable per-request assumptions, includes the resulting task contract in
 the model context, and enforces Analysis only by refusing returned recipes.
-The current Act mode still uses the transactional legacy recipe path; typed
-preview/apply remains the MCP path until tool calling is shared in-app.
+The Assistant now parses the same typed property/tag/material/top-level
+transform actions, validates them against the pinned task scope and revision,
+and shows Apply/Discard without mutating the document. Apply records one undo
+item, Discard records none, and a stale preview is rejected visibly. Python
+recipes remain the compatibility path for geometry creation and operations
+that the typed layer does not yet support.
 Project memory is also implemented as an explicit bounded list owned by the
 open document: the user edits it visibly, the edit is undoable, it persists
 in `.igz`, and every new task snapshots the facts so a running contract cannot

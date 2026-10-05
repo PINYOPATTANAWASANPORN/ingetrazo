@@ -8,6 +8,13 @@ follow [SemVer](https://semver.org).
 
 ### Añadido
 
+- **Vista previa tipada dentro del Asistente IA:** las respuestas JSON para
+  renombrar, mostrar/ocultar, bloquear, asignar etiqueta o material y
+  transformar contenedores se validan contra el alcance y la revisión de la
+  tarea. La interfaz enseña cada valor anterior/nuevo y exige Aplicar o
+  Descartar; aplicar crea un solo paso de Deshacer, descartar no modifica el
+  documento y una vista previa obsoleta falla sin ejecutar Python.
+
 - **Memoria de proyecto para IA:** cada documento puede guardar una lista
   explícita y editable de hechos del proyecto. El Asistente muestra cuántos
   hay, los copia en cada contrato de tarea y nunca los aprende o modifica a

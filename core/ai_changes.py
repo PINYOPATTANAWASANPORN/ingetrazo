@@ -2,9 +2,9 @@
 """Validated, preview-first AI changes for stable model containers.
 
 This first typed-write slice deliberately changes only group/component
-properties.  A proposal is pure data until the user approves it in the AI
-bridge panel.  Commit rechecks the content revision and records the complete
-change set as one history command.
+properties.  A proposal is pure data until the user approves it in an
+IngeTrazo AI panel.  Commit rechecks the content revision and records the
+complete change set as one history command.
 """
 from __future__ import annotations
 
