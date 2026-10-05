@@ -80,7 +80,7 @@ modelo (y el equipo) a merced de cualquiera en ella.
 | `get_capabilities` | Contrato de la puerta IA: qué identificadores son estables y qué funciones de escritura, preview o multiagente están disponibles. |
 | `create_task` | Convierte una intención corta en un contrato fijado a la revisión actual: alcance automático o explícito, objetivo, restricciones, supuestos, criterios de aceptación y un plan pequeño de roles. No modifica el modelo. |
 | `get_task` | Devuelve el contrato, estado y resultado de la tarea; avisa si una edición posterior dejó obsoleta su revisión base. |
-| `propose_actions` | Propone, sin modificar el documento, cambios tipados de nombre, visibilidad, bloqueo, etiqueta, material o transformación (mover, girar y escalar contenedores de nivel superior). Devuelve valores y límites antes/después. |
+| `propose_actions` | Propone, sin modificar el documento, cambios tipados de nombre, visibilidad, bloqueo, etiqueta, material o transformación, además de crear cajas y cilindros como grupos/componentes de nivel superior. Devuelve valores y límites antes/después. |
 | `preview_changes` / `validate_changes` | Recupera y vuelve a validar una propuesta contra la revisión viva del documento. |
 | `commit_changes` / `discard_changes` | Solicita que la app muestre Aplicar/Descartar, o descarta la propuesta. El cliente MCP nunca puede saltarse la aprobación humana. |
 | `screenshot` | Renderiza el viewport real — el agente mira e itera. |
@@ -113,8 +113,10 @@ y después. El modelo no cambia hasta pulsar **Aplicar cambios**; **Descartar**
 no deja ningún cambio y una revisión obsoleta se rechaza. Aplicar registra el
 conjunto como un solo paso de Deshacer. La creación de geometría y las
 operaciones aún no tipadas conservan temporalmente las recetas Python
-transaccionales. Con proveedores con visión, el asistente recibe capturas del
-viewport para revisar lo que construyó.
+transaccionales. Estas recetas están apagadas por defecto y solo se aceptan si
+el usuario activa **Permitir recetas Python avanzadas para esta sesión**. La
+preferencia no se guarda. Con proveedores con visión, el asistente recibe
+capturas del viewport para revisar lo que construyó.
 
 Antes de cada turno el asistente recibe un resumen pequeño del documento
 abierto (selección, unidades, etiqueta activa y los primeros grupos). Así un
@@ -134,7 +136,9 @@ línea de supuestos visibles separada por punto y coma. El contrato acompaña
 automáticamente cada turno. Solo análisis rechaza cualquier receta Python
 o propuesta tipada devuelta por el proveedor. Actuar usa vista previa tipada
 para las acciones admitidas y mantiene la ruta de recetas como compatibilidad
-para creación y edición de geometría aún no cubierta.
+para edición de geometría aún no cubierta. `create_box` y `create_cylinder`
+permiten crear masas básicas mediante la misma vista previa sin recurrir a
+Python.
 
 El botón **Memoria** abre los hechos duraderos del proyecto, uno por línea.
 Se guardan dentro del `.igz`, la edición participa en Deshacer/Rehacer y cada

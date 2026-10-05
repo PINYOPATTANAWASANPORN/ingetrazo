@@ -13,8 +13,8 @@
     "pull_request": 33
   },
   "delivery": {
-    "pull_requests_total": 32,
-    "open": 32,
+    "pull_requests_total": 33,
+    "open": 33,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -24,7 +24,7 @@
   },
   "validation": {
     "scope": "selected regression suite, not full repository",
-    "passed": 94,
+    "passed": 99,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -39,13 +39,13 @@
     {
       "phase": 2,
       "name": "typed writes and preview",
-      "percent": 78,
+      "percent": 85,
       "status": "partial"
     },
     {
       "phase": 3,
       "name": "concise assistant workflow",
-      "percent": 75,
+      "percent": 78,
       "status": "partial"
     },
     {
@@ -62,9 +62,9 @@
     }
   ],
   "next_recommended_work": [
-    "add typed creation actions and gate the legacy raw-Python path behind an advanced permission",
     "add streaming and cooperative cancellation",
     "add deterministic context-aware suggestion chips and evaluation corpus",
+    "expand typed architectural creation with an explicit parent and local-coordinate contract",
     "execute two revision-pinned read-only specialists with conflict reporting"
   ],
   "documents": [
@@ -75,8 +75,8 @@
     "docs/agent-handoff/pr-index.json"
   ],
   "implementation_delivery": {
-    "branch": "feature/ai-assistant-typed-preview",
-    "commit": "0a96098",
-    "pull_request": 34
+    "branch": "feature/ai-typed-creation",
+    "commit": "f9cca37",
+    "pull_request": 35
   }
 }

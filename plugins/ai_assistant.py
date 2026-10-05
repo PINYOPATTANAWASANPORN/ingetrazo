@@ -79,8 +79,14 @@ factor (número o vector de tres números). Usa solo entity_ids del contrato. \
 El programa validará el bloque y mostrará una vista previa que el usuario \
 debe aprobar; nunca afirmes que ya se aplicó.
 
-Para crear geometría o hacer una operación aún no admitida por esas acciones, \
-incluye EXACTAMENTE UN bloque ```python por respuesta. Tras ejecutarlo \
+Para crear cajas usa create_box con name, origin, size, tag/material opcionales \
+y component booleano. Para cilindros usa create_cylinder con name, origin, \
+radius, height, segments, tag/material opcionales y component booleano. Ambas \
+acciones crean contenedores de nivel superior.
+
+Para una operación aún no admitida por esas acciones, y SOLO cuando el \
+contrato indique raw_python_allowed=true, incluye EXACTAMENTE UN bloque \
+```python por respuesta. Tras ejecutarlo \
 recibirás stdout/errores y, si está disponible, una captura del viewport. \
 No mezcles bloques JSON y Python. Cuando el pedido esté terminado, responde \
 sin bloques con un resumen corto. Sin un bloque no se ejecuta nada: nunca \
@@ -186,6 +192,7 @@ class AsistentePanel(QWidget):
         self._active_task_id = ""
         self._task_changed = False
         self._analysis_nudged = False
+        self._python_nudged = False
         self._pending_task_id = ""
         self._pending_idempotency_key = ""
         self._foto: tuple[str, str, str] | None = None  # (b64, mime, name)
@@ -252,8 +259,13 @@ class AsistentePanel(QWidget):
         self._shots.setChecked(True)
         self._shots.toggled.connect(lambda _on: self._save_settings())
         form.addRow(self._shots)
+        self._allow_python = QCheckBox(tr(
+            "Allow advanced Python recipes for this session"))
+        self._allow_python.setToolTip(tr(
+            "Python runs inside IngeTrazo. Leave this off for typed, previewed changes."))
+        form.addRow(self._allow_python)
         narrow(self._provider, self._model, self._key, self._ollama,
-               self._shots, self._modelos, self._probar)
+               self._shots, self._allow_python, self._modelos, self._probar)
         layout.addWidget(conn)
 
         self._chat = QTextEdit()
@@ -475,7 +487,7 @@ class AsistentePanel(QWidget):
     def _set_task_controls_enabled(self, enabled: bool) -> None:
         for widget in (self._intent_scope, self._intent_goal,
                        self._intent_mode, self._intent_assumptions,
-                       self._project_memory):
+                       self._project_memory, self._allow_python):
             widget.setEnabled(enabled)
 
     def _refresh_project_memory(self) -> None:
@@ -722,6 +734,7 @@ class AsistentePanel(QWidget):
         self._active_task_id = task["task_id"]
         self._task_changed = False
         self._analysis_nudged = False
+        self._python_nudged = False
         self._clear_typed_preview()
         self._task_service().transition(self._active_task_id, "running")
         self._task_chip.setText(tr(
@@ -772,10 +785,12 @@ class AsistentePanel(QWidget):
                 "scope", "constraints", "assumptions",
                 "project_memory", "acceptance_criteria", "plan")}
             task_context["read_only"] = self._task_is_read_only()
+            task_context["raw_python_allowed"] = self._allow_python.isChecked()
             system += ("\n\nContrato de tarea fijado por la interfaz. Respeta "
                        "estrictamente el alcance y los supuestos; no amplíes "
-                       "los entity_ids. Si read_only es true, NO "
-                       "incluyas código Python ni cambies el documento:\n"
+                       "los entity_ids. Si read_only es true, NO cambies el "
+                       "documento. Si raw_python_allowed es false, NO incluyas "
+                       "Python: usa acciones JSON tipadas o explica la limitación:\n"
                        + json.dumps(task_context, ensure_ascii=False,
                                     separators=(",", ":")))
 
@@ -963,6 +978,43 @@ class AsistentePanel(QWidget):
                 return
             self._prepare_typed_preview(actions)
             return
+        attempted_python = code is not None or ai.truncated_code(text)
+        if attempted_python and self._task_is_read_only():
+            if not self._analysis_nudged:
+                self._analysis_nudged = True
+                self._append(tr(
+                    "Analysis-only mode blocked the returned recipe; asking for a read-only answer."),
+                    "muted")
+                self._convo.append({"role": "user", "text":
+                    "La tarea es analysis_only. El bloque Python fue "
+                    "rechazado y NO se ejecutó. Responde con análisis y "
+                    "recomendaciones, sin código ni cambios al documento."})
+                self._next_turn()
+                return
+            self._append(tr(
+                "Analysis-only mode blocked a second recipe; the document is unchanged."),
+                "err")
+            self._finish()
+            return
+        if attempted_python and not self._allow_python.isChecked():
+            if not self._python_nudged:
+                self._python_nudged = True
+                self._append(tr(
+                    "Advanced Python is off; asking for typed actions instead."),
+                    "muted")
+                self._convo.append({"role": "user", "text":
+                    "Python avanzado está desactivado para esta sesión y el "
+                    "bloque NO se ejecutó. Usa un bloque ```json con acciones "
+                    "tipadas (incluyendo create_box/create_cylinder cuando "
+                    "sirvan). Si la operación no está soportada, explica la "
+                    "limitación sin afirmar que cambiaste el modelo."})
+                self._next_turn()
+                return
+            self._append(tr(
+                "Advanced Python blocked a second recipe; the document is unchanged."),
+                "err")
+            self._finish()
+            return
         if code is None and ai.truncated_code(text):
             # Cut by max_tokens mid-recipe: half a block must neither run
             # nor end the loop silently — ask for a smaller, complete one.
@@ -992,23 +1044,6 @@ class AsistentePanel(QWidget):
                             n=MAX_ROUNDS), "muted")
             self._finish()
             return
-        if code is not None and self._task_is_read_only():
-            if not self._analysis_nudged:
-                self._analysis_nudged = True
-                self._append(tr(
-                    "Analysis-only mode blocked the returned recipe; asking for a read-only answer."),
-                    "muted")
-                self._convo.append({"role": "user", "text":
-                    "La tarea es analysis_only. El bloque Python fue "
-                    "rechazado y NO se ejecutó. Responde con análisis y "
-                    "recomendaciones, sin código ni cambios al documento."})
-                self._next_turn()
-                return
-            self._append(tr(
-                "Analysis-only mode blocked a second recipe; the document is unchanged."),
-                "err")
-            self._finish()
-            return
         if code is None:
             if self._round == 0 and not self._nudged and _asks_to_build(
                     self._last_prompt) and "?" not in text[-80:] \
@@ -1022,8 +1057,9 @@ class AsistentePanel(QWidget):
                 self._convo.append({"role": "user", "text":
                     "No incluiste un bloque ejecutable: NADA se ejecutó y el "
                     "modelo no cambió. Para propiedades de entidades existentes, "
-                    "envía UN bloque ```json con {\"actions\":[...]}; para crear "
-                    "geometría, envía UN bloque ```python completo. No mezcles ambos."})
+                    "envía UN bloque ```json con {\"actions\":[...]}, usando "
+                    "create_box/create_cylinder cuando corresponda. Python solo "
+                    "está permitido si raw_python_allowed es true."})
                 self._next_turn()
                 return
             self._finish()

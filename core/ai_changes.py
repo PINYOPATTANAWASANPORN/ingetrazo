@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Validated, preview-first AI changes for stable model containers.
 
-This first typed-write slice deliberately changes only group/component
-properties.  A proposal is pure data until the user approves it in an
-IngeTrazo AI panel.  Commit rechecks the content revision and records the
-complete change set as one history command.
+A proposal is pure data until the user approves it in an IngeTrazo AI panel.
+Commit rechecks the content revision and records property, transform, and
+primitive-creation changes as one history command.
 """
 from __future__ import annotations
 
@@ -17,7 +16,9 @@ from PySide6.QtGui import QMatrix4x4, QVector3D
 
 from core.history import (Command, MoveGroupCommand, RotateGroupCommand,
                           ScaleGroupCommand, rotation_matrix, scale_matrix)
+from core.group import Group
 from core.layers import DEFAULT_LAYER
+from core.mesh import Mesh
 
 MAX_ACTIONS = 100
 MAX_ENTITIES = 200
@@ -32,6 +33,7 @@ ACTION_FIELDS = {
 }
 
 TRANSFORM_ACTION = "transform_entities"
+CREATE_ACTIONS = {"create_box", "create_cylinder"}
 
 
 def _error(code: str, message: str, **extra) -> dict:
@@ -87,6 +89,26 @@ class AIPropertyChangeCommand(Command):
 
     def undo(self, scene) -> None:
         self._apply(scene, "before")
+
+
+class AICreateGroupCommand(Command):
+    """Insert one prepared top-level container without rebuilding geometry."""
+
+    def __init__(self, group: Group) -> None:
+        self.group = group
+
+    def do(self, scene) -> None:
+        if self.group not in scene.groups:
+            scene.groups.append(self.group)
+        scene.selection.clear()
+        scene.selection.add(self.group)
+        scene.version += 1
+
+    def undo(self, scene) -> None:
+        if self.group in scene.groups:
+            scene.groups.remove(self.group)
+        scene.selection.discard(self.group)
+        scene.version += 1
 
 
 @dataclass
@@ -172,6 +194,140 @@ class AIChangeService:
               for axis in ("x", "y", "z")]
         return {"min": lo, "max": hi,
                 "size": [hi[index] - lo[index] for index in range(3)]}
+
+    def _creation_style(self, raw: dict):
+        name = str(raw.get("name") or "").strip()
+        if not name or len(name) > MAX_NAME:
+            return _error("invalid_name",
+                          f"name must contain 1-{MAX_NAME} characters")
+        if not isinstance(raw.get("component", False), bool):
+            return _error("invalid_component", "component must be boolean")
+        tag = str(raw.get("tag") or getattr(
+            self.scene, "active_layer", None) or DEFAULT_LAYER).strip()
+        layer = self.scene.layer(tag)
+        if layer is None:
+            return _error("unknown_tag", f"tag {tag!r} does not exist")
+        if not layer.visible or layer.locked:
+            return _error("unavailable_tag",
+                          f"tag {tag!r} is hidden or locked")
+        material_name = raw.get("material")
+        material = None
+        if material_name not in (None, ""):
+            material_name = str(material_name).strip()
+            material = self.scene.materials.get(material_name)
+            if material is None:
+                return _error("unknown_material",
+                              f"material {material_name!r} does not exist")
+        return name, bool(raw.get("component", False)), tag, material_name, material
+
+    @staticmethod
+    def _box_mesh(origin: QVector3D, size: list[float]) -> Mesh:
+        x, y, z = origin.x(), origin.y(), origin.z()
+        dx, dy, dz = size
+        points = [
+            QVector3D(x, y, z), QVector3D(x + dx, y, z),
+            QVector3D(x + dx, y + dy, z), QVector3D(x, y + dy, z),
+            QVector3D(x, y, z + dz), QVector3D(x + dx, y, z + dz),
+            QVector3D(x + dx, y + dy, z + dz),
+            QVector3D(x, y + dy, z + dz),
+        ]
+        mesh = Mesh()
+        for indices in ((0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4),
+                        (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)):
+            mesh.add_face([points[index] for index in indices])
+        return mesh
+
+    @staticmethod
+    def _cylinder_mesh(origin: QVector3D, radius: float, height: float,
+                       segments: int) -> Mesh:
+        bottom = []
+        top = []
+        for index in range(segments):
+            angle = 2.0 * math.pi * index / segments
+            x = origin.x() + radius * math.cos(angle)
+            y = origin.y() + radius * math.sin(angle)
+            bottom.append(QVector3D(x, y, origin.z()))
+            top.append(QVector3D(x, y, origin.z() + height))
+        mesh = Mesh()
+        mesh.add_face(list(reversed(bottom)))
+        mesh.add_face(top)
+        for index in range(segments):
+            nxt = (index + 1) % segments
+            mesh.add_face([bottom[index], bottom[nxt], top[nxt], top[index]])
+        # Hide the facet seams while keeping both circular rims crisp.
+        for index in range(segments):
+            a = mesh.vertex_at(bottom[index])
+            b = mesh.vertex_at(top[index])
+            edge = mesh.find_edge(a, b) if a is not None and b is not None else None
+            if edge is not None:
+                edge.soft = True
+        return mesh
+
+    def _create(self, raw: dict, kind: str):
+        if self.scene.edit_group is not None:
+            return _error(
+                "nested_creation_unsupported",
+                "typed creation is currently limited to the top-level model")
+        style = self._creation_style(raw)
+        if isinstance(style, dict):
+            return style
+        name, component, tag, material_name, material = style
+        parsed = self._vector(raw.get("origin", [0, 0, 0]), "origin")
+        if isinstance(parsed, dict):
+            return parsed
+        origin_values, origin = parsed
+        local_origin = QVector3D(0, 0, 0) if component else origin
+
+        if kind == "create_box":
+            size_result = self._vector(raw.get("size"), "size")
+            if isinstance(size_result, dict):
+                return size_result
+            size, _vector = size_result
+            if any(value <= 0 or value > 1e6 for value in size):
+                return _error("invalid_size",
+                              "box size values must be greater than 0 and at most 1000000")
+            mesh = self._box_mesh(local_origin, size)
+            parameters = {"origin": origin_values, "size": size}
+        else:
+            try:
+                radius = float(raw.get("radius"))
+                height = float(raw.get("height"))
+                segments = int(raw.get("segments", 24))
+            except (TypeError, ValueError):
+                return _error("invalid_cylinder",
+                              "radius, height and segments must be numbers")
+            if (not math.isfinite(radius) or not math.isfinite(height)
+                    or radius <= 0 or height <= 0
+                    or radius > 1e6 or height > 1e6):
+                return _error("invalid_cylinder",
+                              "radius and height must be finite, positive, and at most 1000000")
+            if segments < 3 or segments > 128:
+                return _error("invalid_segments",
+                              "segments must be an integer between 3 and 128")
+            mesh = self._cylinder_mesh(local_origin, radius, height, segments)
+            parameters = {"origin": origin_values, "radius": radius,
+                          "height": height, "segments": segments}
+
+        group = Group(mesh, name)
+        if component:
+            group.xform = QMatrix4x4()
+            group.xform.translate(origin)
+        group.layer = None if tag == DEFAULT_LAYER else tag
+        group.material = material.face_attrs() if material is not None else None
+        after = {"shape": kind.removeprefix("create_"),
+                 "bounds": self._bounds(group), "tag": tag,
+                 "material": material_name or None,
+                 "component": component, **parameters}
+        normalised = {"action": kind, "name": name,
+                      "component": component, "tag": tag,
+                      "material": material_name or None, **parameters}
+        change = {"_entity": group,
+                  "_command": AICreateGroupCommand(group),
+                  "entity_id": group.uid,
+                  "entity_type": "component" if component else "group",
+                  "entity_name": name, "field": "created",
+                  "before": None, "after": after}
+        return normalised, change
 
     def _transform(self, raw: dict, group, index: int):
         operation = str(raw.get("operation") or "").strip().lower()
@@ -294,8 +450,20 @@ class AIChangeService:
                 return _error("invalid_action", f"action {index} must be an object")
             kind = str(raw.get("action") or "")
             field = ACTION_FIELDS.get(kind)
-            if field is None and kind != TRANSFORM_ACTION:
+            if field is None and kind != TRANSFORM_ACTION and kind not in CREATE_ACTIONS:
                 return _error("unsupported_action", f"unsupported action {kind!r}")
+            if kind in CREATE_ACTIONS:
+                total_entities += 1
+                if total_entities > MAX_ENTITIES:
+                    return _error("too_many_entities",
+                                  f"at most {MAX_ENTITIES} entity references are allowed")
+                built = self._create(raw, kind)
+                if isinstance(built, dict):
+                    return built
+                entry, change = built
+                normalised.append(entry)
+                changes[(change["entity_id"], "created")] = change
+                continue
             ids = raw.get("entity_ids")
             if not isinstance(ids, list) or not ids:
                 return _error("invalid_entities",

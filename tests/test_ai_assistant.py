@@ -419,6 +419,72 @@ def test_assistant_rejects_malformed_typed_json_without_python_fallback(monkeypa
         win._saved_version = win.viewport.scene.version
         win.close()
 
+
+def test_assistant_typed_box_creation_is_previewed_before_apply(monkeypatch):
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    payload = {"actions": [{"action": "create_box", "name": "Cabinet",
+                              "origin": [1, 2, 0], "size": [2, 0.6, 1]}]}
+    monkeypatch.setattr(ai, "chat", lambda *a, **k:
+                        f"```json\n{json.dumps(payload)}\n```")
+    win = MainWindow()
+    try:
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._key.setText("sk-ant-test")
+        dlg._shots.setChecked(False)
+        before = len(win.viewport.history.undo_stack)
+        groups_before = list(win.viewport.scene.groups)
+        dlg._input.setText("create a cabinet box")
+        dlg._on_send()
+        _wait_for_assistant(dlg)
+
+        assert win.viewport.scene.groups == groups_before
+        assert "created" in dlg._change_preview.toPlainText()
+        dlg._on_apply_typed_changes()
+        assert win.viewport.scene.groups[-1].name == "Cabinet"
+        assert len(win.viewport.scene.groups) == len(groups_before) + 1
+        assert len(win.viewport.history.undo_stack) == before + 1
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_assistant_blocks_python_until_session_permission_is_enabled(monkeypatch):
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    replies = iter([
+        "```python\nmesh.add_edge(QVector3D(0,0,0), QVector3D(1,0,0))\n```",
+        "```python\nmesh.add_edge(QVector3D(0,0,0), QVector3D(2,0,0))\n```",
+    ])
+    systems = []
+
+    def fake_chat(_provider, _model, _key, system, _messages, **_kwargs):
+        systems.append(system)
+        return next(replies)
+
+    monkeypatch.setattr(ai, "chat", fake_chat)
+    win = MainWindow()
+    try:
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._key.setText("sk-ant-test")
+        dlg._shots.setChecked(False)
+        assert not dlg._allow_python.isChecked()
+        edges = len(win.viewport.scene.mesh.edges)
+        dlg._input.setText("draw an unsupported custom shape")
+        dlg._on_send()
+        _wait_for_assistant(dlg)
+
+        assert len(win.viewport.scene.mesh.edges) == edges
+        assert len(win.viewport.history.undo_stack) == 0
+        assert "Advanced Python blocked" in dlg._chat.toPlainText()
+        assert systems and '"raw_python_allowed":false' in systems[0]
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
 def test_assistant_loop_executes_recipes_transactionally(monkeypatch):
     from plugins.ai_assistant import AsistenteDialog
     from views.main_window import MainWindow
@@ -445,6 +511,7 @@ def test_assistant_loop_executes_recipes_transactionally(monkeypatch):
         dlg = AsistenteDialog(vp, parent=win)
         dlg._key.setText("sk-ant-test")
         dlg._shots.setChecked(False)           # offscreen has no GL anyway
+        dlg._allow_python.setChecked(True)
         edges0 = len(vp.scene.mesh.edges)
         depth0 = len(vp.history.undo_stack)
 
@@ -632,6 +699,7 @@ def test_photo_attaches_to_next_message_only(monkeypatch, tmp_path):
         dlg._provider.setCurrentIndex(0)   # Auto: the sk-ant key → vision
         dlg._key.setText("sk-ant-test")
         dlg._shots.setChecked(False)
+        dlg._allow_python.setChecked(True)
         assert not dlg._foto_chip.isVisibleTo(dlg)     # nothing attached yet
 
         dlg._attach_photo(str(photo))
@@ -700,6 +768,7 @@ def test_cut_reply_gets_a_retry_not_a_silent_stop(monkeypatch):
         dlg._provider.setCurrentIndex(0)   # Auto: the AIza key → gemini
         dlg._key.setText("AIzaTest")
         dlg._shots.setChecked(False)
+        dlg._allow_python.setChecked(True)
         edges0 = len(vp.scene.mesh.edges)
 
         dlg._input.setText("modela la fuente de la foto")
@@ -746,6 +815,7 @@ def test_step_limit_announces_instead_of_silent_stop(monkeypatch):
         dlg._provider.setCurrentIndex(0)   # Auto: the AIza key → gemini
         dlg._key.setText("AIzaTest")
         dlg._shots.setChecked(False)
+        dlg._allow_python.setChecked(True)
         edges0 = len(vp.scene.mesh.edges)
 
         dlg._input.setText("haz dos pasos")
