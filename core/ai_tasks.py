@@ -279,6 +279,17 @@ class AITaskService:
         allowed = task.allowed_ids
         requested = {str(uid) for action in actions if isinstance(action, dict)
                      for uid in (action.get("entity_ids") or [])}
+        for action in actions:
+            if not isinstance(action, dict):
+                continue
+            requested.update(str(action[key]) for key in ("parent_id", "source_id")
+                             if action.get(key) is not None)
+            if (str(action.get("action", "")).startswith("create_") and
+                    action.get("parent_id") is None and
+                    action.get("action") != "create_component_instance" and
+                    task.scope["kind"] not in {"visible_model", "whole_model"}):
+                return _error("scope_violation",
+                              "creation in an entity scope requires an explicit parent_id")
         outside = sorted(requested - allowed)
         if outside:
             return _error("scope_violation",

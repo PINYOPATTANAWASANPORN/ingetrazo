@@ -252,11 +252,15 @@ first typed-write slice implements preview, validation, idempotency, a
 document write lease, stale-revision rejection, discard, and one-step undo for
 container naming, visibility, locking, existing-tag assignment, container
 materials, bounded top-level translate/rotate/scale operations, and top-level
-box/cylinder creation. Creation geometry is built off-scene for preview and
+box/cylinder creation, rectangular slabs, walls with door/window openings,
+and top-level component copies. Nested primitive creation uses an explicit
+parent coordinate contract for non-component instance containers outside
+shared definitions. Parent and source references are task-scoped; see
+[the creation contract](ai-creation-contract.md). Creation geometry is built off-scene for preview and
 can carry an existing Tag, material, or component identity. Transform
 previews report exact before/after bounds and parameters. MCP can request a
-commit, but only the in-app Apply button can approve it. Creation actions,
-other than these primitives, nested world-space transforms, and
+commit, but only the in-app Apply button can approve it. Cutting existing
+walls, arbitrary slab profiles, nested world-space transforms, and
 branch-rendered geometry previews remain for later Phase 2 slices. The first
 Phase 3 backend slice is also implemented:
 `create_task` turns compact intent into a revision-pinned task with automatic

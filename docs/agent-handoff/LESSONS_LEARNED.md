@@ -115,6 +115,20 @@ checking every dependent PR.
 
 ## Documentation is executable coordination data
 
+Architectural creation adds three constraints worth preserving: a copy helper
+can mutate live source children even when it appears to return a new object;
+pure preview must never call that promotion path. Nested coordinates must
+compose parent placements and scope-check parent/source IDs, not only edited
+entity IDs. A parent transform in the same batch invalidates a precomputed
+creation preview, so it needs a separate proposal. Tests should check closed
+edges AND signed volume after openings; watertightness alone does not detect
+reversed wall reveal normals.
+
+On Thai Windows, the selected bridge packaging tests use default text encoding
+and fail with cp874 on UTF-8 repository files. Run the documented suite with
+`PYTHONUTF8=1`; the initial architectural run had 91 passes and two encoding
+failures before enabling this environment setting.
+
 Roadmap wording must match code. A line-wrap edit once produced the misleading
 phrase “project streaming”; it was corrected in `6c8364c`. Keep a structured
 state file beside prose so future agents can detect contradictions instead of

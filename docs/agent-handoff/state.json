@@ -24,7 +24,7 @@
   },
   "validation": {
     "scope": "selected regression suite, not full repository",
-    "passed": 105,
+    "passed": 95,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -45,7 +45,7 @@
     {
       "phase": 3,
       "name": "concise assistant workflow",
-      "percent": 85,
+      "percent": 90,
       "status": "partial"
     },
     {
@@ -62,7 +62,7 @@
     }
   ],
   "next_recommended_work": [
-    "expand typed architectural creation with an explicit parent and local-coordinate contract",
+    "extend architectural editing to existing-wall openings, arbitrary slab profiles and isolated geometry previews",
     "execute two revision-pinned read-only specialists with conflict reporting",
     "capture provider baselines with the versioned corpus and real token telemetry",
     "add audit export and provider compatibility tests"
@@ -72,11 +72,12 @@
     "docs/agent-handoff/DEVELOPMENT_SUMMARY.md",
     "docs/agent-handoff/AI_AGENT_HANDOFF.md",
     "docs/agent-handoff/LESSONS_LEARNED.md",
-    "docs/agent-handoff/pr-index.json"
+    "docs/agent-handoff/pr-index.json",
+    "docs/ai-creation-contract.md"
   ],
   "implementation_delivery": {
-    "branch": "feature/ai-context-suggestions",
-    "commit": "09bd5ce",
-    "pull_request": 37
+    "branch": "feature/ai-architectural-creation",
+    "commit": null,
+    "pull_request": null
   }
 }

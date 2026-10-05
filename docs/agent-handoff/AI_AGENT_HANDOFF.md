@@ -35,9 +35,10 @@
 
 - **Phase 1 — 90%:** context/read contract works; reproducible baseline corpus
   and token/latency measurements remain.
-- **Phase 2 — 85%:** property, tag, material, top-level transform, box, and
-  cylinder actions work through preview and approval in MCP and the in-app
-  Assistant. More architectural primitives, nested world-space transforms,
+- **Phase 2 — 90%:** property, tag, material, top-level transform, box,
+  cylinder, wall/openings, slab and component-copy actions work through
+  preview and approval. Explicit parent coordinates support nested primitives
+  in non-component instance containers. Cutting existing walls, nested transforms,
   and branch-rendered geometry previews remain. Raw Python is off by default
   and requires an explicit session permission.
 - **Phase 3 — 90%:** task engine, compact controls, assumptions, project
@@ -50,12 +51,13 @@
 
 ## Recommended next sequence
 
-### 1. Expand typed architectural creation
+### 1. Extend architectural editing after this creation slice
 
-Build wall, opening, slab, and component-instance actions on the same pure
-preview contract. Do not wrap the existing in-process recipe executor; build
-prepared entities off-scene and commit them through commands. Add an explicit
-parent/local-coordinate contract before allowing nested creation.
+Wall creation with door/window openings, rectangular slabs, top-level component
+copies, and scoped parent-coordinate primitives are implemented. See
+[the creation contract](../ai-creation-contract.md). Remaining work includes
+cutting existing walls, arbitrary slab profiles, shared-definition insertion,
+and an isolated geometry viewport preview.
 
 ### 2. Read-only specialist execution
 
@@ -78,26 +80,20 @@ Latest selected command:
 ```powershell
 $env:PYTHONUTF8='1'
 & 'C:\Users\Lenovo\Desktop\IngeTrazoTest\.venv\Scripts\python.exe' -m pytest -q `
-  tests/test_ai_memory.py tests/test_ai_assistant.py tests/test_ai_tasks.py `
-  tests/test_ai_changes.py tests/test_ai_bridge.py tests/test_ai_context.py `
-  tests/test_group_material.py tests/test_entity_info_transform.py `
-  tests/test_transactional_history.py tests/test_autosave.py `
-  tests/test_document_camera.py
+  tests/test_ai_architectural_creation.py tests/test_ai_changes.py `
+  tests/test_ai_tasks.py tests/test_ai_assistant.py tests/test_ai_bridge.py `
+  tests/test_ai_context.py tests/test_transactional_history.py
 ```
 
-Result: **105 passed**. The suggestion/evaluation slice adds deterministic
-empty/visible/selection suggestions, non-sending UI fill behaviour, corpus
-fixtures, schema validation, and metric aggregation tests. Python compilation
-for touched modules and
-`git diff --check` also passed. Run the relevant subset again
-after every contract change; run the full suite before claiming release
-readiness.
+Result: **95 passed**. This covers architectural topology/volume, parent
+placement, source purity, task scope, Assistant approval and Undo/Redo, plus
+existing bridge/context/history regressions. Initial execution without
+`PYTHONUTF8=1` produced two cp874 decoding failures in packaging tests; the
+configured run passes. This is a selected suite, not release certification.
 
 ## Stack base for continuation
 
-The context-suggestion/evaluation slice is on
-`feature/ai-context-suggestions`, stacked on `feature/ai-streaming-cancel` and
-delivered by
-[#37](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/37) at code commit
-`09bd5ce`. Verify GitHub and the branch head before starting the next narrow PR.
-
+The architectural-creation slice is on `feature/ai-architectural-creation`,
+stacked on `feature/ai-context-suggestions` (PR #37). Refer to `state.json` for
+the delivery commit and PR after publication. Verify GitHub and the branch
+head before starting the next narrow PR.

@@ -22,7 +22,7 @@ The latest stack layer is
 | Extension Manager | 75% | Enable/disable, local install/remove, safe manifests | Online catalog, version resolution, URL updates |
 | File exchange | 30% | Windows SKP long-texture-path repair | IFC import, fuller SKP hierarchy fidelity, cross-platform DWG |
 | Architectural tools | 10% | Existing BIM/export/composer/terrain foundations | Contours, axes/grid, room labels, doors/windows, schedules |
-| AI Agent roadmap | about 72% overall | Bounded context, security gate, typed preview writes and primitive creation, task engine, concise UI, project memory, streaming/cancel, local suggestions, evaluation corpus, session-only Python gate | Architectural primitives, real specialists, measured provider baselines |
+| AI Agent roadmap | about 72% overall | Bounded context, security gate, typed preview writes and architectural creation, task engine, concise UI, project memory, streaming/cancel, local suggestions, evaluation corpus, session-only Python gate | Existing-wall edits, real specialists, measured provider baselines |
 
 ## PR chain by capability
 
@@ -77,6 +77,10 @@ The latest stack layer is
 
 All items above are implemented **in the open stack**. They are not on the
 fork's `main`, not upstream, and not necessarily in the installed IngeTrazo
-binary. The latest selected regression run covered 99 tests; it was not the
+binary. The latest selected regression run covered 95 tests; it was not the
 repository's complete test suite.
 
+
+Architectural creation now includes walls with door/window openings, rectangular
+slabs, component copies, and scoped parent-coordinate primitives. See
+[`ai-creation-contract.md`](../ai-creation-contract.md) for supported cases and limits.

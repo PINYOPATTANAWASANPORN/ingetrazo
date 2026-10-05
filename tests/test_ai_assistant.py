@@ -594,6 +594,35 @@ def test_assistant_typed_box_creation_is_previewed_before_apply(monkeypatch):
         win.close()
 
 
+def test_assistant_typed_wall_creation_is_previewed_before_apply(monkeypatch):
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    payload = {"actions": [{"action": "create_wall", "name": "Wall with door",
+        "start": [0, 0, 0], "end": [5, 0, 0], "height": 3, "thickness": .2,
+        "openings": [{"offset": 1, "sill": 0, "width": 1, "height": 2}]}]}
+    monkeypatch.setattr(ai, "chat", lambda *a, **k:
+                        f"```json\n{json.dumps(payload)}\n```")
+    win = MainWindow()
+    try:
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._key.setText("sk-ant-test")
+        dlg._shots.setChecked(False)
+        before = list(win.viewport.scene.groups)
+        dlg._input.setText("create a wall with a door opening")
+        dlg._on_send()
+        _wait_for_assistant(dlg)
+        assert win.viewport.scene.groups == before
+        assert "created" in dlg._change_preview.toPlainText()
+        dlg._on_apply_typed_changes()
+        assert win.viewport.scene.groups[-1].name == "Wall with door"
+        assert win.viewport.history.undo()
+        assert win.viewport.scene.groups == before
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
 def test_assistant_blocks_python_until_session_permission_is_enabled(monkeypatch):
     from plugins.ai_assistant import AsistenteDialog
     from views.main_window import MainWindow

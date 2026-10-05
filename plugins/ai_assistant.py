@@ -81,8 +81,17 @@ debe aprobar; nunca afirmes que ya se aplicó.
 
 Para crear cajas usa create_box con name, origin, size, tag/material opcionales \
 y component booleano. Para cilindros usa create_cylinder con name, origin, \
-radius, height, segments, tag/material opcionales y component booleano. Ambas \
-acciones crean contenedores de nivel superior.
+radius, height, segments, tag/material opcionales y component booleano. \
+create_slab usa name, origin y size=[ancho,fondo,espesor]. create_wall usa \
+name, start=[x,y,z], end=[x,y,z] a la misma altura, height, thickness y \
+openings opcional: [{offset,sill,width,height}]. El espesor crece a la izquierda \
+de start->end; sill=0 es puerta. Los huecos deben caber dentro sin tocarse. \
+create_component_instance usa name, source_id de un componente de nivel \
+superior y offset=[x,y,z]; conserva la definición compartida. \
+Las coordenadas son model por defecto. Para crear dentro de un contenedor \
+Group con matriz usa coordinate_space=parent y parent_id explícito del \
+alcance. No se admite un padre dentro de una definición Component compartida \
+ni crear durante edición de grupo. Nunca amplíes el alcance para evitar un error.
 
 Para una operación aún no admitida por esas acciones, y SOLO cuando el \
 contrato indique raw_python_allowed=true, incluye EXACTAMENTE UN bloque \
