@@ -117,6 +117,6 @@
     "pull_request": 47,
     "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/47",
     "draft": true,
-    "validation": "46 Assistant UI tests passed; installed Windows build unchanged"
+    "validation": "46 Assistant UI tests passed at a fixed 340 px tray width; the latest full-width row refinement is not in the installed b2573b7 build"
   }
 }

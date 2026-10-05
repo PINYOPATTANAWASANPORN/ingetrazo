@@ -244,8 +244,10 @@ measured instead of estimating them from text length.
 
 Applying `narrow()` to a whole suggestion container gave it an ignored
 horizontal size policy, so its text was clipped to fragments in the AI tray.
-Apply shrink rules to the buttons instead and place suggestions in a bounded
-two-column layout. A disabled export button also needs visible context:
+Apply shrink rules to the buttons instead and place suggestions in full-width
+rows when a large font or narrow tray would clip two columns. Keep Export
+review off the assumptions/memory row so those controls remain readable.
+A disabled export button also needs visible context:
 exporting the latest review requires a completed, current-revision
 two-specialist review. The UI can explain this without enabling an invalid
 export action.

@@ -104,11 +104,13 @@ include this new slice.
 
 Latest UI fix: [draft PR #47](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/47),
 `fix/ai-assistant-review-controls`, follows PR #46. In the
-narrow AI tray, suggestion buttons now use two columns and the suggestion
-container keeps the tray width; disabled review export explains that a
+narrow AI tray, suggestion buttons now use full-width rows and the suggestion
+container keeps the tray width; Export review has its own row and explains that a
 current-revision two-specialist review must finish first. The focused
 Assistant UI suite passed 46 tests. GitHub snapshot: 45 total, 45 open,
 0 merged. The Windows build from `b2573b7` is now installed and passed
 installed-path `--check`, both SHA-256 comparisons, and MCP `tools/list`
 (22 tools). A verified backup of the prior installation is available; see
 [`INSTALLATION.md`](INSTALLATION.md).
+The later full-width row refinement is pushed to PR #47 but is not yet in
+that installed build.

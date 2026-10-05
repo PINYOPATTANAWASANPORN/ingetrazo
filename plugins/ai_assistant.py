@@ -413,8 +413,8 @@ class AsistentePanel(QWidget):
         self._export_review.setToolTip(tr(
             "Available after a two-specialist review finishes for the current model revision"))
         self._export_review.clicked.connect(self._on_export_review)
-        memory_row.addWidget(self._export_review)
         bl.addLayout(memory_row)
+        bl.addWidget(self._export_review)
         self._review_export_hint = QLabel(tr(
             "Run a two-specialist review to enable Export review."))
         self._review_export_hint.setWordWrap(True)
@@ -432,16 +432,15 @@ class AsistentePanel(QWidget):
         self._refresh_project_memory()
         suggestion_row = QGridLayout()
         suggestion_row.setContentsMargins(0, 0, 0, 0)
-        suggestion_row.addWidget(QLabel(tr("Try:")), 0, 0, 1, 2)
+        suggestion_row.addWidget(QLabel(tr("Try:")), 0, 0)
         self._suggestion_buttons = []
         for index in range(ai_suggestions.MAX_SUGGESTIONS):
             button = QPushButton()
             button.clicked.connect(
                 lambda _checked=False, i=index: self._apply_suggestion(i))
-            suggestion_row.addWidget(button, index // 2 + 1, index % 2)
+            suggestion_row.addWidget(button, index + 1, 0)
             self._suggestion_buttons.append(button)
         suggestion_row.setColumnStretch(0, 1)
-        suggestion_row.setColumnStretch(1, 1)
         self._suggestion_bar = QWidget()
         self._suggestion_bar.setLayout(suggestion_row)
         bl.addWidget(self._suggestion_bar)
@@ -472,7 +471,7 @@ class AsistentePanel(QWidget):
         self._preview_buttons.setVisible(False)
         bl.addWidget(self._preview_buttons)
         narrow(self._intent_scope, self._intent_goal, self._intent_mode,
-               self._intent_assumptions, self._project_memory,
+               self._intent_assumptions,
                *self._suggestion_buttons,
                self._task_chip, self._stream_preview, self._change_preview,
                self._apply_changes, self._discard_changes)

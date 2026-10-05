@@ -164,7 +164,7 @@ stacked on PR #45.
 ## Narrow AI tray and installed build (2026-10-06)
 
 [Draft PR #47](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/47)
-uses a two-column suggestion layout and shows why Export review is disabled
+uses full-width suggestion rows, gives Export review its own row, and shows why it is disabled
 before a completed, current-revision two-specialist review. Its Assistant UI
 suite passed 46 tests. The Windows bundle built from `b2573b7` was installed
 at `C:\Program Files\IngeTrazo`; installed-path hashes, `--check`, and MCP
