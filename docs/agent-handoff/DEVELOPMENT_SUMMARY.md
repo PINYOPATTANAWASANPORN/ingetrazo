@@ -124,3 +124,15 @@ Latest delivery: [PR #45](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pul
 ## Local Windows installation (2026-10-06)
 
 The stacked code through `b0dce0f` is installed under `C:\Program Files\IngeTrazo`. The main executable and MCP bridge match the recorded SHA-256 build manifest. The installed `--check` exits 0, the GUI opens an untitled document, and MCP `tools/list` returns 22 tools. This is a local installation check, not a claim that the stack was merged or that all real-provider workflows were tested. See [`INSTALLATION.md`](INSTALLATION.md).
+
+## Repeatable specialist review measurements (2026-10-06)
+
+The pushed branch `feature/ai-review-benchmark` (implementation `a33fb8a`)
+adds stable, public read-only fixtures and an opt-in runner for two specialist
+roles. It records elapsed time, status, finding and conflict counts without
+saving credentials, raw snapshots or reviewer prose. Offline summaries report
+p50/p95 and role success rates. Tokens and quality scores remain null until
+measured separately. The selected AI suite passed 128 tests with fake
+providers; no live provider benchmark has been run. The PR is pending because
+the GitHub integration returned 403 on creation. This code is not yet in the
+installed Windows build.
