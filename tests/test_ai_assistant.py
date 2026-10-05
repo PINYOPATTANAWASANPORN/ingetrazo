@@ -9,6 +9,8 @@ import os
 import sys
 import threading
 
+import pytest
+
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtWidgets import QApplication  # noqa: E402
@@ -58,6 +60,24 @@ def test_build_request_shapes():
                                    [{"role": "user", "text": "x"}],
                                    ollama_url="http://localhost:11434")
     assert url == "http://localhost:11434/v1/chat/completions"
+
+
+def test_structured_response_request_is_local_and_opt_in():
+    schema = {"type": "object", "properties": {"summary": {"type": "string"}}}
+    messages = [{"role": "user", "text": "review"}]
+    _url, _headers, body = ai.build_request(
+        "ollama", "llama3.2", "", "SYS", messages, response_schema=schema)
+    assert json.loads(body)["response_format"] == {
+        "type": "json_schema", "json_schema": {
+            "name": "structured_reply", "strict": True, "schema": schema}}
+    _url, _headers, normal = ai.build_request("ollama", "llama3.2", "", "SYS", messages)
+    assert "response_format" not in json.loads(normal)
+    with pytest.raises(ValueError, match="local chat"):
+        ai.build_request("openai", "gpt-4o", "sk-test", "SYS", messages,
+                         response_schema=schema)
+    with pytest.raises(ValueError, match="non-streaming"):
+        ai.build_request("ollama", "llama3.2", "", "SYS", messages,
+                         stream=True, response_schema=schema)
 
 
 def test_build_request_generic_image_mime():

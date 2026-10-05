@@ -100,6 +100,9 @@ def main(argv: list[str] | None = None) -> int:
         make_snapshot(case)
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"],
                                      cwd=ROOT, text=True).strip()
+    dirty = bool(subprocess.check_output(
+        ["git", "status", "--porcelain", "--untracked-files=no"],
+        cwd=ROOT, text=True).strip())
     run_id = uuid.uuid4().hex
     with args.output.open("x", encoding="utf-8", newline="\n") as output:
         for case in cases:
@@ -108,6 +111,7 @@ def main(argv: list[str] | None = None) -> int:
                 "schema_version": "1.0", "run_id": run_id,
                 "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
                 "application_commit": commit,
+                "application_dirty": dirty,
                 "corpus": args.corpus.name,
                 "platform": platform.platform(),
                 **result,

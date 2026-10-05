@@ -98,6 +98,63 @@ def test_empty_snapshot_prompt_disallows_invented_entity_findings(monkeypatch):
                for system in systems)
 
 
+def test_local_review_schema_constrains_entities_topics_and_empty_findings(monkeypatch):
+    scene, group, _tasks, task = model()
+    schemas = []
+    def chat(_provider, _model, _key, _system, _messages, **kwargs):
+        schemas.append(kwargs["response_schema"])
+        return '{"summary":"checked","findings":[]}'
+    monkeypatch.setattr(ai, "chat", chat)
+    report = ai_review.run_review(ai_review.snapshot(scene, task), "ollama", "m", "", "url",
+                                  ai_review.ReviewCancellation())
+    assert report["status"] == "completed"
+    for schema in schemas:
+        findings = schema["properties"]["findings"]
+        assert findings["items"]["properties"]["entity_id"]["enum"] == [group.uid]
+        assert set(findings["items"]["properties"]["topic"]["enum"]) == ai_review.TOPICS
+
+    empty = Scene()
+    empty_task = AITaskService(empty).create("check empty model", execution="analysis_only")
+    ai_review.run_review(ai_review.snapshot(empty, empty_task), "ollama", "m", "", "url",
+                         ai_review.ReviewCancellation())
+    assert all(schema["properties"]["findings"]["maxItems"] == 0
+               for schema in schemas[-2:])
+    assert all("enum" not in schema["properties"]["findings"]["items"]
+               ["properties"]["entity_id"] for schema in schemas[-2:])
+
+
+def test_unsupported_local_schema_falls_back_once_to_prompt(monkeypatch):
+    scene, _group, _tasks, task = model()
+    calls = []
+    def chat(*_args, response_schema=None, **_kwargs):
+        calls.append(response_schema is not None)
+        if response_schema is not None:
+            raise RuntimeError("HTTP 400: unsupported response_format")
+        return '{"summary":"checked","findings":[]}'
+    monkeypatch.setattr(ai, "chat", chat)
+    report = ai_review.run_review(ai_review.snapshot(scene, task), "ollama", "m", "", "url",
+                                  ai_review.ReviewCancellation())
+    assert report["status"] == "completed"
+    assert calls.count(True) == calls.count(False) == 2
+    assert {item["response_mode"] for item in report["specialists"]} == {
+        "prompt_fallback"}
+
+
+def test_unrelated_local_http_error_does_not_repeat_request(monkeypatch):
+    scene, _group, _tasks, task = model()
+    calls = []
+    def chat(*_args, **_kwargs):
+        calls.append(True)
+        raise RuntimeError("HTTP 400: invalid model")
+    monkeypatch.setattr(ai, "chat", chat)
+    report = ai_review.run_review(ai_review.snapshot(scene, task), "ollama", "m", "", "url",
+                                  ai_review.ReviewCancellation())
+    assert report["status"] == "failed"
+    assert len(calls) == 2
+    assert {item["failure_code"] for item in report["specialists"]} == {
+        "provider_error"}
+
+
 def test_one_provider_failure_retains_other_review_as_partial(monkeypatch):
     scene, group, _tasks, task = model()
     def chat(_p, _m, _k, system, *_args, **_kwargs):
