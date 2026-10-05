@@ -13,8 +13,8 @@
     "pull_request": 33
   },
   "delivery": {
-    "pull_requests_total": 39,
-    "open": 39,
+    "pull_requests_total": 40,
+    "open": 40,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -77,8 +77,8 @@
     "docs/ai-specialist-review.md"
   ],
   "implementation_delivery": {
-    "branch": "feature/specialist-model-selection",
-    "commit": "b7a181f",
-    "pull_request": 41
+    "branch": "feature/ai-review-export",
+    "commit": "5f1763b",
+    "pull_request": 42
   }
 }

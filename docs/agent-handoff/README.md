@@ -65,3 +65,6 @@ When work continues, update `state.json`, the affected summary, validation
 evidence, and `pr-index.json`. Record exact commands and outcomes. Do not erase
 failed attempts that reveal a reusable constraint; add the lesson to
 `LESSONS_LEARNED.md`.
+
+
+Latest delivery: [PR #42](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/42), `feature/ai-review-export` on #41; implementation `5f1763b`. Selected regression suite: 113 passed with simulated providers. GitHub snapshot: 40 total, 40 open, 0 merged. Earlier snapshot counts above are historical. Installed build unchanged.
