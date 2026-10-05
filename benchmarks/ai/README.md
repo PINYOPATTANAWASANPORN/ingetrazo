@@ -61,11 +61,25 @@ python scripts/ai_review_benchmark.py --results path/to/review-run.jsonl
 ```
 
 The JSONL contains only case IDs, provider/model labels, measured elapsed time,
-request size, parse success, finding counts, and conflict counts. It omits
+request size, parse success, bounded failure codes, finding counts, and conflict counts. It omits
 credentials, raw snapshots, review prose, and error text. The runner fixes
 fixture entity/task IDs so all providers receive the same snapshot for a case.
+Failure codes distinguish provider errors, invalid JSON/schema, oversized
+responses, out-of-scope entity IDs, and duplicate findings. Older records
+without a failure code are summarized as `unclassified`.
 `tokens` and `quality_score` remain `null`: the current provider adapter does
 not return usage, and valid JSON is not a quality score. Human review of the
 findings and real-provider samples are still required before claiming quality
 or token improvements. A partial file after an interrupted run contains only
 cases completed before the interruption; inspect its sample count.
+
+On 2026-10-06, an opt-in local baseline with `llama3.2:latest` for structure
+and `qwen2.5-coder:1.5b` for requirements completed 0/3 cases (three public
+fixtures, six requests). A diagnostic repeat also completed 0/3: the
+requirements role produced two invalid-schema responses and one out-of-scope
+entity reference; the structure role produced one out-of-scope entity reference.
+The empty-model case failed both roles again after its prompt explicitly said
+to return no findings for an empty entity array. These small, nondeterministic
+local runs are reliability evidence for those exact model choices, not a
+cross-provider quality comparison. Raw local JSONL remains outside the repo;
+tokens and review quality were not measured.

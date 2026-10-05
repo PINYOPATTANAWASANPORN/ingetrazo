@@ -170,3 +170,21 @@ suite passed 46 tests. The Windows bundle built from `3815ef8` was installed
 at `C:\Program Files\IngeTrazo`; installed-path hashes, `--check`, and MCP
 `tools/list` (22 tools) passed. The GUI layout has not been visually rechecked
 after installation, and no real-provider review benchmark has been run.
+
+## Local review baseline and safe diagnostics (2026-10-06)
+
+The `feature/ai-review-measurement-evidence` slice adds fixed failure codes to
+specialist outcomes and benchmark JSONL, with offline counts by role. It does
+not store raw provider responses, credentials, snapshots, or error text in the
+benchmark. A local Ollama run on the three public review fixtures completed
+0/3 with `llama3.2:latest` (structure) and `qwen2.5-coder:1.5b`
+(requirements). A diagnostic repeat, made while these changes were still
+uncommitted atop `a5ee830`, also completed 0/3: requirements had two
+`invalid_schema` and one `out_of_scope_entity` outcomes; structure had one
+`out_of_scope_entity`. An explicit empty-entities instruction did not fix
+the empty-model case in a targeted rerun. Rejecting unsupported entity IDs is
+intentional; do not convert those failures into completed reviews. This is
+one local model pairing, not a general provider quality result. Token usage
+and review quality remain unmeasured. The selected AI suite passed 136 tests
+with `PYTHONUTF8=1` on this Thai Windows host. The installed Windows build
+has not been updated with this developer-side measurement slice.

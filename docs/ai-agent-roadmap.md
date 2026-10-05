@@ -467,4 +467,9 @@ snapshots for repeatable two-role review runs. Provider/model settings refer
 to environment variable names rather than literal credentials. The runner
 records elapsed time, request size, parse outcomes and finding counts without
 saving review prose. Tokens and quality scores remain null until measured by
-the provider and independently reviewed; no real-provider baseline is claimed.
+the provider and independently reviewed. A 2026-10-06 local Ollama baseline
+was captured afterward: three public cases with `llama3.2:latest` and
+`qwen2.5-coder:1.5b` completed 0/3 in two runs. Bounded failure codes now
+separate schema failures from out-of-scope entity references without saving
+provider text. The local results do not establish reviewer quality or general
+provider compatibility; see `benchmarks/ai/README.md` for the measured counts.

@@ -56,6 +56,7 @@ def test_review_benchmark_records_metadata_without_secret_or_prose(monkeypatch):
     assert record["input_bytes"] > 0 and record["latency_ms"] >= 0
     assert all(role["latency_ms"] >= 0 and role["finding_count"] == 1
                for role in record["roles"].values())
+    assert all(role["failure_code"] is None for role in record["roles"].values())
     assert all(text not in encoded for text in
                (secret, "private review prose", "private evidence text"))
     summary = summarize_review_records(cases(), [
@@ -132,3 +133,25 @@ def test_invalid_corpus_and_failed_role_latency(monkeypatch):
     assert report["status"] == "failed"
     assert all(isinstance(role["latency_ms"], int) and role["latency_ms"] >= 0
                for role in report["specialists"])
+
+
+def test_failure_summary_counts_only_safe_codes_and_reads_older_records(monkeypatch):
+    monkeypatch.setattr(ai, "chat", lambda *_args, **_kwargs: "not JSON")
+    record = run_case(cases()[0], {role: {
+        "provider": "ollama", "model": "test", "key": "", "ollama_url": "local"}
+        for role in ai_review.ROLES})
+    assert {item["failure_code"] for item in record["roles"].values()} == {"invalid_json"}
+    summary = summarize_review_records(cases(), [{"schema_version": "1.0", **record}])
+    assert all(item["failures"] == {"invalid_json": 1} for item in summary["by_role"])
+    assert "not JSON" not in json.dumps(record)
+
+    legacy = json.loads(json.dumps(record))
+    for outcome in legacy["roles"].values():
+        del outcome["failure_code"]
+    summary = summarize_review_records(cases(), [{"schema_version": "1.0", **legacy}])
+    assert all(item["failures"] == {"unclassified": 1} for item in summary["by_role"])
+
+    invalid = json.loads(json.dumps(record))
+    invalid["roles"]["model_structure"]["failure_code"] = "private provider response"
+    with pytest.raises(ValueError, match="failure code"):
+        summarize_review_records(cases(), [{"schema_version": "1.0", **invalid}])

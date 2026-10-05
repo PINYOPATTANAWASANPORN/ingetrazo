@@ -251,3 +251,13 @@ A disabled export button also needs visible context:
 exporting the latest review requires a completed, current-revision
 two-specialist review. The UI can explain this without enabling an invalid
 export action.
+## Local specialist failures need bounded categories
+
+An `ok` flag alone made a 0/3 local review baseline impossible to diagnose
+without exposing provider text. Keep the strict finding schema and scope
+checks, but record one fixed failure code per failed specialist. A prompt
+reminder about empty snapshots did not stop small local models from inventing
+entity IDs; this is evidence to compare model choices and response handling,
+not a reason to accept fabricated findings. When benchmarking with uncommitted
+instrumentation, note the base commit and the uncommitted diff: a recorded
+commit hash alone does not identify the exact code that produced the run.
