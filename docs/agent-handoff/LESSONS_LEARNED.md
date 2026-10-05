@@ -134,3 +134,17 @@ phrase “project streaming”; it was corrected in `6c8364c`. Keep a structured
 state file beside prose so future agents can detect contradictions instead of
 propagating them.
 
+
+## Parallel reviewers need independent transport cancellation
+
+A provider cancellation token owns one response handle. Sharing one token
+between concurrent calls can leave a socket running; give each role a token
+and cancel the group. Capture bounded JSON on the GUI thread before dispatch,
+then recheck document identity/revision and generation before accepting output.
+A review is advisory: preserve disagreements, label partial failures, and never
+feed its response through typed-action or Python execution.
+
+Review-only controls must not overwrite normal goal/execution preferences.
+The UI tests caught this leakage and a misapplied scene-variable edit; both
+were corrected before the 85-test regression run passed. Keep a GUI lifecycle
+test as well as worker tests: Qt slot exceptions can otherwise leave the UI busy.

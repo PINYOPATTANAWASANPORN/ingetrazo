@@ -13,8 +13,8 @@
     "pull_request": 33
   },
   "delivery": {
-    "pull_requests_total": 36,
-    "open": 36,
+    "pull_requests_total": 37,
+    "open": 37,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -23,8 +23,8 @@
     "installed_build_verified": false
   },
   "validation": {
-    "scope": "selected regression suite, not full repository",
-    "passed": 95,
+    "scope": "selected review/Assistant/task/context/bridge/change regression suite; 2 specialist UI tests rerun after control polish",
+    "passed": 85,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -51,8 +51,8 @@
     {
       "phase": 4,
       "name": "multi-agent orchestration",
-      "percent": 15,
-      "status": "foundation_only"
+      "percent": 35,
+      "status": "read_only_assistant_specialists"
     },
     {
       "phase": 5,
@@ -63,7 +63,7 @@
   ],
   "next_recommended_work": [
     "extend architectural editing to existing-wall openings, arbitrary slab profiles and isolated geometry previews",
-    "execute two revision-pinned read-only specialists with conflict reporting",
+    "add external MCP specialist orchestration and per-role provider configuration with coordinator-only writes",
     "capture provider baselines with the versioned corpus and real token telemetry",
     "add audit export and provider compatibility tests"
   ],
@@ -73,11 +73,12 @@
     "docs/agent-handoff/AI_AGENT_HANDOFF.md",
     "docs/agent-handoff/LESSONS_LEARNED.md",
     "docs/agent-handoff/pr-index.json",
-    "docs/ai-creation-contract.md"
+    "docs/ai-creation-contract.md",
+    "docs/ai-specialist-review.md"
   ],
   "implementation_delivery": {
-    "branch": "feature/ai-architectural-creation",
-    "commit": "247963d",
-    "pull_request": 38
+    "branch": "feature/ai-specialist-review",
+    "commit": "c5ed391",
+    "pull_request": 39
   }
 }

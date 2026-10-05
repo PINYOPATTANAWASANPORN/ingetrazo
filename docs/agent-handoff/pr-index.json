@@ -360,8 +360,18 @@
       "base": "feature/ai-context-suggestions",
       "head": "feature/ai-architectural-creation",
       "merged": false,
-      "updated_at": "2026-10-05T06:57:46Z",
+      "updated_at": "2026-10-05T06:59:00Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/38"
+    },
+    {
+      "number": 39,
+      "state": "open",
+      "title": "Add parallel read-only AI specialist reviews",
+      "base": "feature/ai-architectural-creation",
+      "head": "feature/ai-specialist-review",
+      "merged": false,
+      "updated_at": "2026-10-05T07:22:13Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/39"
     }
   ]
 }

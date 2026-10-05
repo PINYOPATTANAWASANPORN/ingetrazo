@@ -45,7 +45,10 @@
   memory, in-app typed approval, streaming, cooperative cancellation, local
   suggestion chips, and the versioned evaluation corpus work. A richer visible
   plan and measured provider baselines remain.
-- **Phase 4 — 15%:** plans name roles, but no specialist actually executes.
+- **Phase 4 — 35%:** two provider-backed read-only specialists execute in
+  parallel in the Assistant over one bounded snapshot. Conflicts, partial
+  failures, stale results and cancellation are handled. General MCP
+  orchestration and modeler proposals remain.
 - **Phase 5 — 35%:** the early local-security gate exists; audit export,
   recovery, resources/prompts, compatibility tests, and benchmarks remain.
 
@@ -59,11 +62,13 @@ copies, and scoped parent-coordinate primitives are implemented. See
 cutting existing walls, arbitrary slab profiles, shared-definition insertion,
 and an isolated geometry viewport preview.
 
-### 2. Read-only specialist execution
+### 2. Extend specialist orchestration
 
-Start with two concurrent reviewers pinned to one revision. Specialists return
-structured findings and cannot mutate the live scene. Add conflict detection
-before permitting modeler proposals, then coordinator-only merge/commit.
+The Assistant now executes `model_structure` and `task_requirements` through
+two calls to the selected provider/model, with no scene or write tools in the
+workers. See [the review contract](../ai-specialist-review.md). Next add an
+external MCP protocol, per-role model choice and audit export before allowing
+modeler proposals. Retain coordinator-only merge/commit and explicit approval.
 
 ### 3. Capture measurable provider baselines
 
@@ -80,21 +85,17 @@ Latest selected command:
 ```powershell
 $env:PYTHONUTF8='1'
 & 'C:\Users\Lenovo\Desktop\IngeTrazoTest\.venv\Scripts\python.exe' -m pytest -q `
-  tests/test_ai_architectural_creation.py tests/test_ai_changes.py `
-  tests/test_ai_tasks.py tests/test_ai_assistant.py tests/test_ai_bridge.py `
-  tests/test_ai_context.py tests/test_transactional_history.py
+  tests/test_ai_review.py tests/test_ai_assistant.py tests/test_ai_tasks.py `
+  tests/test_ai_context.py tests/test_ai_bridge.py tests/test_ai_changes.py
 ```
 
-Result: **95 passed**. This covers architectural topology/volume, parent
-placement, source purity, task scope, Assistant approval and Undo/Redo, plus
-existing bridge/context/history regressions. Initial execution without
-`PYTHONUTF8=1` produced two cp874 decoding failures in packaging tests; the
-configured run passes. This is a selected suite, not release certification.
+Result: **85 passed** with fake providers. The 2 specialist UI tests passed
+again after disabling suggestions during review mode. Compilation and
+`git diff --check` passed. No live-provider quality/latency baseline or full
+repository release certification is claimed.
 
 ## Stack base for continuation
 
-The architectural-creation slice is on `feature/ai-architectural-creation`,
-stacked on `feature/ai-context-suggestions` (PR #37), delivered by
-[#38](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/38) at code commit
-`247963d`. Compilation and `git diff --check` also passed. Verify GitHub and the branch
-head before starting the next narrow PR.
+`feature/ai-specialist-review` is stacked on `feature/ai-architectural-creation`
+(PR #38). Delivered by [#39](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/39)
+at code commit `c5ed391`. Verify the current branch head before continuation.
