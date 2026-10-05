@@ -13,8 +13,8 @@
     "pull_request": 33
   },
   "delivery": {
-    "pull_requests_total": 36,
-    "open": 36,
+    "pull_requests_total": 37,
+    "open": 37,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -78,7 +78,7 @@
   ],
   "implementation_delivery": {
     "branch": "feature/ai-specialist-review",
-    "commit": null,
-    "pull_request": null
+    "commit": "c5ed391",
+    "pull_request": 39
   }
 }

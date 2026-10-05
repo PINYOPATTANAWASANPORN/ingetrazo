@@ -97,4 +97,5 @@ repository release certification is claimed.
 ## Stack base for continuation
 
 `feature/ai-specialist-review` is stacked on `feature/ai-architectural-creation`
-(PR #38). Refer to `state.json` for delivery identity after publication.
+(PR #38). Delivered by [#39](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/39)
+at code commit `c5ed391`. Verify the current branch head before continuation.

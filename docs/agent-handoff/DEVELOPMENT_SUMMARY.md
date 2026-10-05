@@ -2,7 +2,7 @@
 
 ## Delivery topology
 
-The fork uses one long stacked chain. GitHub reported **36 open PRs and zero
+The fork uses one long stacked chain. GitHub reported **37 open PRs and zero
 merged PRs** on 2026-10-05. PR numbers 18 and 27 are absent from the pull list;
 do not invent them. The chain begins at fork `main` (`6be29fe`) and currently
 ends at `feature/ai-context-suggestions` (`09bd5ce`). Merging or rebasing a lower PR
@@ -74,6 +74,8 @@ The latest stack layer is
 - [#37](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/37) — local context suggestions and a versioned AI evaluation corpus.
 
 - [#38](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/38) — walls with openings, slabs, component copies and scoped parent coordinates.
+
+- [#39](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/39) — two read-only provider specialists, conflict reporting and cancellation.
 
 ## Claims that must stay qualified
 
