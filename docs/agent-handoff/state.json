@@ -37,6 +37,15 @@
       "installed executable hashes match the build manifest"
     ]
   },
+  "staged_build": {
+    "source_commit": "b2573b7aa781768997328ed33da53e2179839db7",
+    "manifest": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-latest-b2573b7.json",
+    "installer": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\install-latest-b2573b7.ps1",
+    "bundle_check": "passed",
+    "mcp_tools": 22,
+    "installed": false,
+    "blocker": "The installed IngeTrazo GUI is still open and Program Files requires an Administrator token."
+  },
   "validation": {
     "scope": "selected review benchmark, cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
     "passed": 128,

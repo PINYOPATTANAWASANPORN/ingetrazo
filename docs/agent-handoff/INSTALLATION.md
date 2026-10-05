@@ -36,3 +36,19 @@ verify the installed-path hashes, self-check, and GUI. A successful PyInstaller
 exit alone is insufficient. The local installer and build manifest used for
 this deployment are in the workspace root as `install-latest-b0dce0f.ps1`
 and `build-latest-b0dce0f.json`.
+
+## Staged build for the AI tray UI fix
+
+On 2026-10-06 a new Windows bundle was built from `b2573b7` on
+`fix/ai-assistant-review-controls`. Its frozen `--check` passed and the MCP
+executable returned 22 tools. SHA-256: main
+`C7B365032C35EA2CBF675E3F6A78E1E56C933157DF67CC3E8BE6DA409CE92959`,
+MCP `287125D075FB34C7A6D7AC879BBCD49AAEC918C21E5F8FDC15960EBD6B617937`.
+The manifest and rollback-capable installer are in the workspace root as
+`build-latest-b2573b7.json` and `install-latest-b2573b7.ps1`. A separate
+backup of the current installation was verified at
+`backups/IngeTrazo-installed-before-20261006-pr47`. This bundle has **not**
+been installed: the existing IngeTrazo process remains open, and updating
+`C:\Program Files\IngeTrazo` requires an Administrator token. Save and close
+the open document before running the installer with elevation; then verify
+the installed path separately.

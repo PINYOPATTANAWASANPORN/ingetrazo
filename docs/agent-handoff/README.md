@@ -108,4 +108,7 @@ narrow AI tray, suggestion buttons now use two columns and the suggestion
 container keeps the tray width; disabled review export explains that a
 current-revision two-specialist review must finish first. The focused
 Assistant UI suite passed 46 tests. GitHub snapshot: 45 total, 45 open,
-0 merged. The installed Windows binary is unchanged.
+0 merged. A frozen build was staged and passed `--check` plus MCP `tools/list`
+(22 tools), with a verified backup of the prior installation. The installed
+Windows binary is unchanged while its GUI remains open; see
+[`INSTALLATION.md`](INSTALLATION.md).
