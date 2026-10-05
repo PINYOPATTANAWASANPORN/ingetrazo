@@ -452,3 +452,6 @@ Assistant and MCP now export revision-checked, allowlisted JSON review bundles w
 
 ### Session review history update — 2026-10-05
 MCP can page through hash-linked, append-only review status metadata for the current bridge/document session. Duplicate submissions do not duplicate events. The chain is unsigned and resets with the session; durable user-controlled audit storage and real-provider measurements remain pending. See [review contract](ai-specialist-review.md).
+
+### Review history file update — 2026-10-05
+Assistant now saves the complete session history to a user-chosen JSON file and can verify the file after restarting. The save is atomic, size-bounded, and contains metadata rather than reviewer prose. The checksums are unsigned; independent anchoring/signing and real-provider measurements remain future work.

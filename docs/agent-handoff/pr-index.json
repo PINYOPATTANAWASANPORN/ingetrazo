@@ -410,8 +410,18 @@
       "base": "feature/ai-review-export",
       "head": "feature/ai-review-audit-trail",
       "merged": false,
-      "updated_at": "2026-10-05T12:34:34Z",
+      "updated_at": "2026-10-05T12:35:12Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/43"
+    },
+    {
+      "number": 44,
+      "state": "open",
+      "title": "Save and verify AI review history files",
+      "base": "feature/ai-review-audit-trail",
+      "head": "feature/ai-review-audit-file",
+      "merged": false,
+      "updated_at": "2026-10-05T12:43:59Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/44"
     }
   ]
 }

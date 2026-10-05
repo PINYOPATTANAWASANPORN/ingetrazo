@@ -140,11 +140,27 @@ rule above. The response includes the current `head_digest`, total count and
 `has_more`; callers can page forward with `next_sequence` (1–100 per call).
 
 This history is in memory for the current document and bridge/Assistant task
-service. It resets when that service or document is replaced; it is not a
-durable, signed or independent audit record. The full report must be exported
-separately while its revision is current. SHA-256 links reveal accidental
-changes to a captured chain but do not prove who ran a provider or prevent an
-actor with access to the process from replacing the chain.
+service. It resets when that service or document is replaced. The full report
+must be exported separately while its revision is current. SHA-256 links reveal
+accidental changes to a captured chain but do not prove who ran a provider or
+prevent an actor with access to the process from replacing the chain.
 
-Next: persistent, user-controlled audit storage, provider compatibility and
-real token baselines, and separately scoped cross-provider role credentials.
+### Explicit history file
+
+Assistant **Export review history…** saves the complete current session trail
+as UTF-8 JSON with an atomic file replacement. The user chooses the file path;
+the program does not silently persist review history in a model or profile.
+The export is limited to 10,000 events or 16 MiB of canonical payload. Larger
+histories remain available page by page through MCP. **Verify history file…**
+checks a saved file independently of the live scene. It checks schema, event
+count and order, each previous digest, each event digest, the head digest and
+the outer payload checksum. Verification rejects files over the input size
+limit. It does not import events into the current scene.
+
+The file survives a session restart, but it is an unsigned user-held copy.
+Someone who can rewrite the whole file can recompute every checksum. Do not
+interpret successful verification as proof of provider identity or authorship.
+
+Next: authenticated signatures or an independently anchored audit store,
+provider compatibility and real token baselines, and separately scoped
+cross-provider role credentials.

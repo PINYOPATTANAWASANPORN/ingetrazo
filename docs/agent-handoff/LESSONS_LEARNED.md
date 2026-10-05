@@ -200,3 +200,7 @@ and separately scoped cross-provider role credentials before modeler agents.
 
 ## Session review audit trail (2026-10-05)
 Keep review history separate from the mutable latest report. A stale transition clears the report for current use but appends a metadata event, so a coordinator can see both states. Store only status/IDs/digests, deduplicate identical retries, paginate reads, and label the hash chain as unsigned session evidence. A chain kept in process memory is not durable or tamper-proof.
+
+
+## Explicit review history file (2026-10-05)
+A paged in-memory event trail is useful live but vanishes at session end. Add an explicit atomic save path and an offline verifier before calling it a reusable record. Verify both the outer checksum and each inner chain link; recomputing the outer checksum alone cannot validate sequence continuity. Use a larger input-byte limit than canonical payload size because pretty-printed JSON expands on disk. State clearly that unsigned files can be rewritten with new checksums.

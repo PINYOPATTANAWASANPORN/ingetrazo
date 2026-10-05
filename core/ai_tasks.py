@@ -322,6 +322,9 @@ class AITaskService:
     def review_audit(self, after_sequence=0, limit=100):
         return self._review_audit.page(after_sequence, limit)
 
+    def export_review_audit(self):
+        return self._review_audit.bundle()
+
     def export_review(self, task_id):
         from core.ai_review_export import export_review
         return export_review(self.get(task_id), self.scene.content_version)
