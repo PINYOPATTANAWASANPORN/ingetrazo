@@ -340,8 +340,18 @@
       "base": "feature/ai-typed-creation",
       "head": "feature/ai-streaming-cancel",
       "merged": false,
-      "updated_at": "2026-10-05T02:05:41Z",
+      "updated_at": "2026-10-05T02:06:32Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/36"
+    },
+    {
+      "number": 37,
+      "state": "open",
+      "title": "Add context-aware AI suggestions and evaluation corpus",
+      "base": "feature/ai-streaming-cancel",
+      "head": "feature/ai-context-suggestions",
+      "merged": false,
+      "updated_at": "2026-10-05T02:39:11Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/37"
     }
   ]
 }

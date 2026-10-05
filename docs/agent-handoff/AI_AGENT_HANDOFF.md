@@ -96,6 +96,8 @@ readiness.
 ## Stack base for continuation
 
 The context-suggestion/evaluation slice is on
-`feature/ai-context-suggestions`, stacked on `feature/ai-streaming-cancel`.
-Verify GitHub and the branch head before starting the next narrow PR.
+`feature/ai-context-suggestions`, stacked on `feature/ai-streaming-cancel` and
+delivered by
+[#37](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/37) at code commit
+`09bd5ce`. Verify GitHub and the branch head before starting the next narrow PR.
 
