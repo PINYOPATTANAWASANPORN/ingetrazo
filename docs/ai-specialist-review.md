@@ -54,7 +54,7 @@ session-only and preserves the user's ordinary goal/execution preferences.
 The Assistant dispatches provider requests itself. MCP also provides an
 external coordination protocol, advertised as `external_specialist_review`.
 `multi_agent` remains false for general autonomous modeler orchestration.
-Different providers/credentials for each role, audit export, geometry evidence
+Different providers/credentials for each role, persistent signed audit, geometry evidence
 and coordinator-approved modeler proposals remain future work.
 
 ## External MCP workflow
@@ -127,5 +127,24 @@ separators=(",", ":"), allow_nan=False)`). It is an unsigned corruption check,
 not proof of authorship or a tamper-proof audit trail. Reports are advisory
 metadata checks, not geometric validation or regulatory certification.
 
-Next: append-only audit history, provider compatibility/real token baselines,
-and separately scoped cross-provider role credentials before modeler agents.
+## Session review history (2026-10-05)
+
+`get_review_audit(after_sequence, limit)` returns pages of status events for
+completed, partial, failed, cancelled and stale **recorded reports**. Identical
+retries append no extra event. Each event contains sequence, UTC time, task ID,
+base revision, snapshot ID, status, SHA-256 digest of the recorded report and
+the previous event's digest. It contains no review prose, credentials, raw
+snapshot or role tokens. The first previous digest is 64 zeroes. Recompute an
+event digest over the event without its `digest` field using the canonical JSON
+rule above. The response includes the current `head_digest`, total count and
+`has_more`; callers can page forward with `next_sequence` (1–100 per call).
+
+This history is in memory for the current document and bridge/Assistant task
+service. It resets when that service or document is replaced; it is not a
+durable, signed or independent audit record. The full report must be exported
+separately while its revision is current. SHA-256 links reveal accidental
+changes to a captured chain but do not prove who ran a provider or prevent an
+actor with access to the process from replacing the chain.
+
+Next: persistent, user-controlled audit storage, provider compatibility and
+real token baselines, and separately scoped cross-provider role credentials.

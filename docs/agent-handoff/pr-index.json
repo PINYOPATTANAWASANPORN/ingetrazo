@@ -400,8 +400,18 @@
       "base": "feature/specialist-model-selection",
       "head": "feature/ai-review-export",
       "merged": false,
-      "updated_at": "2026-10-05T12:18:00Z",
+      "updated_at": "2026-10-05T12:18:28Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/42"
+    },
+    {
+      "number": 43,
+      "state": "open",
+      "title": "Record session specialist review audit events",
+      "base": "feature/ai-review-export",
+      "head": "feature/ai-review-audit-trail",
+      "merged": false,
+      "updated_at": "2026-10-05T12:34:34Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/43"
     }
   ]
 }

@@ -97,6 +97,7 @@ def test_cancel_rejects_late_submissions_and_preserves_document():
     assert service.cancel(begun["review_id"]) == result
     assert submit(service, begun)["code"] == "review_cancelled"
     assert tasks.get(task["task_id"])["status"] == "cancelled"
+    assert [e["status"] for e in tasks.review_audit()["events"]] == ["cancelled"]
     assert scene.content_version == task["base_revision"]
 
 
@@ -105,6 +106,7 @@ def test_report_errors_produce_partial_and_active_sessions_are_bounded():
     begun = service.begin(task["task_id"])
     submit(service, begun)
     assert submit(service, begun, 1, result={"error": "provider unavailable"})["status"] == "partial"
+    assert [e["status"] for e in tasks.review_audit()["events"]] == ["partial"]
     active = []
     for _ in range(MAX_ACTIVE):
         other = tasks.create("review", execution="analysis_only")

@@ -243,6 +243,19 @@ TOOLS = [
             "additionalProperties": False},
     },
     {
+        "name": "get_review_audit",
+        "description": (
+            "Read a page of append-only specialist-review status events from this bridge "
+            "session. Events contain task/revision/snapshot identifiers, status and "
+            "SHA-256 chain links; no review prose, settings or role tokens. "
+            "The chain is unsigned and resets when the bridge stops or document is replaced. "
+            "Use after_sequence to page forward; limit 1-100."),
+        "inputSchema": {"type": "object", "properties": {
+            "after_sequence": {"type": "integer", "minimum": 0},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 100}},
+            "additionalProperties": False},
+    },
+    {
         "name": "cancel_specialist_review",
         "description": (
             "Cancel a collecting review and reject late submissions. Does not stop an "

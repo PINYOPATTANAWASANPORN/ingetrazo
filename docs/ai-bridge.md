@@ -190,3 +190,6 @@ proveedor con visión (Anthropic, OpenAI, Gemini, OpenRouter).
 
 ### Review export update — 2026-10-05
 Assistant and MCP now export revision-checked, allowlisted JSON review bundles with an unsigned SHA-256 checksum. See [review contract](ai-specialist-review.md). Persistent audit history and real-provider baselines remain pending.
+
+### Session review history — 2026-10-05
+`get_review_audit` reads up to 100 review-status events per call, starting after a sequence number. Each event links to its predecessor with SHA-256, includes only review metadata and resets with the bridge/document session. It does not provide signed, durable audit evidence. See [review contract](ai-specialist-review.md).

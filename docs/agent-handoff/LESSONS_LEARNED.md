@@ -196,3 +196,7 @@ metadata checks, not geometric validation or regulatory certification.
 
 Next: append-only audit history, provider compatibility/real token baselines,
 and separately scoped cross-provider role credentials before modeler agents.
+
+
+## Session review audit trail (2026-10-05)
+Keep review history separate from the mutable latest report. A stale transition clears the report for current use but appends a metadata event, so a coordinator can see both states. Store only status/IDs/digests, deduplicate identical retries, paginate reads, and label the hash chain as unsigned session evidence. A chain kept in process memory is not durable or tamper-proof.

@@ -449,3 +449,6 @@ mutations.
 
 ### Review export update — 2026-10-05
 Assistant and MCP now export revision-checked, allowlisted JSON review bundles with an unsigned SHA-256 checksum. See [review contract](ai-specialist-review.md). Persistent audit history and real-provider baselines remain pending.
+
+### Session review history update — 2026-10-05
+MCP can page through hash-linked, append-only review status metadata for the current bridge/document session. Duplicate submissions do not duplicate events. The chain is unsigned and resets with the session; durable user-controlled audit storage and real-provider measurements remain pending. See [review contract](ai-specialist-review.md).

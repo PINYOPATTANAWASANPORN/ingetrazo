@@ -367,6 +367,9 @@ class _Bridge(QObject):
     def _tool_export_specialist_review(self, review_id: str = "") -> dict:
         return self.review_service().export(review_id)
 
+    def _tool_get_review_audit(self, after_sequence: int = 0, limit: int = 100) -> dict:
+        return self.task_service().review_audit(after_sequence, limit)
+
     def _tool_submit_specialist_review(self, review_id="", role="",
                                      submission_token="", snapshot_id="", result=None):
         return self.review_service().submit(review_id, role, submission_token, snapshot_id, result)

@@ -13,8 +13,8 @@
     "pull_request": 33
   },
   "delivery": {
-    "pull_requests_total": 40,
-    "open": 40,
+    "pull_requests_total": 41,
+    "open": 41,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -23,8 +23,8 @@
     "installed_build_verified": false
   },
   "validation": {
-    "scope": "selected review export, external-review, review, Assistant, task, context, bridge and change regression suite",
-    "passed": 113,
+    "scope": "selected review audit, export, external review, Assistant, task, context, bridge and changes regression suite",
+    "passed": 115,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -57,15 +57,15 @@
     {
       "phase": 5,
       "name": "hardening and ecosystem",
-      "percent": 35,
-      "status": "partial"
+      "percent": 40,
+      "status": "session_review_audit_partial"
     }
   ],
   "next_recommended_work": [
-    "extend architectural editing to existing-wall openings, arbitrary slab profiles and isolated geometry previews",
-    "add append-only audit history, cross-provider role credentials and measured review baselines before modeler orchestration",
+    "add user-controlled durable audit storage and integrity verification; session history is unsigned and resets",
     "capture provider baselines with the versioned corpus and real token telemetry",
-    "add append-only audit history and provider compatibility tests"
+    "add provider compatibility and separately scoped cross-provider role credentials",
+    "extend architectural editing to existing-wall openings, arbitrary slab profiles and isolated geometry previews"
   ],
   "documents": [
     "docs/agent-handoff/README.md",
@@ -77,8 +77,8 @@
     "docs/ai-specialist-review.md"
   ],
   "implementation_delivery": {
-    "branch": "feature/ai-review-export",
-    "commit": "5f1763b",
-    "pull_request": 42
+    "branch": "feature/ai-review-audit-trail",
+    "commit": "bf3ee67",
+    "pull_request": 43
   }
 }
