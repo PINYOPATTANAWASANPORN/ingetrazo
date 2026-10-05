@@ -103,4 +103,5 @@ repository release certification is claimed.
 ## Stack base for continuation
 
 `feature/specialist-model-selection` is stacked on `feature/mcp-specialist-protocol`
-(PR #40). Refer to `state.json` for delivery identity after publication.
+(PR #40). Delivered by [#41](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/41)
+at code commit `b7a181f`. Verify the latest branch head before continuation.

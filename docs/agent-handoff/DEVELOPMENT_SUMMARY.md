@@ -2,7 +2,7 @@
 
 ## Delivery topology
 
-The fork uses one long stacked chain. GitHub reported **38 open PRs and zero
+The fork uses one long stacked chain. GitHub reported **39 open PRs and zero
 merged PRs** on 2026-10-05. PR numbers 18 and 27 are absent from the pull list;
 do not invent them. The chain begins at fork `main` (`6be29fe`) and currently
 ends at `feature/ai-context-suggestions` (`09bd5ce`). Merging or rebasing a lower PR
@@ -78,6 +78,8 @@ The latest stack layer is
 - [#39](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/39) — two read-only provider specialists, conflict reporting and cancellation.
 
 - [#40](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/40) — external MCP review assignments, validated submissions, bounded retention and cancellation.
+
+- [#41](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/41) — per-role model selection, provider-scoped settings and requested-model reporting.
 
 ## Claims that must stay qualified
 

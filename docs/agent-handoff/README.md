@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-05**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- Delivery state: **38 open PRs; none merged into the fork's `main`**
+- Delivery state: **39 open PRs; none merged into the fork's `main`**
 
 ## Read in this order
 
@@ -36,7 +36,9 @@ scoped wall/slab/component creation in
 parallel read-only specialist reviews in
 [#39](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/39), followed by
 external MCP specialist coordination in
-[#40](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/40). New code
+[#40](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/40), followed by
+per-role specialist model selection in
+[#41](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/41). New code
 should preserve this documentation layer or update it in the same change.
 
 The detailed design documents remain authoritative for their domains:
