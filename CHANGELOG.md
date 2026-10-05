@@ -8,6 +8,13 @@ follow [SemVer](https://semver.org).
 
 ### Añadido
 
+- **Creación tipada y permiso avanzado del Asistente IA:** `create_box` y
+  `create_cylinder` preparan grupos o componentes de nivel superior con
+  dimensiones, etiqueta y material validados, sin añadir geometría hasta que
+  el usuario revise y pulse Aplicar. Las recetas Python quedan desactivadas
+  por defecto en el chat y solo funcionan al habilitarlas explícitamente para
+  la sesión; una receta bloqueada nunca cae en ejecución por compatibilidad.
+
 - **Vista previa tipada dentro del Asistente IA:** las respuestas JSON para
   renombrar, mostrar/ocultar, bloquear, asignar etiqueta o material y
   transformar contenedores se validan contra el alcance y la revisión de la

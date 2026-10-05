@@ -35,11 +35,12 @@
 
 - **Phase 1 — 90%:** context/read contract works; reproducible baseline corpus
   and token/latency measurements remain.
-- **Phase 2 — 78%:** property, tag, material, and top-level transform actions
-  work through preview and approval in MCP and the in-app Assistant. Creation
-  actions, nested world-space transforms, branch-rendered geometry previews,
-  and retiring the normal raw-Python path remain.
-- **Phase 3 — 75%:** task engine, compact controls, assumptions, project
+- **Phase 2 — 85%:** property, tag, material, top-level transform, box, and
+  cylinder actions work through preview and approval in MCP and the in-app
+  Assistant. More architectural primitives, nested world-space transforms,
+  and branch-rendered geometry previews remain. Raw Python is off by default
+  and requires an explicit session permission.
+- **Phase 3 — 78%:** task engine, compact controls, assumptions, project
   memory, and in-app typed approval work. Suggestion chips, streaming,
   cooperative cancel, visible plan, and corpus evaluation remain.
 - **Phase 4 — 15%:** plans name roles, but no specialist actually executes.
@@ -48,26 +49,26 @@
 
 ## Recommended next sequence
 
-### 1. Finish typed creation and gate raw Python
-
-The Assistant now uses `AIChangeService` for supported existing-entity edits.
-Add typed creation actions and a visible advanced permission before removing
-raw Python from the normal write path. Keep the current strict JSON parser:
-malformed or mixed JSON/Python replies must never fall through to execution.
-
-### 2. Streaming and cooperative cancellation
+### 1. Streaming and cooperative cancellation
 
 Stream provider text without allowing partial model writes. Add Cancel to stop
 network generation immediately and long typed work between bounded steps.
 Cancellation must transition the task to a terminal state and release leases.
 A timeout or disconnected socket alone is not proof of cancellation.
 
-### 3. Context-aware suggestions and measurable evaluation
+### 2. Context-aware suggestions and measurable evaluation
 
 Generate local suggestion chips from deterministic document state before
 asking a model. Establish a fixed request corpus and record completion,
 tokens, provider/tool calls, p50/p95 latency, time to first preview, rollback,
 and manual corrections. Never report projected savings as measured results.
+
+### 3. Expand typed architectural creation
+
+Build wall, opening, slab, and component-instance actions on the same pure
+preview contract. Do not wrap the existing in-process recipe executor; build
+prepared entities off-scene and commit them through commands. Add an explicit
+parent/local-coordinate contract before allowing nested creation.
 
 ### 4. Read-only specialist execution
 
@@ -89,15 +90,16 @@ $env:PYTHONUTF8='1'
   tests/test_document_camera.py
 ```
 
-Result: **94 passed**. The typed Assistant slice adds focused parser, apply,
-discard, stale-preview, and no-fallback tests. Python compilation for touched
-modules and `git diff --check` also passed. Run the relevant subset again
+Result: **99 passed**. The primitive-creation slice adds focused off-scene
+preview, material/tag, component, undo/redo, MCP approval, and session
+permission tests. Python compilation for touched modules and
+`git diff --check` also passed. Run the relevant subset again
 after every contract change; run the full suite before claiming release
 readiness.
 
 ## Stack base for continuation
 
-The typed Assistant slice is on `feature/ai-assistant-typed-preview`, stacked
-on the documentation handoff branch. Verify GitHub and the branch head before
+The primitive-creation slice is on `feature/ai-typed-creation`, stacked on
+`feature/ai-assistant-typed-preview`. Verify GitHub and the branch head before
 starting the next narrow PR.
 

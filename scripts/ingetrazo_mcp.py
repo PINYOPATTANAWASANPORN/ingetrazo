@@ -193,13 +193,17 @@ TOOLS = [
     {
         "name": "propose_actions",
         "description": (
-            "Propose bounded property edits without changing the document. "
+            "Propose bounded edits or primitive creation without changing the document. "
             "Supported actions: rename_entities {name}, set_visibility "
             "{visible}, set_lock {locked}, assign_tag {tag}, "
-            "assign_material {material}, and transform_entities. A transform "
+            "assign_material {material}, transform_entities, create_box with "
+            "name/origin/size, and create_cylinder with name/origin/radius/"
+            "height/segments. Creation may include tag, material and component. "
+            "A transform "
             "targets one top-level entity and uses operation=translate with "
             "delta=[x,y,z], rotate with center/axis/degrees, or scale with "
-            "center/factor. Every action also needs entity_ids. Holds one "
+            "center/factor. Existing-entity actions also need entity_ids; "
+            "creation is currently top-level only. Holds one "
             "document write lease. When task_id came from create_task, every "
             "entity must remain inside that task's resolved scope. It "
             "returns the exact before/after preview."),

@@ -42,6 +42,19 @@ reinterpreted as prose or allowed to fall through to the legacy recipe path.
 The preview holds no live mutation; revision and scope are checked again when
 the user applies it.
 
+## Creation previews must own prepared geometry off-scene
+
+A typed creation action builds its complete Group or Component during
+validation but does not append it to `Scene.groups`. The preview can therefore
+report its stable UID, bounds, Tag, material, and component status without a
+temporary live mutation. Approval inserts that same prepared entity through a
+command; Discard simply releases it, and Undo removes it exactly.
+
+Raw Python is a separate session capability. The model receives the current
+permission in its task contract, and the UI still blocks returned code below
+the prompt layer. A checkbox is explicit authorization for the current panel
+session only and must not be persisted silently.
+
 ## Revision semantics prevent false conflicts
 
 Camera movement and selection changes are view state. They must not stale a

@@ -190,6 +190,72 @@ def test_material_and_translation_preview_commit_as_one_undo_step():
     assert min(v.position.y() for v in box.mesh.vertices) == 4.0
 
 
+def test_typed_box_and_cylinder_creation_preview_and_commit_as_one_undo():
+    from core.orient import is_closed
+
+    scene = Scene()
+    scene.layers.append(Layer("Masses"))
+    scene.materials["Concrete"] = Material(
+        "Concrete", color=(0.6, 0.6, 0.6))
+    history = History(scene)
+    service = AIChangeService(scene, history)
+    args = {
+        "task_id": "create-masses",
+        "intent": "create a box and a column",
+        "base_revision": scene.content_version,
+        "idempotency_key": "create-masses-001",
+        "actions": [
+            {"action": "create_box", "name": "Podium",
+             "origin": [1, 2, 0], "size": [4, 3, 0.5],
+             "tag": "Masses", "material": "Concrete"},
+            {"action": "create_cylinder", "name": "Column",
+             "origin": [3, 3, 0.5], "radius": 0.25, "height": 3,
+             "segments": 16, "tag": "Masses", "component": True},
+        ],
+    }
+
+    preview = service.propose(**args)
+    assert preview["ok"] and preview["status"] == "preview_ready"
+    assert len(preview["changes"]) == 2
+    assert scene.groups == [] and history.undo_stack == []
+    box_preview, cylinder_preview = preview["changes"]
+    assert box_preview["field"] == "created"
+    assert box_preview["after"]["bounds"]["min"] == [1.0, 2.0, 0.0]
+    assert box_preview["after"]["bounds"]["size"] == [4.0, 3.0, 0.5]
+    assert cylinder_preview["entity_type"] == "component"
+    assert cylinder_preview["after"]["bounds"]["min"] == [2.75, 2.75, 0.5]
+
+    service.request_commit(args["task_id"], args["base_revision"],
+                           args["idempotency_key"])
+    committed = service.approve(args["task_id"])
+    assert committed["status"] == "committed"
+    assert len(scene.groups) == 2 and len(history.undo_stack) == 1
+    podium, column = scene.groups
+    assert podium.name == "Podium" and podium.layer == "Masses"
+    assert podium.material["mat"] == "Concrete"
+    assert column.name == "Column" and column.is_component()
+    assert all(is_closed(group.mesh) for group in scene.groups)
+    assert history.undo() and scene.groups == []
+    assert history.redo() and [group.name for group in scene.groups] == [
+        "Podium", "Column"]
+
+
+def test_typed_creation_rejects_invalid_or_nested_geometry():
+    scene, _history, chair, _table, service = _model()
+    base = scene.content_version
+    invalid = service.propose(
+        "bad-box", "create", base, "bad-box-key-001",
+        [{"action": "create_box", "name": "Bad", "size": [1, 0, 2]}])
+    assert invalid["code"] == "invalid_size"
+
+    scene.edit_group = chair
+    nested = service.propose(
+        "nested-box", "create", base, "nested-box-key-001",
+        [{"action": "create_box", "name": "Nested", "size": [1, 1, 1]}])
+    assert nested["code"] == "nested_creation_unsupported"
+    assert len(scene.groups) == 2
+
+
 def test_rotation_and_non_uniform_scale_have_exact_preview_and_redo():
     for operation, parameters, expected_size in (
             ("rotate", {"center": [0, 0, 0], "axis": [0, 0, 1],

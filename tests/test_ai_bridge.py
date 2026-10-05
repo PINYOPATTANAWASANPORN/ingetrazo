@@ -211,6 +211,8 @@ def test_bridge_context_tools_are_read_only(monkeypatch, tmp_path):
         caps = _ask(bridge, "get_capabilities")
         assert caps["ok"] and caps["result"]["write_actions"] is True
         assert caps["result"]["preview_changes"] is True
+        assert {"create_box", "create_cylinder"} <= set(
+            caps["result"]["write_action_types"])
         assert caps["result"]["commit_policy"] == \
             "per_change_set_user_approval"
         assert caps["result"]["security"] == {
@@ -264,6 +266,46 @@ def test_bridge_typed_write_waits_for_in_app_approval(monkeypatch, tmp_path):
         assert group.name == "Kitchen cabinet"
         assert len(vp.history.undo_stack) == 1
         assert vp.history.undo() and group.name == "Draft cabinet"
+        bridge.stop()
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_bridge_typed_creation_waits_for_in_app_approval(monkeypatch, tmp_path):
+    from plugins.ai_bridge import _Bridge
+    from views.main_window import MainWindow
+    monkeypatch.setenv("INGETRAZO_AI_PORT", "0")
+    monkeypatch.setenv("INGETRAZO_AI_CREDENTIAL_FILE",
+                       str(tmp_path / "session.json"))
+    win = MainWindow()
+    try:
+        vp = win.viewport
+        bridge = _Bridge(vp)
+        bridge.start()
+        base = vp.scene.content_version
+        count = len(vp.scene.groups)
+        args = {
+            "task_id": "create-column",
+            "intent": "create a round column",
+            "base_revision": base,
+            "idempotency_key": "create-column-001",
+            "actions": [{"action": "create_cylinder", "name": "Column",
+                         "origin": [2, 3, 0], "radius": 0.3,
+                         "height": 3, "segments": 24}],
+        }
+        proposed = _ask(bridge, "propose_actions", args)
+        assert proposed["result"]["status"] == "preview_ready"
+        assert len(vp.scene.groups) == count
+        requested = _ask(bridge, "commit_changes", {
+            "task_id": args["task_id"], "base_revision": base,
+            "idempotency_key": args["idempotency_key"]})
+        assert requested["result"]["status"] == "approval_required"
+        assert len(vp.scene.groups) == count
+        assert bridge.change_service().approve(args["task_id"])["status"] == \
+            "committed"
+        assert vp.scene.groups[-1].name == "Column"
+        assert vp.history.undo() and len(vp.scene.groups) == count
         bridge.stop()
     finally:
         win._saved_version = win.viewport.scene.version

@@ -251,11 +251,14 @@ and global undo/redo disabled unless the user opts in for that session. The
 first typed-write slice implements preview, validation, idempotency, a
 document write lease, stale-revision rejection, discard, and one-step undo for
 container naming, visibility, locking, existing-tag assignment, container
-materials, and bounded top-level translate/rotate/scale operations. Transform
+materials, bounded top-level translate/rotate/scale operations, and top-level
+box/cylinder creation. Creation geometry is built off-scene for preview and
+can carry an existing Tag, material, or component identity. Transform
 previews report exact before/after bounds and parameters. MCP can request a
 commit, but only the in-app Apply button can approve it. Creation actions,
-nested world-space transforms, and branch-rendered geometry previews remain
-for later Phase 2 slices. The first Phase 3 backend slice is also implemented:
+other than these primitives, nested world-space transforms, and
+branch-rendered geometry previews remain for later Phase 2 slices. The first
+Phase 3 backend slice is also implemented:
 `create_task` turns compact intent into a revision-pinned task with automatic
 selection/current-group/visible-model scope, constraints, assumptions,
 acceptance criteria, and a deterministic role plan. Registered tasks enforce
@@ -270,7 +273,8 @@ transform actions, validates them against the pinned task scope and revision,
 and shows Apply/Discard without mutating the document. Apply records one undo
 item, Discard records none, and a stale preview is rejected visibly. Python
 recipes remain the compatibility path for geometry creation and operations
-that the typed layer does not yet support.
+that the typed layer does not yet support, but are now disabled by default in
+the Assistant and require an explicit session-only advanced checkbox.
 Project memory is also implemented as an explicit bounded list owned by the
 open document: the user edits it visibly, the edit is undoable, it persists
 in `.igz`, and every new task snapshots the facts so a running contract cannot
