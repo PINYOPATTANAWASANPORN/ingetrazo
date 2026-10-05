@@ -13,8 +13,8 @@
     "pull_request": 33
   },
   "delivery": {
-    "pull_requests_total": 35,
-    "open": 35,
+    "pull_requests_total": 36,
+    "open": 36,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -77,7 +77,7 @@
   ],
   "implementation_delivery": {
     "branch": "feature/ai-architectural-creation",
-    "commit": null,
-    "pull_request": null
+    "commit": "247963d",
+    "pull_request": 38
   }
 }

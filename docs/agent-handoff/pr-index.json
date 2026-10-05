@@ -350,8 +350,18 @@
       "base": "feature/ai-streaming-cancel",
       "head": "feature/ai-context-suggestions",
       "merged": false,
-      "updated_at": "2026-10-05T02:39:11Z",
+      "updated_at": "2026-10-05T02:40:04Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/37"
+    },
+    {
+      "number": 38,
+      "state": "open",
+      "title": "Add scoped AI architectural creation",
+      "base": "feature/ai-context-suggestions",
+      "head": "feature/ai-architectural-creation",
+      "merged": false,
+      "updated_at": "2026-10-05T06:57:46Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/38"
     }
   ]
 }

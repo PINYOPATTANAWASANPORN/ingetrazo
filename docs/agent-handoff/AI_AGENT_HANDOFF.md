@@ -94,6 +94,7 @@ configured run passes. This is a selected suite, not release certification.
 ## Stack base for continuation
 
 The architectural-creation slice is on `feature/ai-architectural-creation`,
-stacked on `feature/ai-context-suggestions` (PR #37). Refer to `state.json` for
-the delivery commit and PR after publication. Verify GitHub and the branch
+stacked on `feature/ai-context-suggestions` (PR #37), delivered by
+[#38](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/38) at code commit
+`247963d`. Compilation and `git diff --check` also passed. Verify GitHub and the branch
 head before starting the next narrow PR.
