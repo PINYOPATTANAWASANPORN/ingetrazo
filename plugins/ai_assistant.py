@@ -183,24 +183,34 @@ class ProjectMemoryDialog(QDialog):
 
 
 class SpecialistModelsDialog(QDialog):
-    """Per-provider model names; blanks inherit the main Assistant model."""
+    """Role-specific provider and model choices; credentials stay in connection settings."""
 
-    def __init__(self, provider, models, parent=None):
+    def __init__(self, provider, models, parent=None, role_providers=None):
         super().__init__(parent)
         self.setWindowTitle(tr("Specialist models"))
         layout = QVBoxLayout(self)
-        label = QLabel(tr("Provider: {provider}. Both reviewers use this connection. Leave blank to use the main model.", provider=provider))
+        label = QLabel(tr("Choose a provider for each reviewer. Other providers use API keys already saved in the main connection settings. Leave the model blank to use that provider's saved or default model."))
         label.setWordWrap(True)
         layout.addWidget(label)
         self.editors = {}
+        self.provider_selectors = {}
+        role_providers = role_providers or {}
         for role, title in (("model_structure", tr("Model structure")),
                             ("task_requirements", tr("Task requirements"))):
             layout.addWidget(QLabel(title))
+            selector = QComboBox()
+            selector.addItem(tr("Same as Assistant ({provider})", provider=provider), "")
+            for choice in ai.PROVIDERS:
+                selector.addItem(ai.PROVIDER_INFO[choice][0], choice)
+            selector.setCurrentIndex(max(0, selector.findData(role_providers.get(role, ""))))
+            layout.addWidget(selector)
+            self.provider_selectors[role] = selector
             editor = QLineEdit(models.get(role, ""))
             editor.setMaxLength(200)
-            editor.setPlaceholderText(tr("Use main model"))
+            editor.setPlaceholderText(tr("Use selected provider's saved/default model"))
             layout.addWidget(editor)
             self.editors[role] = editor
+            selector.currentIndexChanged.connect(lambda _index, field=editor: field.clear())
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -208,6 +218,10 @@ class SpecialistModelsDialog(QDialog):
 
     def models(self):
         return {role: editor.text().strip() for role, editor in self.editors.items()}
+
+    def providers(self):
+        return {role: selector.currentData() or ""
+                for role, selector in self.provider_selectors.items()}
 
 
 class AsistentePanel(QWidget):
@@ -233,6 +247,7 @@ class AsistentePanel(QWidget):
         self._python_nudged = False
         self._generation = 0
         self._cancel_token = None
+        self._review_role_connections = {}
         self._stream_text = ""
         self._stream_flush_scheduled = False
         self._suggestions: list[dict] = []
@@ -298,8 +313,8 @@ class AsistentePanel(QWidget):
         self._probar.clicked.connect(self._on_probar)
         buttons.addWidget(self._probar)
         form.addRow(buttons)
-        self._specialist_models = QPushButton(tr("Specialist models…"))
-        self._specialist_models.setToolTip(tr("Choose a model for each read-only reviewer on the current provider"))
+        self._specialist_models = QPushButton(tr("Specialist connections…"))
+        self._specialist_models.setToolTip(tr("Choose a provider and model for each read-only reviewer"))
         self._specialist_models.clicked.connect(self._on_specialist_models)
         form.addRow(self._specialist_models)
 
@@ -840,15 +855,56 @@ class AsistentePanel(QWidget):
         return {role: str(settings.value(f"ia/review_models/{provider}/{role}", "") or "")
                 for role in ROLES}
 
+    def _review_providers(self):
+        from core.ai_review import ROLES
+        settings = self._settings()
+        return {role: str(settings.value(f"ia/review_providers/{role}", "") or "")
+                for role in ROLES}
+
+    def _review_connections(self, main_config):
+        from core.ai_review import ROLES
+        main_provider, main_model, main_key, ollama_url = main_config
+        settings = self._settings()
+        overrides = self._review_providers()
+        connections = {}
+        for role in ROLES:
+            provider = overrides[role] or main_provider
+            if provider not in ai.PROVIDERS:
+                raise ValueError("Unknown specialist provider; choose a connection again.")
+            model = str(settings.value(f"ia/review_models/{provider}/{role}", "") or "").strip()
+            if provider == main_provider:
+                key = main_key
+                model = model or main_model
+            else:
+                key = str(settings.value(f"ia/claves/{provider}", "") or "").strip()
+                model = model or str(settings.value(f"ia/modelos/{provider}", "") or "").strip()
+                model = model or ai.DEFAULT_MODELS[provider]
+            if provider == "ollama":
+                key = ""
+            if not 1 <= len(model) <= 200 or len(key) > 512:
+                raise ValueError("Specialist model or connection exceeds its limit.")
+            hint = self._missing_key_hint(provider, key)
+            if hint is not None:
+                raise ValueError(f"{role}: {hint}")
+            connections[role] = {"provider": provider, "model": model,
+                                 "key": key, "ollama_url": ollama_url}
+        return connections
+
     def _on_specialist_models(self):
         if self._busy or self._pending_task_id:
             return
         provider = self._effective_provider()
-        dialog = SpecialistModelsDialog(provider, self._review_models(provider), self)
+        overrides = self._review_providers()
+        models = {role: self._review_models(overrides[role] or provider)[role]
+                  for role in overrides}
+        dialog = SpecialistModelsDialog(provider, models, self,
+                                        role_providers=overrides)
         if dialog.exec() == QDialog.Accepted:
             settings = self._settings()
             for role, model in dialog.models().items():
-                settings.setValue(f"ia/review_models/{provider}/{role}", model)
+                selected_provider = dialog.providers()[role]
+                settings.setValue(f"ia/review_providers/{role}", selected_provider)
+                settings.setValue(f"ia/review_models/{selected_provider or provider}/{role}", model)
 
     def _on_modelos(self) -> None:
         if self._busy:
@@ -991,11 +1047,19 @@ class AsistentePanel(QWidget):
         prompt = self._input.text().strip()
         if not prompt:
             return
-        provider, _model, key, _ollama = self._config()
-        hint = self._missing_key_hint(provider, key)
-        if hint is not None:
-            self._append(hint, "err")     # the prompt stays in the box
-            return
+        main_config = self._config()
+        provider, _model, key, _ollama = main_config
+        if self._specialist_review.isChecked():
+            try:
+                self._review_role_connections = self._review_connections(main_config)
+            except ValueError as exc:
+                self._append(str(exc), "err")  # leave prompt intact
+                return
+        else:
+            hint = self._missing_key_hint(provider, key)
+            if hint is not None:
+                self._append(hint, "err")
+                return
         task = self._create_task(prompt)
         if not task.get("ok"):
             self._append(tr("Could not create the AI task: {err}",
@@ -1059,12 +1123,14 @@ class AsistentePanel(QWidget):
         token = ai_review.ReviewCancellation()
         self._cancel_token = token
         config = self._config()
-        role_models = self._review_models(config[0])
+        role_connections = {role: dict(connection) for role, connection in
+                            self._review_role_connections.items()}
         self._append(tr("Two specialists are reviewing the same metadata snapshot. Photos and geometry are not included."), "muted")
 
         def worker():
             try:
-                report = ai_review.run_review(packet, *config, token, role_models=role_models)
+                report = ai_review.run_review(packet, *config, token,
+                                              role_connections=role_connections)
                 self._reply.emit({"review": report, "generation": generation})
             except ai.CancelledError:
                 pass
@@ -1495,6 +1561,7 @@ class AsistentePanel(QWidget):
     def _finish(self) -> None:
         self._busy = False
         self._cancel_token = None
+        self._review_role_connections = {}
         self._cancel.setVisible(False)
         self._stream_preview.setVisible(False)
         pending = bool(self._pending_task_id)

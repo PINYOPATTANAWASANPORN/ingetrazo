@@ -80,3 +80,6 @@ Current development slice: `feature/ai-review-audit-file` on PR #43 adds explici
 
 
 Latest delivery: [PR #44](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/44), `feature/ai-review-audit-file` on #43; implementation `703a156`. Selected regression suite: 118 passed with simulated providers. GitHub snapshot: 42 total, 42 open, 0 merged. Earlier counts are historical. Installed build unchanged.
+
+
+Current development slice: `feature/ai-cross-provider-review` on PR #44 enables separate provider/model routing for Assistant specialists with preflight credential checks. Real-provider compatibility and quality evidence are still pending.

@@ -23,8 +23,8 @@
     "installed_build_verified": false
   },
   "validation": {
-    "scope": "selected review audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
-    "passed": 118,
+    "scope": "selected cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
+    "passed": 123,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -51,8 +51,8 @@
     {
       "phase": 4,
       "name": "multi-agent orchestration",
-      "percent": 45,
-      "status": "read_only_reviews_with_model_selection"
+      "percent": 55,
+      "status": "read_only_reviews_with_separate_provider_routing"
     },
     {
       "phase": 5,
@@ -62,9 +62,9 @@
     }
   ],
   "next_recommended_work": [
+    "measure real-provider review quality, compatibility, latency and token usage with the versioned corpus",
     "consider signed or independently anchored audit evidence; current saved history is unsigned",
-    "capture provider baselines with the versioned corpus and real token telemetry",
-    "add provider compatibility and separately scoped cross-provider role credentials",
+    "design independently authenticated specialist identities if external agents need trust separation",
     "extend architectural editing to existing-wall openings, arbitrary slab profiles and isolated geometry previews"
   ],
   "documents": [

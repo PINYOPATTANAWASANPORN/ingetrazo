@@ -455,3 +455,6 @@ MCP can page through hash-linked, append-only review status metadata for the cur
 
 ### Review history file update — 2026-10-05
 Assistant now saves the complete session history to a user-chosen JSON file and can verify the file after restarting. The save is atomic, size-bounded, and contains metadata rather than reviewer prose. The checksums are unsigned; independent anchoring/signing and real-provider measurements remain future work.
+
+### Cross-provider reviewer update — 2026-10-05
+Assistant's two read-only reviewers can now select different providers and models while sharing the same bounded snapshot. Each role resolves its own previously saved provider key before dispatch; missing keys block the review. Credentials stay out of reports and review exports. This adds routing flexibility but no claim of independent reviewer identity or measured quality; provider compatibility and real token baselines remain pending.

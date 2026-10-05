@@ -113,3 +113,7 @@ Branch `feature/ai-review-audit-file` builds on PR #43. Assistant can atomically
 
 
 Latest delivery: [PR #44](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/44), `feature/ai-review-audit-file` on #43; implementation `703a156`. Selected regression suite: 118 passed with simulated providers. GitHub snapshot: 42 total, 42 open, 0 merged. Earlier counts are historical. Installed build unchanged.
+
+
+## Separate provider routing for read-only reviewers (2026-10-05)
+Branch `feature/ai-cross-provider-review` builds on PR #44. Assistant can choose a provider and model per read-only specialist. Role overrides reuse provider-scoped connection settings and validate all required keys before dispatch. The same detached snapshot goes to both workers; keys are absent from reports and error text is redacted. External MCP review protocol is unchanged. Selected suite: 123 passed with simulated providers; no real-provider baseline or installed build update.

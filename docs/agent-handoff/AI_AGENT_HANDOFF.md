@@ -45,14 +45,14 @@
   memory, in-app typed approval, streaming, cooperative cancellation, local
   suggestion chips, and the versioned evaluation corpus work. A richer visible
   plan and measured provider baselines remain.
-- **Phase 4 — 45%:** two provider-backed read-only specialists execute in
-  parallel in the Assistant over one bounded snapshot, with per-role model
-  names saved separately for each provider. Conflicts, partial
+- **Phase 4 — 55%:** two provider-backed read-only specialists execute in
+  parallel in the Assistant over one bounded snapshot, with per-role provider
+  and model choices using provider-scoped saved keys. Conflicts, partial
   failures, stale results and cancellation are handled. External MCP review
   assignments/submissions now share validation and conflict aggregation.
   General modeler orchestration remains.
-- **Phase 5 — 35%:** the early local-security gate exists; audit export,
-  recovery, resources/prompts, compatibility tests, and benchmarks remain.
+- **Phase 5 — 45%:** the local-security gate and explicit unsigned audit files
+  exist; signed evidence, recovery, compatibility tests and benchmarks remain.
 
 ## Recommended next sequence
 
@@ -67,11 +67,12 @@ and an isolated geometry viewport preview.
 ### 2. Extend specialist orchestration
 
 The Assistant now executes `model_structure` and `task_requirements` through
-two calls to the selected provider, using per-role model choices, with no scene or write tools in the
-workers. External MCP clients can dispatch their own reviewers using the
-role-bound snapshot protocol; the app does not launch those providers. See [the review contract](../ai-specialist-review.md). Next add an
-cross-provider role credentials and audit export before allowing
-modeler proposals. Retain coordinator-only merge/commit and explicit approval.
+two role-specific provider connections over one snapshot, with no scene or
+write tools in the workers. External MCP clients can dispatch their own
+reviewers using the role-bound snapshot protocol; the app does not launch
+those providers. See [the review contract](../ai-specialist-review.md).
+Measure provider compatibility and review quality before allowing modeler
+proposals. Retain coordinator-only merge/commit and explicit approval.
 
 ### 3. Capture measurable provider baselines
 
@@ -126,3 +127,7 @@ Branch `feature/ai-review-audit-file` builds on PR #43. Assistant can atomically
 
 
 Latest delivery: [PR #44](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/44), `feature/ai-review-audit-file` on #43; implementation `703a156`. Selected regression suite: 118 passed with simulated providers. GitHub snapshot: 42 total, 42 open, 0 merged. Earlier counts are historical. Installed build unchanged.
+
+
+## Separate provider routing for read-only reviewers (2026-10-05)
+Branch `feature/ai-cross-provider-review` builds on PR #44. Assistant can choose a provider and model per read-only specialist. Role overrides reuse provider-scoped connection settings and validate all required keys before dispatch. The same detached snapshot goes to both workers; keys are absent from reports and error text is redacted. External MCP review protocol is unchanged. Selected suite: 123 passed with simulated providers; no real-provider baseline or installed build update.

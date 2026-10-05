@@ -204,3 +204,7 @@ Keep review history separate from the mutable latest report. A stale transition 
 
 ## Explicit review history file (2026-10-05)
 A paged in-memory event trail is useful live but vanishes at session end. Add an explicit atomic save path and an offline verifier before calling it a reusable record. Verify both the outer checksum and each inner chain link; recomputing the outer checksum alone cannot validate sequence continuity. Use a larger input-byte limit than canonical payload size because pretty-printed JSON expands on disk. State clearly that unsigned files can be rewritten with new checksums.
+
+
+## Separate provider routing for read-only reviewers (2026-10-05)
+Resolve each reviewer connection on the GUI thread before dispatch and freeze both credential bundles for workers. A missing key must stop the entire review before a partial provider request is sent. Reuse existing provider-scoped saved keys; persist only role provider/model choices, and never serialize keys into task reports or audit exports. Exception text from provider libraries may contain a key, so redact every configured key before surfacing a role failure. Distinct connections still do not prove independent reviewer identities or quality.

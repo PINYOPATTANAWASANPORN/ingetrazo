@@ -195,3 +195,5 @@ Assistant and MCP now export revision-checked, allowlisted JSON review bundles w
 `get_review_audit` reads up to 100 review-status events per call, starting after a sequence number. Each event links to its predecessor with SHA-256, includes only review metadata and resets with the bridge/document session. It does not provide signed, durable audit evidence. See [review contract](ai-specialist-review.md).
 
 Assistant can explicitly export the complete current history and verify the saved file offline. MCP continues to expose bounded pages; it never chooses a server-side file path. The file checksum and event chain detect corruption but do not authenticate the reviewer. See [review contract](ai-specialist-review.md).
+
+Assistant specialist roles may use separate saved provider connections. External MCP coordination already lets its caller choose independent providers; bridge role tokens still correlate submissions rather than authenticate distinct agents. Provider keys are never returned by MCP review tools. See [review contract](ai-specialist-review.md).
