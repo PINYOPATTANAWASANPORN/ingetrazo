@@ -113,7 +113,7 @@
   },
   "ui_fix_delivery": {
     "branch": "fix/ai-assistant-review-controls",
-    "commit": "5ae2b323f7f93e3e208cea82927b4a0652ba52e2",
+    "commit": "d88c470c28d36bd2d4d16fb8fd90e3765b38215e",
     "pull_request": 47,
     "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/47",
     "draft": true,
