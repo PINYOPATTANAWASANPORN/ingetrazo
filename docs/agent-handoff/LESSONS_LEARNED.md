@@ -33,6 +33,15 @@ returned recipes when execution is `analysis_only` or the goal is `check`,
 `quantify`, or `explain`. The change service also rejects writes for registered
 read-only tasks. Keep both layers.
 
+## A malformed typed reply must fail closed
+
+The in-app Assistant treats a fenced JSON block as an attempted change
+proposal. Incomplete JSON, extra top-level fields, empty actions, or a reply
+that mixes JSON actions with Python is rejected visibly. It must never be
+reinterpreted as prose or allowed to fall through to the legacy recipe path.
+The preview holds no live mutation; revision and scope are checked again when
+the user applies it.
+
 ## Revision semantics prevent false conflicts
 
 Camera movement and selection changes are view state. They must not stale a

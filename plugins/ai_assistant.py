@@ -3,12 +3,10 @@
 """Asistente IA — model with AI from INSIDE IngeTrazo, in the side tray's
 «AI» tab (Ctrl+Shift+A brings it forward, even when hidden).
 
-The user types what they want; the model answers in Spanish and acts by
-emitting ONE ```python recipe per turn, which runs through the shared
-transactional executor (core.ai): one undo step per action, whole-rollback
-on error, the hermeticity guard validating every solid. After each action
-the assistant receives the result — and, for vision-capable providers, a
-live viewport screenshot, so it SEES what it built and iterates.
+The user types what they want; the model answers in Spanish. Existing entity
+properties use typed JSON proposals that the user previews and explicitly
+applies or discards. Unsupported geometry creation can still use ONE
+```python recipe per turn through the transactional executor (core.ai).
 
 Providers follow the IngePresupuestos convention the user already knows:
 paste ONE API key and the provider is detected by its prefix (gsk_ → Groq,
@@ -67,12 +65,26 @@ SYSTEM_PROMPT = "\n".join((
     "Eres el asistente de modelado de IngeTrazo. " + ai_recipes.UNITS
     + " Conversas en español, breve y claro.",
     """
-Para ACTUAR sobre el modelo incluye EXACTAMENTE UN bloque ```python por \
-respuesta. Tras cada bloque recibirás su resultado (stdout/errores y, si \
-está disponible, una captura del viewport) — revísalo e itera. Cuando el \
-pedido esté terminado, responde SIN bloque de código con un resumen corto. \
-SIN bloque no se ejecuta nada: nunca describas como hecho lo que no has \
-ejecutado.""".strip(),
+    Para cambiar propiedades de grupos o componentes existentes, responde \
+con EXACTAMENTE UN bloque ```json y nada de Python, con esta forma estricta: \
+{"actions":[...]}. Acciones admitidas: \
+{"action":"rename_entities","entity_ids":["id"],"name":"Nombre"}; \
+{"action":"set_visibility","entity_ids":["id"],"visible":true}; \
+{"action":"set_lock","entity_ids":["id"],"locked":true}; \
+{"action":"assign_tag","entity_ids":["id"],"tag":"Etiqueta"}; \
+{"action":"assign_material","entity_ids":["id"],"material":"Material"}; \
+{"action":"transform_entities","entity_ids":["id"],"operation":"translate",\
+"delta":[x,y,z]}. rotate usa center, axis y degrees; scale usa center y \
+factor (número o vector de tres números). Usa solo entity_ids del contrato. \
+El programa validará el bloque y mostrará una vista previa que el usuario \
+debe aprobar; nunca afirmes que ya se aplicó.
+
+Para crear geometría o hacer una operación aún no admitida por esas acciones, \
+incluye EXACTAMENTE UN bloque ```python por respuesta. Tras ejecutarlo \
+recibirás stdout/errores y, si está disponible, una captura del viewport. \
+No mezcles bloques JSON y Python. Cuando el pedido esté terminado, responde \
+sin bloques con un resumen corto. Sin un bloque no se ejecuta nada: nunca \
+describas como hecho lo que no has ejecutado.""".strip(),
     ai_recipes.SCOPE,
     ai_recipes.RECIPES,
     ai_recipes.HOW_IT_RUNS.format(unit="bloque"),
@@ -169,10 +181,13 @@ class AsistentePanel(QWidget):
         self._nudged = False
         self._last_prompt = ""
         self._tasks = None
+        self._changes = None
         self._task_packet: dict | None = None
         self._active_task_id = ""
         self._task_changed = False
         self._analysis_nudged = False
+        self._pending_task_id = ""
+        self._pending_idempotency_key = ""
         self._foto: tuple[str, str, str] | None = None  # (b64, mime, name)
         self._reply.connect(self._on_reply, Qt.QueuedConnection)
         self._build_ui()
@@ -311,9 +326,27 @@ class AsistentePanel(QWidget):
         self._task_chip = QLabel("")
         self._task_chip.setVisible(False)
         bl.addWidget(self._task_chip)
+        self._change_preview = QPlainTextEdit()
+        self._change_preview.setReadOnly(True)
+        self._change_preview.setMaximumHeight(120)
+        self._change_preview.setVisible(False)
+        bl.addWidget(self._change_preview)
+        preview_row = QHBoxLayout()
+        self._apply_changes = QPushButton(tr("Apply changes"))
+        self._apply_changes.clicked.connect(self._on_apply_typed_changes)
+        self._discard_changes = QPushButton(tr("Discard"))
+        self._discard_changes.clicked.connect(self._on_discard_typed_changes)
+        preview_row.addWidget(self._apply_changes)
+        preview_row.addWidget(self._discard_changes)
+        preview_row.addStretch()
+        self._preview_buttons = QWidget()
+        self._preview_buttons.setLayout(preview_row)
+        self._preview_buttons.setVisible(False)
+        bl.addWidget(self._preview_buttons)
         narrow(self._intent_scope, self._intent_goal, self._intent_mode,
                self._intent_assumptions, self._project_memory,
-               self._task_chip)
+               self._task_chip, self._change_preview,
+               self._apply_changes, self._discard_changes)
 
         self._input = PromptEdit()
         self._input.setPlaceholderText(
@@ -417,6 +450,17 @@ class AsistentePanel(QWidget):
             from core.ai_tasks import AITaskService
             self._tasks = AITaskService(self._viewport.scene)
         return self._tasks
+
+    def _change_service(self):
+        tasks = self._task_service()
+        if (self._changes is None
+                or self._changes.scene is not self._viewport.scene
+                or self._changes.history is not self._viewport.history
+                or self._changes.tasks is not tasks):
+            from core.ai_changes import AIChangeService
+            self._changes = AIChangeService(
+                self._viewport.scene, self._viewport.history, tasks)
+        return self._changes
 
     def _create_task(self, prompt: str) -> dict:
         assumptions = [item.strip() for item in
@@ -659,7 +703,7 @@ class AsistentePanel(QWidget):
 
     # ---- Chat loop ----------------------------------------------------------
     def _on_send(self) -> None:
-        if self._busy:
+        if self._busy or self._pending_task_id:
             return
         prompt = self._input.text().strip()
         if not prompt:
@@ -678,6 +722,7 @@ class AsistentePanel(QWidget):
         self._active_task_id = task["task_id"]
         self._task_changed = False
         self._analysis_nudged = False
+        self._clear_typed_preview()
         self._task_service().transition(self._active_task_id, "running")
         self._task_chip.setText(tr(
             "Task: {goal} · {scope} · {count} entities · {mode}",
@@ -753,6 +798,109 @@ class AsistentePanel(QWidget):
 
         threading.Thread(target=worker, daemon=True).start()
 
+    @staticmethod
+    def _preview_text(result: dict) -> str:
+        lines = [tr("Review these changes before applying:")]
+        for change in result.get("changes", []):
+            name = change.get("entity_name") or change.get("entity_id")
+            lines.append("• {name} · {field}: {before} → {after}".format(
+                name=name, field=change.get("field"),
+                before=change.get("before"), after=change.get("after")))
+        if not result.get("changes"):
+            lines.append(tr("No effective changes."))
+        return "\n".join(lines)
+
+    def _clear_typed_preview(self) -> None:
+        self._pending_task_id = ""
+        self._pending_idempotency_key = ""
+        if hasattr(self, "_change_preview"):
+            self._change_preview.clear()
+            self._change_preview.setVisible(False)
+            self._preview_buttons.setVisible(False)
+            self._apply_changes.setEnabled(True)
+            self._discard_changes.setEnabled(True)
+
+    def _typed_failure(self, result) -> None:
+        message = (result.get("message") if isinstance(result, dict)
+                   else str(result))
+        self._append(tr("Typed change proposal was rejected: {err}",
+                        err=message), "err")
+        if self._active_task_id:
+            service = self._change_service()
+            summary = service.summary()
+            if summary and summary.get("task_id") == self._active_task_id:
+                service.discard(self._active_task_id)
+        self._clear_typed_preview()
+        self._finish()
+
+    def _prepare_typed_preview(self, actions: list[dict]) -> None:
+        task = self._task_packet or {}
+        task_id = self._active_task_id
+        key = f"{task_id}-assistant-{self._round + 1}"
+        service = self._change_service()
+        result = service.propose(
+            task_id=task_id, intent=task.get("intent", ""),
+            base_revision=task.get("base_revision"),
+            idempotency_key=key, actions=actions)
+        if not result.get("ok"):
+            self._typed_failure(result)
+            return
+        validation = service.validate(task_id)
+        if not validation.get("ok") or not validation.get(
+                "validation", {}).get("valid"):
+            self._typed_failure(validation)
+            return
+        result = service.request_commit(
+            task_id=task_id, base_revision=task.get("base_revision"),
+            idempotency_key=key)
+        if not result.get("ok"):
+            self._typed_failure(result)
+            return
+        self._pending_task_id = task_id
+        self._pending_idempotency_key = key
+        self._change_preview.setPlainText(self._preview_text(result))
+        self._change_preview.setVisible(True)
+        self._preview_buttons.setVisible(True)
+        self._busy = False
+        self._send.setEnabled(False)
+        self._append(tr(
+            "The proposal is validated. Review it, then Apply or Discard."),
+            "muted")
+
+    def _on_apply_typed_changes(self) -> None:
+        task_id = self._pending_task_id
+        if not task_id:
+            return
+        self._apply_changes.setEnabled(False)
+        self._discard_changes.setEnabled(False)
+        result = self._change_service().approve(task_id)
+        if not result.get("ok"):
+            self._typed_failure(result)
+            return
+        self._task_changed = bool(result.get("changed"))
+        if self._task_changed:
+            self._append(tr("Applied {n} validated changes as one undo step.",
+                            n=len(result.get("changes", []))), "ok")
+        else:
+            self._append(tr("The validated proposal required no changes."),
+                         "muted")
+        self._clear_typed_preview()
+        self._viewport.notify_scene_changed()
+        self._finish()
+
+    def _on_discard_typed_changes(self) -> None:
+        task_id = self._pending_task_id
+        if not task_id:
+            return
+        result = self._change_service().discard(task_id)
+        if not result.get("ok"):
+            self._typed_failure(result)
+            return
+        self._append(tr("Discarded the proposal; the model is unchanged."),
+                     "muted")
+        self._clear_typed_preview()
+        self._finish()
+
     def _on_reply(self, msg: dict) -> None:
         if msg.get("retry"):
             reason = str(msg.get("reason", ""))
@@ -803,6 +951,18 @@ class AsistentePanel(QWidget):
         self._convo.append({"role": "assistant", "text": text})
         self._append(f"IA: {text}", "ai")
         code = ai.extract_code(text)
+        try:
+            actions = ai.extract_typed_actions(text)
+        except ValueError as exc:
+            self._typed_failure(str(exc))
+            return
+        if actions is not None:
+            if code is not None:
+                self._typed_failure(
+                    "a reply cannot mix typed JSON actions and Python")
+                return
+            self._prepare_typed_preview(actions)
+            return
         if code is None and ai.truncated_code(text):
             # Cut by max_tokens mid-recipe: half a block must neither run
             # nor end the loop silently — ask for a smaller, complete one.
@@ -857,12 +1017,13 @@ class AsistentePanel(QWidget):
                 # compound answered «se añadió una cumbrera…» with no
                 # block, Marco 2026-09-15): one push, then let it be.
                 self._nudged = True
-                self._append(tr("No code came back — asking for the recipe."),
+                self._append(tr("No executable action came back — asking for a typed proposal or recipe."),
                              "muted")
                 self._convo.append({"role": "user", "text":
-                    "No incluiste ningún bloque ```python: NADA se ejecutó "
-                    "y el modelo no cambió. Escribe ahora la receta completa "
-                    "en UN bloque ```python (sin describirla antes)."})
+                    "No incluiste un bloque ejecutable: NADA se ejecutó y el "
+                    "modelo no cambió. Para propiedades de entidades existentes, "
+                    "envía UN bloque ```json con {\"actions\":[...]}; para crear "
+                    "geometría, envía UN bloque ```python completo. No mezcles ambos."})
                 self._next_turn()
                 return
             self._finish()
@@ -897,14 +1058,18 @@ class AsistentePanel(QWidget):
 
     def _finish(self) -> None:
         self._busy = False
-        self._send.setEnabled(True)
-        self._set_task_controls_enabled(True)
+        pending = bool(self._pending_task_id)
+        self._send.setEnabled(not pending)
+        self._set_task_controls_enabled(not pending)
         if self._active_task_id:
-            status = "committed" if self._task_changed else "completed"
-            self._task_service().transition(
-                self._active_task_id, status,
-                {"changed": self._task_changed,
-                 "content_revision": self._viewport.scene.content_version})
+            current = self._task_service().get(self._active_task_id)
+            terminal = {"committed", "completed", "discarded", "stale"}
+            if current.get("status") not in terminal and not pending:
+                status = "committed" if self._task_changed else "completed"
+                self._task_service().transition(
+                    self._active_task_id, status,
+                    {"changed": self._task_changed,
+                     "content_revision": self._viewport.scene.content_version})
 
     def _screenshot_b64(self) -> str | None:
         try:

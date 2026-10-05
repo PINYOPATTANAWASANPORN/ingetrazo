@@ -90,6 +90,22 @@ def test_parse_reply_and_extract_code():
     assert ai.extract_code("sin código") is None
 
 
+def test_extract_typed_actions_is_strict_and_never_hides_broken_json():
+    actions = [{"action": "rename_entities", "entity_ids": ["g-1"],
+                "name": "Desk"}]
+    text = "Propongo:\n```json\n" + json.dumps({"actions": actions}) + "\n```"
+    assert ai.extract_typed_actions(text) == actions
+    assert ai.extract_typed_actions("sin propuesta") is None
+
+    import pytest
+    with pytest.raises(ValueError, match="incomplete"):
+        ai.extract_typed_actions('```json\n{"actions":[')
+    with pytest.raises(ValueError, match="only an actions field"):
+        ai.extract_typed_actions('```json\n{"actions":[],"note":"x"}\n```')
+    with pytest.raises(ValueError, match="non-empty"):
+        ai.extract_typed_actions('```json\n{"actions":[]}\n```')
+
+
 def test_compact_messages_stubs_old_recipes_keeps_recent():
     # Past recipes are dead weight (their effect is in the document): all
     # but the last 2 collapse to a stub, prose and feedback stay whole.
@@ -253,6 +269,155 @@ def test_truncated_code_detects_a_cut_reply():
 
 
 # ---- In-app agent loop ------------------------------------------------------
+
+def _wait_for_assistant(dlg):
+    app = QApplication.instance()
+    for _ in range(2000):
+        app.processEvents()
+        if not dlg._busy:
+            break
+    assert not dlg._busy
+
+
+def test_assistant_typed_preview_waits_for_apply_and_commits_one_undo(monkeypatch):
+    from core.group import Group
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    try:
+        group = Group(name="Chair")
+        win.viewport.scene.groups.append(group)
+        win.viewport.scene.selection.add(group)
+        reply = json.dumps({"actions": [{
+            "action": "rename_entities", "entity_ids": [group.uid],
+            "name": "Dining chair"}]})
+        monkeypatch.setattr(ai, "chat", lambda *a, **k:
+                            f"```json\n{reply}\n```")
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._key.setText("sk-ant-test")
+        dlg._shots.setChecked(False)
+        before = len(win.viewport.history.undo_stack)
+        dlg._input.setText("rename this to Dining chair")
+        dlg._on_send()
+        _wait_for_assistant(dlg)
+
+        assert group.name == "Chair"
+        assert len(win.viewport.history.undo_stack) == before
+        assert dlg._pending_task_id
+        assert not dlg._change_preview.isHidden()
+        task_id = dlg._pending_task_id
+        assert dlg._task_service().get(task_id)["status"] == "approval_required"
+
+        dlg._on_apply_typed_changes()
+        assert group.name == "Dining chair"
+        assert len(win.viewport.history.undo_stack) == before + 1
+        assert dlg._task_service().get(task_id)["status"] == "committed"
+        assert not dlg._pending_task_id
+        assert win.viewport.history.undo()
+        assert group.name == "Chair"
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_assistant_typed_preview_can_be_discarded_without_mutation(monkeypatch):
+    from core.group import Group
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    try:
+        group = Group(name="Table")
+        win.viewport.scene.groups.append(group)
+        win.viewport.scene.selection.add(group)
+        payload = {"actions": [{"action": "set_visibility",
+                                  "entity_ids": [group.uid],
+                                  "visible": False}]}
+        monkeypatch.setattr(ai, "chat", lambda *a, **k:
+                            f"```json\n{json.dumps(payload)}\n```")
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._key.setText("sk-ant-test")
+        dlg._shots.setChecked(False)
+        before = len(win.viewport.history.undo_stack)
+        dlg._input.setText("hide this")
+        dlg._on_send()
+        _wait_for_assistant(dlg)
+        task_id = dlg._pending_task_id
+        dlg._on_discard_typed_changes()
+
+        assert not group.hidden
+        assert len(win.viewport.history.undo_stack) == before
+        assert dlg._task_service().get(task_id)["status"] == "discarded"
+        assert dlg._send.isEnabled()
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_assistant_typed_preview_refuses_stale_apply(monkeypatch):
+    from core.group import Group
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    try:
+        group = Group(name="Original")
+        win.viewport.scene.groups.append(group)
+        win.viewport.scene.selection.add(group)
+        payload = {"actions": [{"action": "rename_entities",
+                                  "entity_ids": [group.uid],
+                                  "name": "Proposed"}]}
+        monkeypatch.setattr(ai, "chat", lambda *a, **k:
+                            f"```json\n{json.dumps(payload)}\n```")
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._key.setText("sk-ant-test")
+        dlg._shots.setChecked(False)
+        before = len(win.viewport.history.undo_stack)
+        dlg._input.setText("rename this")
+        dlg._on_send()
+        _wait_for_assistant(dlg)
+        task_id = dlg._pending_task_id
+
+        win.viewport.scene.version += 1
+        dlg._on_apply_typed_changes()
+        assert group.name == "Original"
+        assert len(win.viewport.history.undo_stack) == before
+        assert dlg._task_service().get(task_id)["status"] == "stale"
+        assert "document changed after this preview" in dlg._chat.toPlainText()
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
+def test_assistant_rejects_malformed_typed_json_without_python_fallback(monkeypatch):
+    from core.group import Group
+    from plugins.ai_assistant import AsistenteDialog
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    try:
+        group = Group(name="Safe")
+        win.viewport.scene.groups.append(group)
+        win.viewport.scene.selection.add(group)
+        monkeypatch.setattr(ai, "chat", lambda *a, **k:
+                            '```json\n{"actions":[}\n```\n```python\n'
+                            "scene.groups[0].name='Unsafe'\n```")
+        dlg = AsistenteDialog(win.viewport, parent=win)
+        dlg._key.setText("sk-ant-test")
+        dlg._shots.setChecked(False)
+        before = len(win.viewport.history.undo_stack)
+        dlg._input.setText("rename this")
+        dlg._on_send()
+        _wait_for_assistant(dlg)
+
+        assert group.name == "Safe"
+        assert len(win.viewport.history.undo_stack) == before
+        assert "invalid typed action JSON" in dlg._chat.toPlainText()
+        assert not dlg._pending_task_id
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
 
 def test_assistant_loop_executes_recipes_transactionally(monkeypatch):
     from plugins.ai_assistant import AsistenteDialog

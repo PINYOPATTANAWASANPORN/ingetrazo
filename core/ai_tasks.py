@@ -264,7 +264,7 @@ class AITaskService:
         task = self.task(task_id)
         if task is None:                         # legacy unregistered task
             return None
-        if task.status not in {"ready", "preview_ready"}:
+        if task.status not in {"ready", "running", "preview_ready"}:
             return _error("invalid_task_state",
                           f"task is {task.status}, not ready for a proposal")
         if task.execution == "analysis_only" or task.goal in {

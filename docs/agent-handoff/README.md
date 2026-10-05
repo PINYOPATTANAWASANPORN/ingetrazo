@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-05**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- Delivery state: **31 open PRs; none merged into the fork's `main`**
+- Delivery state: **32 open PRs; none merged into the fork's `main`**
 
 ## Read in this order
 
@@ -23,8 +23,9 @@ and the engineering knowledge extracted from the work.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
-#32. New code should preserve this documentation layer or update it in the
-same change.
+#32. The typed Assistant implementation continues in
+[#34](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/34). New code
+should preserve this documentation layer or update it in the same change.
 
 The detailed design documents remain authoritative for their domains:
 
@@ -50,4 +51,3 @@ When work continues, update `state.json`, the affected summary, validation
 evidence, and `pr-index.json`. Record exact commands and outcomes. Do not erase
 failed attempts that reveal a reusable constraint; add the lesson to
 `LESSONS_LEARNED.md`.
-

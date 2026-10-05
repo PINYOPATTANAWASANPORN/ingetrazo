@@ -106,11 +106,15 @@ proveedor se detecta solo por el prefijo, la convención de IngePresupuestos:
 | `sk-` | OpenAI | gpt-4o |
 | *(vacía)* | Ollama local | llama3.2 |
 
-Escribe qué quieres ("dibuja una casa de 6×4 con techo a dos aguas") y el
-asistente actúa por recetas de Python transaccionales — cada acción es un
-paso de undo, y con proveedores con visión recibe capturas del viewport
-para VER lo que construyó e iterar. El modelo es editable, y la clave se
-guarda en la configuración local.
+Escribe qué quieres. Para renombrar, mostrar/ocultar, bloquear, asignar una
+etiqueta o material, y mover/girar/escalar grupos o componentes de nivel
+superior, el asistente devuelve acciones tipadas y muestra los valores antes
+y después. El modelo no cambia hasta pulsar **Aplicar cambios**; **Descartar**
+no deja ningún cambio y una revisión obsoleta se rechaza. Aplicar registra el
+conjunto como un solo paso de Deshacer. La creación de geometría y las
+operaciones aún no tipadas conservan temporalmente las recetas Python
+transaccionales. Con proveedores con visión, el asistente recibe capturas del
+viewport para revisar lo que construyó.
 
 Antes de cada turno el asistente recibe un resumen pequeño del documento
 abierto (selección, unidades, etiqueta activa y los primeros grupos). Así un
@@ -128,9 +132,9 @@ La caja del Asistente ofrece los mismos datos como controles compactos:
 **alcance**, **objetivo**, **Actuar (deshacer)** o **Solo análisis**, más una
 línea de supuestos visibles separada por punto y coma. El contrato acompaña
 automáticamente cada turno. Solo análisis rechaza cualquier receta Python
-devuelta por el proveedor. Actuar conserva temporalmente la ruta transaccional
-de recetas; la vista previa tipada y Aplicar/Descartar siguen en el puente MCP
-hasta que el bucle interno comparta sus tools.
+o propuesta tipada devuelta por el proveedor. Actuar usa vista previa tipada
+para las acciones admitidas y mantiene la ruta de recetas como compatibilidad
+para creación y edición de geometría aún no cubierta.
 
 El botón **Memoria** abre los hechos duraderos del proyecto, uno por línea.
 Se guardan dentro del `.igz`, la edición participa en Deshacer/Rehacer y cada
