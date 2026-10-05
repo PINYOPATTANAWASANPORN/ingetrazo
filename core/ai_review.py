@@ -96,8 +96,18 @@ def _parse(text, packet):
     return data
 
 
-def run_review(packet, provider, model, key, ollama_url, cancellation):
+def run_review(packet, provider, model, key, ollama_url, cancellation, role_models=None):
     """Blocking worker entry point; two requests, no write path or live state."""
+    if role_models is None:
+        role_models = {}
+    if not isinstance(role_models, dict) or set(role_models) - set(ROLES):
+        raise ValueError("unknown specialist model role")
+    selected = {}
+    for role in ROLES:
+        value = role_models.get(role, "")
+        if not isinstance(value, str) or len(value) > 200:
+            raise ValueError("specialist model names must contain at most 200 characters")
+        selected[role] = value.strip() or model
     payload = json.dumps(packet, ensure_ascii=False, separators=(",", ":"))
 
     def run_role(role):
@@ -115,16 +125,18 @@ def run_review(packet, provider, model, key, ollama_url, cancellation):
             "At most 20 findings, one per entity/topic; summary <=1000 characters, "
             "evidence <=500 characters. Use the user's language. Missing evidence means unknown.")
         try:
-            text = ai.chat(provider, model, key, system,
+            text = ai.chat(provider, selected[role], key, system,
                            [{"role": "user", "text": payload}],
                            ollama_url=ollama_url, max_tokens=1500, cancel_token=token)
             if token.cancelled:
                 raise ai.CancelledError("review cancelled")
-            return {"role": role, "ok": True, **_parse(text, packet)}
+            return {"role": role, "ok": True, "provider": provider,
+                    "model": selected[role], **_parse(text, packet)}
         except ai.CancelledError:
             raise
         except Exception as exc:
-            return {"role": role, "ok": False, "error": str(exc)[:300]}
+            return {"role": role, "ok": False, "provider": provider,
+                    "model": selected[role], "error": str(exc)[:300]}
 
     with ThreadPoolExecutor(max_workers=2, thread_name_prefix="ai-review") as pool:
         futures = [pool.submit(run_role, role) for role in ROLES]
@@ -156,7 +168,10 @@ def report_text(report):
     lines = [f"Specialist review: {report['status']} (revision {report['base_revision']})",
              *report["limitations"]]
     for specialist in report["specialists"]:
-        lines.append(specialist["role"] + ": " + (
+        identity = specialist["role"]
+        if specialist.get("model"):
+            identity += f" [{specialist.get('provider', '')} / {specialist['model']}]"
+        lines.append(identity + ": " + (
             specialist["summary"] if specialist["ok"] else "ERROR: " + specialist["error"]))
         for finding in specialist.get("findings", []):
             lines.append(f"  {finding['entity_id']} / {finding['topic']} / "

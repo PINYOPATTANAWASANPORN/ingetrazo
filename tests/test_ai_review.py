@@ -126,3 +126,46 @@ def test_cancel_closes_both_active_requests_and_no_result_is_returned(monkeypatc
     thread.join(timeout=4)
     assert not thread.is_alive() and outcomes == ["cancelled"]
     assert len(closed) == 2
+
+
+def test_specialists_use_separate_models_and_report_requested_identity(monkeypatch):
+    scene, group, _tasks, task = model()
+    calls = []
+    choices = {"model_structure": "structure-model", "task_requirements": "requirements-model"}
+    def chat(provider, selected_model, key, *args, **kwargs):
+        calls.append((provider, selected_model, key))
+        return reply(group.uid)
+    monkeypatch.setattr(ai, "chat", chat)
+    report = ai_review.run_review(ai_review.snapshot(scene, task), "local", "main-model",
+        "private-key", "url", ai_review.ReviewCancellation(), choices)
+    assert {item[1] for item in calls} == set(choices.values())
+    assert all(item[0] == "local" and item[2] == "private-key" for item in calls)
+    assert {r["role"]: r["model"] for r in report["specialists"]} == choices
+    assert "private-key" not in json.dumps(report)
+    assert "structure-model" in ai_review.report_text(report)
+
+
+def test_empty_role_model_inherits_main_and_failure_keeps_model_name(monkeypatch):
+    scene, _group, _tasks, task = model()
+    calls = []
+    def chat(provider, selected_model, *args, **kwargs):
+        calls.append(selected_model)
+        raise ValueError("model unavailable")
+    monkeypatch.setattr(ai, "chat", chat)
+    report = ai_review.run_review(ai_review.snapshot(scene, task), "local", "main-model",
+        "", "url", ai_review.ReviewCancellation(), {"model_structure": "  "})
+    assert calls == ["main-model", "main-model"]
+    assert report["status"] == "failed"
+    assert all(r["model"] == "main-model" for r in report["specialists"])
+
+
+@pytest.mark.parametrize("choices", [{"unknown": "x"}, {"model_structure": 3},
+                                     {"model_structure": "x" * 201}])
+def test_invalid_model_overrides_fail_before_provider_call(monkeypatch, choices):
+    scene, _group, _tasks, task = model()
+    def unexpected(*args, **kwargs):
+        pytest.fail("invalid model choices must not call a provider")
+    monkeypatch.setattr(ai, "chat", unexpected)
+    with pytest.raises(ValueError):
+        ai_review.run_review(ai_review.snapshot(scene, task), "local", "m", "", "url",
+                             ai_review.ReviewCancellation(), choices)

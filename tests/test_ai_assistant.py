@@ -655,6 +655,41 @@ def test_assistant_specialists_are_read_only_and_keep_report(monkeypatch):
         win.close()
 
 
+def test_specialist_model_settings_are_provider_scoped_and_used(monkeypatch, tmp_path):
+    from PySide6.QtCore import QSettings
+    import plugins.ai_assistant as plugin
+    from views.main_window import MainWindow
+    calls = []
+    monkeypatch.setattr(ai, "chat", lambda provider, model, *a, **k:
+        (calls.append((provider, model)) or json.dumps({"summary": "Reviewed", "findings": []})))
+    win = MainWindow()
+    try:
+        dlg = plugin.AsistenteDialog(win.viewport, parent=win)
+        monkeypatch.setattr(dlg, "_settings", lambda:
+            QSettings(str(tmp_path / "models.ini"), QSettings.IniFormat))
+        dlg._provider.setCurrentIndex(dlg._provider.findData("anthropic"))
+        dlg._key.setText("sk-ant-test")
+        dialog_type = plugin.SpecialistModelsDialog
+        def accept_models(dialog):
+            dialog.editors["model_structure"].setText("structure-model")
+            dialog.editors["task_requirements"].setText("requirements-model")
+            return plugin.QDialog.Accepted
+        monkeypatch.setattr(dialog_type, "exec", accept_models)
+        dlg._on_specialist_models()
+        assert dlg._review_models("ollama") == {"model_structure": "", "task_requirements": ""}
+        assert dlg._review_models("anthropic")["model_structure"] == "structure-model"
+        dlg._specialist_review.setChecked(True)
+        dlg._input.setText("check model")
+        dlg._on_send()
+        _wait_for_assistant(dlg)
+        assert set(calls) == {("anthropic", "structure-model"), ("anthropic", "requirements-model")}
+        assert "requirements-model" in dlg._chat.toPlainText()
+        assert dlg._specialist_models.isEnabled()
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
 def test_specialist_results_are_rejected_after_edit_or_cancel(monkeypatch):
     import threading
     from plugins.ai_assistant import AsistenteDialog

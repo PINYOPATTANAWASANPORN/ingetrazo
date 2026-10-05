@@ -24,7 +24,7 @@
   },
   "validation": {
     "scope": "selected external-review, review, Assistant, task, context, bridge and change regression suite",
-    "passed": 101,
+    "passed": 107,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -52,7 +52,7 @@
       "phase": 4,
       "name": "multi-agent orchestration",
       "percent": 45,
-      "status": "read_only_assistant_and_external_mcp_reviews"
+      "status": "read_only_reviews_with_model_selection"
     },
     {
       "phase": 5,
@@ -63,7 +63,7 @@
   ],
   "next_recommended_work": [
     "extend architectural editing to existing-wall openings, arbitrary slab profiles and isolated geometry previews",
-    "add per-role provider configuration, audit export and measured review baselines before modeler orchestration",
+    "add audit export, cross-provider role credentials and measured review baselines before modeler orchestration",
     "capture provider baselines with the versioned corpus and real token telemetry",
     "add audit export and provider compatibility tests"
   ],
@@ -77,8 +77,8 @@
     "docs/ai-specialist-review.md"
   ],
   "implementation_delivery": {
-    "branch": "feature/mcp-specialist-protocol",
-    "commit": "970438a",
-    "pull_request": 40
+    "branch": "feature/specialist-model-selection",
+    "commit": null,
+    "pull_request": null
   }
 }

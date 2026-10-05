@@ -46,7 +46,8 @@
   suggestion chips, and the versioned evaluation corpus work. A richer visible
   plan and measured provider baselines remain.
 - **Phase 4 — 45%:** two provider-backed read-only specialists execute in
-  parallel in the Assistant over one bounded snapshot. Conflicts, partial
+  parallel in the Assistant over one bounded snapshot, with per-role model
+  names saved separately for each provider. Conflicts, partial
   failures, stale results and cancellation are handled. External MCP review
   assignments/submissions now share validation and conflict aggregation.
   General modeler orchestration remains.
@@ -66,10 +67,10 @@ and an isolated geometry viewport preview.
 ### 2. Extend specialist orchestration
 
 The Assistant now executes `model_structure` and `task_requirements` through
-two calls to the selected provider/model, with no scene or write tools in the
+two calls to the selected provider, using per-role model choices, with no scene or write tools in the
 workers. External MCP clients can dispatch their own reviewers using the
 role-bound snapshot protocol; the app does not launch those providers. See [the review contract](../ai-specialist-review.md). Next add an
-per-role model choice and audit export before allowing
+cross-provider role credentials and audit export before allowing
 modeler proposals. Retain coordinator-only merge/commit and explicit approval.
 
 ### 3. Capture measurable provider baselines
@@ -92,14 +93,14 @@ $env:PYTHONUTF8='1'
   tests/test_ai_bridge.py tests/test_ai_changes.py
 ```
 
-Result: **101 passed** using fake provider results and authenticated local
+Result: **107 passed** using fake provider results and authenticated local
 bridge calls. This covers role/snapshot binding, retries, conflicts, quotas,
-stale/cancelled results, session restart, MCP error markers and prior workflows.
+stale/cancelled results, session restart, MCP error markers, per-role model
+routing, inheritance, configuration bounds and provider-scoped settings.
 Compilation and `git diff --check` passed. No real-provider benchmark or full
 repository release certification is claimed.
 
 ## Stack base for continuation
 
-`feature/mcp-specialist-protocol` is stacked on `feature/ai-specialist-review`
-(PR #39). Delivered by [#40](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/40)
-at code commit `970438a`. Verify the latest branch head before continuation.
+`feature/specialist-model-selection` is stacked on `feature/mcp-specialist-protocol`
+(PR #40). Refer to `state.json` for delivery identity after publication.
