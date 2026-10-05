@@ -26,13 +26,13 @@
   "installed_build": {
     "platform": "Windows 10 x64",
     "path": "C:\\Program Files\\IngeTrazo",
-    "source_commit": "b0dce0f7d483d8eeca1a3788d8aa286a8e18bde2",
-    "installed_at_utc": "2026-10-05T22:09:40.8710750Z",
-    "main_sha256": "65176134443C6BB7EA152841E46E5467DF685D6317C483E0F62C0861E31982A2",
-    "mcp_sha256": "09F687096E4B398ADAEA89E81D396778EA67ACF86FDE55CB3A931A3FD830BB4B",
+    "source_commit": "b2573b7aa781768997328ed33da53e2179839db7",
+    "installed_at_utc": "2026-10-05T22:51:03.1000307Z",
+    "main_sha256": "C7B365032C35EA2CBF675E3F6A78E1E56C933157DF67CC3E8BE6DA409CE92959",
+    "mcp_sha256": "287125D075FB34C7A6D7AC879BBCD49AAEC918C21E5F8FDC15960EBD6B617937",
     "checks": [
       "installed executable --check exit 0",
-      "installed GUI opened IngeTrazo — Untitled",
+      "installed GUI was closed for the update; launch not rechecked after this installation",
       "installed MCP tools/list returned 22 tools",
       "installed executable hashes match the build manifest"
     ]
@@ -43,8 +43,8 @@
     "installer": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\install-latest-b2573b7.ps1",
     "bundle_check": "passed",
     "mcp_tools": 22,
-    "installed": false,
-    "blocker": "The installed IngeTrazo GUI is still open and Program Files requires an Administrator token."
+    "installed": true,
+    "installed_at_utc": "2026-10-05T22:51:03.1000307Z"
   },
   "validation": {
     "scope": "selected review benchmark, cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",

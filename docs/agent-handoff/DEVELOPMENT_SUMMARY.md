@@ -135,4 +135,6 @@ p50/p95 and role success rates. Tokens and quality scores remain null until
 measured separately. The selected AI suite passed 128 tests with fake
 providers; no live provider benchmark has been run. It is in
 [draft PR #46](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/46).
-This code is not yet in the installed Windows build.
+This code is included in the Windows build installed from `b2573b7` on
+2026-10-06. The installed executable passed `--check` and the bridge returned
+22 tools; no real-provider benchmark has been run.

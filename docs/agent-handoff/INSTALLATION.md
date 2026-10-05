@@ -37,7 +37,7 @@ exit alone is insufficient. The local installer and build manifest used for
 this deployment are in the workspace root as `install-latest-b0dce0f.ps1`
 and `build-latest-b0dce0f.json`.
 
-## Staged build for the AI tray UI fix
+## Installed build with the AI tray UI fix
 
 On 2026-10-06 a new Windows bundle was built from `b2573b7` on
 `fix/ai-assistant-review-controls`. Its frozen `--check` passed and the MCP
@@ -46,9 +46,10 @@ executable returned 22 tools. SHA-256: main
 MCP `287125D075FB34C7A6D7AC879BBCD49AAEC918C21E5F8FDC15960EBD6B617937`.
 The manifest and rollback-capable installer are in the workspace root as
 `build-latest-b2573b7.json` and `install-latest-b2573b7.ps1`. A separate
-backup of the current installation was verified at
-`backups/IngeTrazo-installed-before-20261006-pr47`. This bundle has **not**
-been installed: the existing IngeTrazo process remains open, and updating
-`C:\Program Files\IngeTrazo` requires an Administrator token. Save and close
-the open document before running the installer with elevation; then verify
-the installed path separately.
+backup of the previous installation was verified at
+`backups/IngeTrazo-installed-before-20261006-pr47`. After the open GUI was
+saved and closed, the installer completed successfully at 05:51 on 2026-10-06
+(Asia/Bangkok). Independent installed-path checks confirmed both executable
+hashes, 823 runtime files, `ingetrazo.exe --check` exit 0, and 22 MCP tools.
+The GUI was not relaunched during this verification; actual display of the
+new tray layout remains a manual visual check on next launch.
