@@ -1,7 +1,7 @@
 # Scope Move Autofold to the touched faces
 
 Base: draft PR #62 (`test/autofold-holed-nonmanifold`).
-Branch: `perf/move-local-autofold`.
+Branch: `perf/move-local-autofold` ([draft PR #63](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/63)).
 
 Move's preview inspects only the faces incident to the moved vertices, but
 the old commit called `fold_nonplanar_faces` on every face in the loose mesh.

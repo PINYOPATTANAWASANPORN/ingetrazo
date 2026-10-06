@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "snapshot_date": "2026-10-06",
+  "snapshot_date": "2026-10-07",
   "repository": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo",
   "upstream_main_commit": "6be29fe437a7cd992d4e079f71720821b25216b9",
   "handoff_base": {
@@ -13,9 +13,9 @@
     "pull_request": 33
   },
   "delivery": {
-    "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 60,
-    "open": 60,
+    "github_snapshot_date": "2026-10-07",
+    "pull_requests_total": 61,
+    "open": 61,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -309,8 +309,8 @@
     "branch": "perf/move-local-autofold",
     "base_branch": "test/autofold-holed-nonmanifold",
     "base_pull_request": 62,
-    "pull_request": null,
-    "status": "implemented_locally",
+    "pull_request": 63,
+    "status": "draft",
     "validation": "regression failed on parent and passed after fix; 267 native Windows transform/Push-Pull tests and 183 offscreen CI-selection tests passed; isolated Autofold median 77.089ms full vs 0.774ms scoped on 7632-face example",
     "remaining": "hosted CI and representative end-to-end Move latency"
   }
