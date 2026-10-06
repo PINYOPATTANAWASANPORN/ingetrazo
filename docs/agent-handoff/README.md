@@ -5,10 +5,10 @@ work performed on the `PINYOPATTANAWASANPORN/ingetrazo` fork. It records what
 exists in the stacked branches, what has actually been validated, what remains,
 and the engineering knowledge extracted from the work.
 
-- Snapshot date: **2026-10-06**
+- Snapshot date: **2026-10-07**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **60 open PRs in the 2026-10-06 snapshot**; check GitHub
+- PR inventory: **61 open PRs in the 2026-10-07 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -217,3 +217,14 @@ Windows CI. See [AUTOFOLD_SHARED_VERTEX_GATE.md](AUTOFOLD_SHARED_VERTEX_GATE.md)
 Further Autofold stress in [draft PR #62](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/62) on `test/autofold-holed-nonmanifold` checks a face
 with an opening and a three-face radial edge. See
 [AUTOFOLD_OPENING_RADIAL_GATE.md](AUTOFOLD_OPENING_RADIAL_GATE.md).
+
+Move Autofold scope follow-up in [draft PR #63](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/63) on `perf/move-local-autofold` makes commit
+inspect the same incident faces as preview. See
+[AUTOFOLD_LOCAL_SCOPE.md](AUTOFOLD_LOCAL_SCOPE.md) for regression and
+real-example phase timings.
+
+The same branch now includes `scripts/bench_move_command.py` for repeatable
+in-memory Move/Undo timing on bundled examples. A cumulative frozen build
+from `7ebc770` is staged and self-checked, but remains separate from the
+installed `3815ef8` build. See [AUTOFOLD_LOCAL_SCOPE.md](AUTOFOLD_LOCAL_SCOPE.md)
+and [INSTALLATION.md](INSTALLATION.md).

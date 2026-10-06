@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "snapshot_date": "2026-10-06",
+  "snapshot_date": "2026-10-07",
   "source": "https://api.github.com/repos/PINYOPATTANAWASANPORN/ingetrazo/pulls?state=all&per_page=100",
   "pull_requests": [
     {
@@ -619,6 +619,17 @@
       "draft": true,
       "updated_at": "2026-10-06T14:24:29Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/62"
+    },
+    {
+      "number": 63,
+      "state": "open",
+      "title": "Scope Move Autofold to incident faces",
+      "base": "test/autofold-holed-nonmanifold",
+      "head": "perf/move-local-autofold",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T21:59:33Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/63"
     }
   ]
 }

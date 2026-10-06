@@ -17,7 +17,7 @@ follow-up covers two distinct mesh contracts:
 
 The four Move/Autofold suites pass 62 tests on native Windows Qt and 62 with
 offscreen Qt. The expanded nine-file Windows CI selection passes 182 locally
-offscreen. Hosted validation is pending. No product geometry code changed:
+offscreen. Hosted run [37479008698](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37479008698) passed both Windows and Ubuntu jobs. No product geometry code changed:
 the new edge cases already satisfy the existing mesh contract.
 
 Remaining: evaluate larger real meshes, self-intersecting or degenerate input,
