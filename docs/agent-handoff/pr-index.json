@@ -608,6 +608,17 @@
       "draft": true,
       "updated_at": "2026-10-06T14:05:06Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/61"
+    },
+    {
+      "number": 62,
+      "state": "open",
+      "title": "Test Autofold on openings and radial edges",
+      "base": "test/autofold-shared-vertex-grid",
+      "head": "test/autofold-holed-nonmanifold",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T14:24:29Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/62"
     }
   ]
 }

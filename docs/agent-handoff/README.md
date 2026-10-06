@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-06**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **59 open PRs in the 2026-10-06 snapshot**; check GitHub
+- PR inventory: **60 open PRs in the 2026-10-06 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -213,3 +213,7 @@ panel marker aligned with the toolbar and scene; see
 Move Autofold follow-up: [draft PR #61](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/61) on `test/autofold-shared-vertex-grid` adds a
 multi-face topology/preview/Undo gate and includes the four Move suites in
 Windows CI. See [AUTOFOLD_SHARED_VERTEX_GATE.md](AUTOFOLD_SHARED_VERTEX_GATE.md).
+
+Further Autofold stress in [draft PR #62](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/62) on `test/autofold-holed-nonmanifold` checks a face
+with an opening and a three-face radial edge. See
+[AUTOFOLD_OPENING_RADIAL_GATE.md](AUTOFOLD_OPENING_RADIAL_GATE.md).
