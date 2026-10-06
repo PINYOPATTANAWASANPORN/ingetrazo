@@ -1,7 +1,7 @@
 # Move transaction guard and native paint baseline
 
 Base: draft PR #64 (`perf/move-position-snapshot`). Branch:
-`perf/move-history-transaction` (draft PR pending).
+`perf/move-history-transaction` ([draft PR #65](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/65)).
 
 `MoveVerticesCommand` already captures an identity-preserving pre-edit state for
 Undo, but `History.execute` also captured the entire active mesh immediately

@@ -641,6 +641,17 @@
       "draft": true,
       "updated_at": "2026-10-06T22:19:52Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/64"
+    },
+    {
+      "number": 65,
+      "state": "open",
+      "title": "Avoid redundant History snapshot for Move",
+      "base": "perf/move-position-snapshot",
+      "head": "perf/move-history-transaction",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T22:39:43Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/65"
     }
   ]
 }
