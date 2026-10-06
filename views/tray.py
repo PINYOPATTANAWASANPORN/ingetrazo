@@ -4032,6 +4032,19 @@ class LayersPanel(QWidget):
     def _scene(self):
         return self._window.viewport.scene
 
+    def _sync_active_marker(self) -> None:
+        """Update the active dots without deleting a row in itemChanged."""
+        active = self._scene().active_layer
+        previous = self.tree.blockSignals(True)
+        try:
+            for index in range(self.tree.topLevelItemCount()):
+                row = self.tree.topLevelItem(index)
+                marker = "●" if row.data(0, Qt.UserRole) == active else ""
+                if row.text(1) != marker:
+                    row.setText(1, marker)
+        finally:
+            self.tree.blockSignals(previous)
+
     def _on_item_changed(self, item, column) -> None:
         if self._updating:
             return
@@ -4054,6 +4067,7 @@ class LayersPanel(QWidget):
                 and (not ly.visible or ly.locked):
             from core.layers import DEFAULT_LAYER
             scene.active_layer = DEFAULT_LAYER
+            self._sync_active_marker()
         if not ly.visible or ly.locked:
             self._prune_selection(ly.name)
         self._touch()
@@ -4107,6 +4121,7 @@ class LayersPanel(QWidget):
             return
         name = item.data(0, Qt.UserRole)
         if scene.set_active_layer(name):
+            self._sync_active_marker()
             self._window.statusBar().showMessage(
                 tr("Active layer: {layer}", layer=name), 2500)
             self._touch()

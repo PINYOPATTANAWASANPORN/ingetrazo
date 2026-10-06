@@ -205,3 +205,7 @@ measured scope and regression checks.
 Tag consistency follow-up: [draft PR #59](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/59) on `fix/tag-annotation-selection` clears selected
 annotations when their Tag becomes hidden/locked or they are assigned to
 one; see [TAG_ANNOTATION_SELECTION.md](TAG_ANNOTATION_SELECTION.md).
+
+Active Tag indicator follow-up: `fix/active-tag-indicator` keeps the Tags
+panel marker aligned with the toolbar and scene; see
+[ACTIVE_TAG_INDICATOR.md](ACTIVE_TAG_INDICATOR.md).
