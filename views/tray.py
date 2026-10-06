@@ -1786,8 +1786,11 @@ class OutlinerPanel(QWidget):
         needle = text.strip().casefold()
 
         def visit(item) -> bool:
-            child_hit = any(visit(item.child(i))
-                            for i in range(item.childCount()))
+            # Visit every sibling: any(generator) would stop at the first
+            # match and leave later rows with stale visibility/expansion.
+            child_hits = [visit(item.child(i))
+                          for i in range(item.childCount())]
+            child_hit = any(child_hits)
             own = not needle or needle in item.text(0).casefold()
             show = own or child_hit
             item.setHidden(not show)
@@ -1878,6 +1881,11 @@ class OutlinerPanel(QWidget):
         scene.bump_view()
         self._window.viewport.update()
         self._updating = False
+
+        # Cross-parent selections are reduced to one editable context.
+        # Reflect that reduction in the tree before context-menu actions
+        # consume its selected rows (hide/lock must target the same set).
+        self._sync_selection()
 
     def _on_double_click(self, item, column) -> None:
         if column != 0:

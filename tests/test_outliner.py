@@ -73,6 +73,49 @@ def test_selecting_nested_row_opens_its_parent_path():
     assert scene.selection == {leaf}
 
 
+def test_search_updates_every_sibling_and_clearing_restores_nested_rows():
+    scene, room, chair, leaf, _tree = _model()
+    table = Group(name="Table")
+    room.adopt([chair, table])
+    panel = OutlinerPanel(_Window(scene))
+    try:
+        # A hit in the first child must not leave later siblings visible.
+        panel.search.setText("leg")
+        assert not panel._items[id(leaf)].isHidden()
+        assert panel._items[id(table)].isHidden()
+        # Switching the hit must revisit both branches.
+        panel.search.setText("table")
+        assert panel._items[id(chair)].isHidden()
+        assert not panel._items[id(table)].isHidden()
+        panel.search.clear()
+        assert all(not item.isHidden() for item in panel._items.values())
+    finally:
+        panel.close()
+        panel.deleteLater()
+
+
+def test_cross_level_selection_matches_viewport_and_bulk_action_targets():
+    scene, room, chair, leaf, tree = _model()
+    win = _Window(scene)
+    panel = OutlinerPanel(win)
+    try:
+        panel.tree.blockSignals(True)
+        panel._items[id(leaf)].setSelected(True)
+        panel._items[id(tree)].setSelected(True)
+        panel.tree.blockSignals(False)
+        panel._on_selection_changed()
+        selected = set(scene.selection)
+        assert len(selected) == 1
+        assert set(panel._selected_groups()) == selected
+        panel._set_hidden(panel._selected_groups(), True)
+        assert {g for g in (room, chair, leaf, tree) if g.hidden} == selected
+        assert win.viewport.history.undo()
+        assert not any(g.hidden for g in (room, chair, leaf, tree))
+    finally:
+        panel.close()
+        panel.deleteLater()
+
+
 def test_visibility_lock_and_rename_are_undoable():
     scene, room, _chair, _leaf, _tree = _model()
     win = _Window(scene)

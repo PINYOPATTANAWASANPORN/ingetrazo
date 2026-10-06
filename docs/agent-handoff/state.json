@@ -73,7 +73,13 @@
     "status": "draft",
     "fork_actions_enabled": true,
     "validation": "45 native Windows Qt, 46 offscreen targeted, and 116 curated offscreen smoke tests passed locally; frozen build --check, 22-tool MCP list and ten-second offscreen GUI startup passed; first hosted native full run exited 1 at 4% without traceback; revised hosted Windows CI smoke passed 116 tests, Ubuntu fast job had one platform-width assertion failure (3773 passed); baseline-relative regression correction passed all 14 sheet-tab tests on native and offscreen Qt; hosted revalidation pending",
-    "hosted_windows_smoke_job": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37442507775/job/112199408353"
+    "hosted_windows_smoke_job": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37442507775/job/112199408353",
+    "latest_verified_ci": {
+      "commit": "1b8dfb2c9cbecd1a87a28117b4c39217b82d93b7",
+      "run": 37465329555,
+      "result": "success",
+      "scope": "Ubuntu fast suite and Windows offscreen smoke"
+    }
   },
   "ai_phases": [
     {
@@ -183,7 +189,10 @@
   },
   "field_semantics_delivery": {
     "branch": "feature/ai-review-field-semantics",
-    "implementation_commits": ["0d04488", "312a5a3"],
+    "implementation_commits": [
+      "0d04488",
+      "312a5a3"
+    ],
     "pull_request": 52,
     "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/52",
     "draft": true,
@@ -217,5 +226,14 @@
     "staged_bundle_installed": false,
     "frozen_main_sha256": "D4EF7D5C86AAE55F8AB4F0EE07EC5F0852BF5D4A2AEE16B53F0972823549744B",
     "frozen_mcp_sha256": "85A42FE3F0B106227A9E3B32F93D4A6C51FBC4D0A8ED724D8907412048C46DF5"
+  },
+  "outliner_nested_selection_delivery": {
+    "branch": "fix/outliner-nested-selection",
+    "base_branch": "ci/windows-qt-gate",
+    "base_pull_request": 55,
+    "pull_request": null,
+    "status": "implemented_locally",
+    "validation": "9 Outliner tests passed on native Windows Qt and offscreen; both added regression tests fail on parent code",
+    "remaining": "Face/edge hierarchy, large-tree benchmarks and richer nested navigation remain open"
   }
 }
