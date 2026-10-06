@@ -201,3 +201,7 @@ Outliner refresh follow-up: [draft PR #58](https://github.com/PINYOPATTANAWASANP
 existing rows when the hierarchy is stable; see
 [OUTLINER_INCREMENTAL_REFRESH.md](OUTLINER_INCREMENTAL_REFRESH.md) for
 measured scope and regression checks.
+
+Tag consistency follow-up: `fix/tag-annotation-selection` clears selected
+annotations when their Tag becomes hidden/locked or they are assigned to
+one; see [TAG_ANNOTATION_SELECTION.md](TAG_ANNOTATION_SELECTION.md).

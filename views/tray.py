@@ -3588,6 +3588,9 @@ class EntityInfoPanel(QWidget):
         if not targets:
             return
         self._window.viewport.history.execute(AssignLayerCommand(targets, name))
+        layer = scene.layer(name)
+        if layer is not None and (not layer.visible or layer.locked):
+            scene.selection.difference_update(targets)
         self._window.viewport.update()
         self._window.statusBar().showMessage(
             tr("{n} entities moved to '{layer}'", n=len(targets), layer=name),
@@ -4080,8 +4083,9 @@ class LayersPanel(QWidget):
     def _prune_selection(self, name: str) -> None:
         from core.layers import layer_of
         scene = self._scene()
-        dead = [s for s in scene.selection
-                if isinstance(s, (Face, Edge, Group)) and layer_of(s) == name]
+        # Annotations and references can be selected too. A hidden/locked
+        # tag makes every entity on it unselectable, not only mesh geometry.
+        dead = [s for s in scene.selection if layer_of(s) == name]
         for s in dead:
             scene.selection.discard(s)
 
@@ -4195,6 +4199,9 @@ class LayersPanel(QWidget):
                 tr("Select something in the model first, then Assign."), 3000)
             return
         self._window.viewport.history.execute(AssignLayerCommand(targets, name))
+        layer = scene.layer(name)
+        if layer is not None and (not layer.visible or layer.locked):
+            self._prune_selection(name)
         self._window.viewport.update()
         self._window.statusBar().showMessage(
             tr("{n} entities moved to '{layer}'", n=len(targets), layer=name),
