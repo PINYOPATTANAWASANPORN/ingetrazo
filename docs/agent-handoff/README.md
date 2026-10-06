@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-06**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **54 open PRs in the 2026-10-06 snapshot**; check GitHub
+- PR inventory: **55 open PRs in the 2026-10-06 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -193,6 +193,6 @@ so hide/lock use the actual viewport selection. Nine Outliner tests passed
 on both native Windows Qt and offscreen. Both added regressions fail on
 the parent code. No installed-binary changes. See [OUTLINER_NESTED_SELECTION.md](OUTLINER_NESTED_SELECTION.md).
 
-Outliner performance follow-up: `perf/outliner-selection-sync` changes only
+Outliner performance follow-up: [draft PR #57](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/57) on `perf/outliner-selection-sync` changes only
 selected rows during viewport sync. See [OUTLINER_SELECTION_PERFORMANCE.md](OUTLINER_SELECTION_PERFORMANCE.md)
 for measured scope and limits.

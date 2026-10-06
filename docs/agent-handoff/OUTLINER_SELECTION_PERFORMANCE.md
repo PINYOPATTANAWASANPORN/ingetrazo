@@ -1,7 +1,7 @@
 # Outliner selection synchronization performance
 
 Base: draft PR #56 (`fix/outliner-nested-selection`).
-Branch: `perf/outliner-selection-sync`.
+Branch: `perf/outliner-selection-sync`, draft PR #57.
 
 ## Change
 
