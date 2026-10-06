@@ -217,3 +217,8 @@ Windows CI. See [AUTOFOLD_SHARED_VERTEX_GATE.md](AUTOFOLD_SHARED_VERTEX_GATE.md)
 Further Autofold stress in [draft PR #62](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/62) on `test/autofold-holed-nonmanifold` checks a face
 with an opening and a three-face radial edge. See
 [AUTOFOLD_OPENING_RADIAL_GATE.md](AUTOFOLD_OPENING_RADIAL_GATE.md).
+
+Move Autofold scope follow-up on `perf/move-local-autofold` makes commit
+inspect the same incident faces as preview. See
+[AUTOFOLD_LOCAL_SCOPE.md](AUTOFOLD_LOCAL_SCOPE.md) for regression and
+real-example phase timings.

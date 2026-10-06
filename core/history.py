@@ -2041,17 +2041,24 @@ class SetFaceBackCommand(Command):
         scene.version += 1
 
 
-def translate_points(scene, keys: set, delta: QVector3D) -> None:
+def translate_points(scene, keys: set, delta: QVector3D,
+                     *, collect_faces: bool = False) -> set[Face] | None:
     """Move every shared vertex whose position key is in ``keys`` by ``delta``.
 
     Because vertices are shared, every edge and face referencing a moved vertex
     follows for free — the mechanic behind raising a ridge into a gable roof.
     Shared by :class:`MoveVerticesCommand` and the Push/Pull live preview.
+    Move can request the incident faces before translation so its Autofold
+    commit checks the same local topology as its preview. Push/Pull does not
+    need that collection on every live drag frame.
     """
     moving = [v for v in scene.mesh.vertices if _key(v.position) in keys]
+    touched = ({face for v in moving for face in v.faces()}
+               if collect_faces else None)
     for v in moving:
         scene.mesh.move_vertex(v, delta)
     scene.version += 1
+    return touched
 
 
 class MoveVerticesCommand(Command):
@@ -2079,8 +2086,10 @@ class MoveVerticesCommand(Command):
             scene.version += 1
             return
         self._before = scene.mesh.capture_state()
-        translate_points(scene, {_key(p) for p in self.src}, self.delta)
-        fold_nonplanar_faces(scene.mesh)
+        touched = translate_points(
+            scene, {_key(p) for p in self.src}, self.delta,
+            collect_faces=True)
+        fold_nonplanar_faces(scene.mesh, faces=touched)
         self._after = scene.mesh.capture_state()
 
     def undo(self, scene) -> None:

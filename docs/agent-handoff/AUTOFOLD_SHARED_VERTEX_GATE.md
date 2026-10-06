@@ -13,7 +13,8 @@ The fixture exercises shared topology, not just one isolated quad.
 The four relevant Move/Autofold suites passed 59 tests on native Windows Qt
 and 59 offscreen. The Windows hosted offscreen smoke workflow now includes
 these four files. Its expanded local selection passed 179 tests in 42.24 s
-with `QT_QPA_PLATFORM=offscreen`; hosted validation is pending. No product
+with `QT_QPA_PLATFORM=offscreen`; this branch's hosted run was cancelled,
+while its stacked successor [#62](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/62) passed both CI jobs. No product
 geometry code changed because the new stress case passed as implemented.
 
 Remaining: non-manifold and holed-face behavior, larger real meshes, and

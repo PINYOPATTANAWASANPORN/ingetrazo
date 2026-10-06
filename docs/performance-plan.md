@@ -138,6 +138,18 @@ edge drawing measured **374.29 ms** to build the cold 1.2 MB block and
 **0.0081 ms** to retrieve it after selection. Geometry, layer, Hide/Soften and
 group-edit changes still invalidate it.
 
+## Later finding — Move Autofold checks (2026-10-07)
+
+Move preview examines the incident faces of moved vertices, but commit
+previously scanned the entire loose mesh for nonplanar faces. Limiting the
+commit to the same incident set avoids altering unrelated warped faces and
+removes a mesh-wide scan. The isolated Autofold phase on the bundled
+`pileta-fuente-yanque.igz` example (7,632-face mesh, four incident faces)
+measured a 77.089 ms full-scan median against 0.774 ms local median over
+seven sequential Windows runs. The reproducible command is
+`scripts/bench_move_autofold_scope.py`; its figures exclude Move's snapshot,
+translation, redraw, and file loading, so they are not end-to-end latency.
+
 ## Order and sizing
 
 P0 is half a session. P1 and P3 are a session each and pay the most

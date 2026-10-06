@@ -321,3 +321,30 @@ def test_nonmanifold_shared_edge_folds_all_three_incident_faces():
     assert len(scene.mesh.faces) == 3
     assert vp.history.redo()
     assert len(scene.mesh.faces) == 6
+
+
+def test_move_folds_only_incident_faces_shown_by_preview():
+    """An unrelated warped face must not change when another corner moves."""
+    scene = _square_scene()
+    remote = scene.mesh.add_face([
+        V(10, 0), V(12, 0), V(12, 2, 1), V(10, 2)])
+    assert not is_planar(list(remote.vertices))
+    vp = _Vp(scene, V(2, 2))
+    tool = MoveTool()
+
+    tool.on_click(_ctx(vp, V(2, 2)))
+    tool.on_hover(_ctx(vp, V(2, 2, 1)))
+    assert tool._fold_face_count == 1
+    assert len(tool.autofold_preview_lines()) == 1
+    tool.on_click(_ctx(vp, V(2, 2, 1)))
+
+    assert len(scene.mesh.faces) == 3
+    assert remote in scene.mesh.faces
+    assert len(remote.vertices) == 4
+    assert len(vp.history.undo_stack) == 1
+    assert vp.history.undo()
+    assert len(scene.mesh.faces) == 2
+    assert remote in scene.mesh.faces
+    assert vp.history.redo()
+    assert len(scene.mesh.faces) == 3
+    assert remote in scene.mesh.faces

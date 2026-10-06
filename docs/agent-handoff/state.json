@@ -287,7 +287,7 @@
     "remaining": "hosted Ubuntu result, real meshes, degenerate geometry, optional Autofold controls",
     "latest_verified_ci": {
       "run": 37476294358,
-      "result": "windows_success_ubuntu_in_progress",
+      "result": "cancelled_after_windows_success; stacked_successor_62_passed",
       "commit": "c99161d9296660e8a5a8acfc873e06c05a4c92b5"
     }
   },
@@ -298,6 +298,20 @@
     "pull_request": 62,
     "status": "draft",
     "validation": "62 Move/Autofold tests passed on native Windows and offscreen; expanded nine-file Windows CI selection passed 182 locally offscreen",
-    "remaining": "hosted CI, larger real meshes, degenerate input, optional Autofold controls"
+    "remaining": "larger real meshes, degenerate input, optional Autofold controls",
+    "latest_verified_ci": {
+      "run": 37479008698,
+      "result": "success",
+      "commit": "af768182799b3baa192ec62c91c7f1df584881e4"
+    }
+  },
+  "move_local_autofold_delivery": {
+    "branch": "perf/move-local-autofold",
+    "base_branch": "test/autofold-holed-nonmanifold",
+    "base_pull_request": 62,
+    "pull_request": null,
+    "status": "implemented_locally",
+    "validation": "regression failed on parent and passed after fix; 267 native Windows transform/Push-Pull tests and 183 offscreen CI-selection tests passed; isolated Autofold median 77.089ms full vs 0.774ms scoped on 7632-face example",
+    "remaining": "hosted CI and representative end-to-end Move latency"
   }
 }

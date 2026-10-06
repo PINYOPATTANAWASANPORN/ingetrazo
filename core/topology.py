@@ -1437,7 +1437,8 @@ def resolve_tjunctions(mesh, max_iter: int = 1000) -> None:
     sweep_tjunctions(mesh)
 
 
-def fold_nonplanar_faces(mesh, tolerance: float = _PLANAR_TOLERANCE) -> list:
+def fold_nonplanar_faces(mesh, tolerance: float = _PLANAR_TOLERANCE,
+                         *, faces=None) -> list:
     """*Autofold*: split every face a move has warped out of its
     plane into planar pieces along fold edges.
 
@@ -1447,9 +1448,14 @@ def fold_nonplanar_faces(mesh, tolerance: float = _PLANAR_TOLERANCE) -> list:
     corner becomes exactly two triangles joined by one fold edge. Merging is
     confined to the pieces of the same source face, so a fold never dissolves
     into a coplanar neighbour across the original boundary. Returns the faces
-    that were folded (the originals, already removed from the mesh)."""
+    that were folded (the originals, already removed from the mesh).
+
+    ``faces`` limits the check to faces touched by an edit. Callers that
+    omit it retain the full-mesh behavior; Move passes the incident faces so
+    an unrelated pre-existing warp is neither silently changed nor scanned.
+    """
     folded = []
-    for face in list(mesh.faces):
+    for face in list(mesh.faces) if faces is None else list(faces):
         pts = list(face.vertices)
         for hole in face.holes:
             pts += list(hole)
