@@ -63,6 +63,7 @@ def test_malformed_or_write_responses_fail_without_model_changes(monkeypatch, ba
 @pytest.mark.parametrize("bad, code", [
     ("not JSON", "invalid_json"),
     ('{"summary":"ok","findings":[],"actions":[]}', "invalid_schema"),
+    ('{"summary":"   ","findings":[]}', "invalid_schema"),
     (reply("outside-scope"), "out_of_scope_entity"),
     ("x" * (ai_review.MAX_REPLY_CHARS + 1), "response_too_large"),
 ])

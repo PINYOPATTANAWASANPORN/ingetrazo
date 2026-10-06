@@ -9,14 +9,66 @@ from __future__ import annotations
 import re
 
 from core import ai_review
+from core.ai_review_eval import make_snapshot
 
 LABELS = {"yes", "no", "unclear"}
 DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 ASSESSMENT_FIELDS = {"run_id", "case_id", "role", "review_digest", "assessor",
                      "summary_grounded", "findings"}
+CHECK_FIELDS = {"case_id", "id", "entity_id", "field", "equals", "roles"}
+FACT_FIELDS = {"name", "layer", "hidden", "locked", "visible",
+               "layer_visible", "layer_locked", "parent_id", "child_count"}
 
 
-def summarize_assessments(records: list[dict], assessments: list[dict]) -> dict:
+def validate_coverage_reference(data: dict, cases: list[dict]) -> dict:
+    """Accept only checkable facts from the versioned public snapshots."""
+    if (not isinstance(data, dict) or set(data) != {
+            "schema_version", "description", "checks"} or
+            data["schema_version"] != "1.0" or
+            not isinstance(data["description"], str) or
+            not isinstance(data["checks"], list) or
+            not 1 <= len(data["checks"]) <= 100):
+        raise ValueError("coverage reference schema is invalid")
+    snapshots = {case["id"]: make_snapshot(case) for case in cases}
+    by_role = {(case_id, role): [] for case_id in snapshots for role in ai_review.ROLES}
+    seen = set()
+    for check in data["checks"]:
+        if not isinstance(check, dict) or set(check) != CHECK_FIELDS:
+            raise ValueError("coverage check fields are invalid")
+        case_id, check_id = check["case_id"], check["id"]
+        if (not isinstance(case_id, str) or case_id not in snapshots or
+                not isinstance(check_id, str) or not re.fullmatch(
+                    r"[a-z0-9][a-z0-9-]{0,63}", check_id) or
+                (case_id, check_id) in seen):
+            raise ValueError("coverage check identity is invalid or duplicated")
+        seen.add((case_id, check_id))
+        roles = check["roles"]
+        if (not isinstance(roles, list) or not roles or
+                len(roles) != len(set(role for role in roles if isinstance(role, str)))
+                or any(not isinstance(role, str) or role not in ai_review.ROLES
+                       for role in roles)):
+            raise ValueError("coverage check roles are invalid")
+        packet = snapshots[case_id]
+        field, entity_id = check["field"], check["entity_id"]
+        if field == "entity_count" and entity_id is None:
+            actual = len(packet["entities"])
+        elif isinstance(field, str) and field in FACT_FIELDS and isinstance(entity_id, str):
+            entity = next((item for item in packet["entities"]
+                           if item["id"] == entity_id), None)
+            if entity is None:
+                raise ValueError("coverage check refers to an absent entity")
+            actual = entity[field]
+        else:
+            raise ValueError("coverage check field or entity is invalid")
+        if type(check["equals"]) is not type(actual) or check["equals"] != actual:
+            raise ValueError("coverage reference disagrees with the public snapshot")
+        for role in roles:
+            by_role[(case_id, role)].append(check_id)
+    return by_role
+
+
+def summarize_assessments(records: list[dict], assessments: list[dict],
+                          coverage_reference: dict | None = None) -> dict:
     """Check provenance, one judgment per finding, and assessment coverage."""
     eligible = {}
     for record in records:
@@ -45,8 +97,11 @@ def summarize_assessments(records: list[dict], assessments: list[dict]) -> dict:
     finding_labels = {dimension: {label: 0 for label in LABELS}
                       for dimension in ("grounded", "relevant")}
     summary_labels = {label: 0 for label in LABELS}
+    coverage_labels = {label: 0 for label in LABELS}
     for item in assessments:
-        if not isinstance(item, dict) or set(item) != ASSESSMENT_FIELDS:
+        expected_fields = (ASSESSMENT_FIELDS | {"coverage"} if coverage_reference
+                           is not None else ASSESSMENT_FIELDS)
+        if not isinstance(item, dict) or set(item) != expected_fields:
             raise ValueError("assessment fields are invalid")
         if any(not isinstance(item[field], str)
                for field in ("run_id", "case_id", "role", "review_digest")):
@@ -77,6 +132,16 @@ def summarize_assessments(records: list[dict], assessments: list[dict]) -> dict:
                 raise ValueError("finding judgment is invalid")
             for field in finding_labels:
                 finding_labels[field][judgment[field]] += 1
+        if coverage_reference is not None:
+            expected_checks = coverage_reference.get((item["case_id"], item["role"]))
+            coverage = item["coverage"]
+            if (expected_checks is None or not isinstance(coverage, dict) or
+                    set(coverage) != set(expected_checks) or
+                    any(not isinstance(label, str) or label not in LABELS
+                        for label in coverage.values())):
+                raise ValueError("coverage judgments do not match reference checks")
+            for label in coverage.values():
+                coverage_labels[label] += 1
         summary_labels[item["summary_grounded"]] += 1
 
     return {
@@ -86,5 +151,6 @@ def summarize_assessments(records: list[dict], assessments: list[dict]) -> dict:
         "unassessed_reviews": len(eligible) - len(seen),
         "summary_grounded": summary_labels,
         "findings": finding_labels,
+        "coverage": coverage_labels if coverage_reference is not None else None,
         "quality_score": None,
     }

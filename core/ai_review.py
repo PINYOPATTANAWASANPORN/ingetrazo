@@ -84,7 +84,8 @@ def _parse(text, packet):
         raise ReviewParseError("invalid_json", "review response is not JSON") from exc
     if not isinstance(data, dict) or set(data) != {"summary", "findings"}:
         raise ReviewParseError("invalid_schema", "review must contain only summary and findings")
-    if not isinstance(data["summary"], str) or len(data["summary"]) > 1000:
+    if (not isinstance(data["summary"], str) or
+            not data["summary"].strip() or len(data["summary"]) > 1000):
         raise ReviewParseError("invalid_schema", "invalid review summary")
     if not isinstance(data["findings"], list) or len(data["findings"]) > 20:
         raise ReviewParseError("invalid_schema", "review accepts at most 20 findings")
@@ -127,7 +128,7 @@ def _response_schema(packet):
     return {
         "type": "object", "additionalProperties": False,
         "properties": {
-            "summary": {"type": "string", "maxLength": 1000},
+            "summary": {"type": "string", "minLength": 1, "maxLength": 1000},
             "findings": {"type": "array", "maxItems": 20 if ids else 0,
                          "items": finding},
         },
@@ -207,7 +208,8 @@ def run_review(packet, provider, model, key, ollama_url, cancellation,
             "Return JSON only: {\"summary\":\"...\",\"findings\":[{\"entity_id\":\"snapshot ID\","
             "\"topic\":\"structure|tag|material|requirements\",\"verdict\":\"clear|concern|unknown\","
             "\"evidence\":\"specific snapshot evidence or missing information\"}]}. "
-            "At most 20 findings, one per entity/topic; summary <=1000 characters, "
+            "At most 20 findings, one per entity/topic; summary must be nonempty "
+            "and <=1000 characters, "
             "evidence <=500 characters. Every entity_id must exactly match an ID "
             "in the snapshot entities array. If that array is empty, return findings: []. "
             "Use exactly the JSON keys shown, with no additional keys or prose. "

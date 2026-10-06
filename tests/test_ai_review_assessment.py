@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import copy
 import json
+from pathlib import Path
 
 import pytest
 
 from core import ai, ai_review
-from core.ai_review_assessment import summarize_assessments
+from core.ai_review_assessment import (summarize_assessments,
+                                       validate_coverage_reference)
 from core.ai_review_eval import run_case
 from scripts.ai_review_benchmark import main
 
@@ -111,3 +113,38 @@ def test_opt_in_display_stays_out_of_metadata_file(tmp_path, monkeypatch, capsys
         encoding="utf-8").splitlines()]
     assert all(record["roles"][role]["review_digest"]
                for record in records for role in ai_review.ROLES)
+
+
+def test_public_coverage_reference_matches_actual_fixture_facts(
+        tmp_path, monkeypatch, capsys):
+    record, assessment = _sample(monkeypatch)
+    root = Path(__file__).parents[1]
+    cases = json.loads((root / "benchmarks/ai/review-corpus-v1.json").read_text(
+        encoding="utf-8"))["cases"]
+    reference = json.loads((root / "benchmarks/ai/review-coverage-v1.json").read_text(
+        encoding="utf-8"))
+    checks = validate_coverage_reference(reference, cases)
+    assert checks[("selected-object-metadata", "model_structure")] == [
+        "selected-name", "selected-tag"]
+    for item in assessment:
+        item["coverage"] = {check: "yes" for check in checks[
+            (item["case_id"], item["role"])]}
+    assessment[0]["coverage"]["selected-tag"] = "no"
+    summary = summarize_assessments([record], assessment, checks)
+    assert summary["coverage"] == {"yes": 3, "no": 1, "unclear": 0}
+    results_path = tmp_path / "results.jsonl"
+    results_path.write_text(json.dumps(record) + "\n", encoding="utf-8")
+    labels_path = tmp_path / "labels.json"
+    labels_path.write_text(json.dumps(assessment), encoding="utf-8")
+    assert main(["--results", str(results_path), "--assessments",
+                 str(labels_path), "--coverage-reference",
+                 str(root / "benchmarks/ai/review-coverage-v1.json")]) == 0
+    assert json.loads(capsys.readouterr().out)["human_assessment"][
+        "coverage"]["no"] == 1
+    del assessment[0]["coverage"]["selected-name"]
+    with pytest.raises(ValueError, match="coverage judgments"):
+        summarize_assessments([record], assessment, checks)
+
+    reference["checks"][0]["equals"] = "not the real name"
+    with pytest.raises(ValueError, match="disagrees"):
+        validate_coverage_reference(reference, cases)

@@ -165,3 +165,32 @@ evidence of a manual assessment, not a blinded or independent quality study;
 `quality_score` remains `null`. A digest detects accidental misassociation,
 not malicious alteration or reviewer identity. Keep the judgment file and
 terminal review evidence together if an audit trail is needed.
+
+## Check important omissions
+
+`review-coverage-v1.json` lists a few exact facts that a useful review should
+cover for each public case. The validator verifies every reference fact against
+the deterministic snapshot before accepting judgments. Add a `coverage` object
+to each assessment, keyed by the check IDs for its case and role. Use `yes` if
+the specialist's summary or findings explicitly convey that fact, `no` if it
+is omitted, and `unclear` if the wording cannot be judged. For the empty case,
+an empty `findings` array alone does not count: the summary should say the
+scoped model has no entities. A finding can be grounded yet omit another
+important fact, so report these dimensions separately.
+
+```json
+"coverage": {"selected-name": "yes", "selected-tag": "no"}
+```
+
+Run the same offline command with an additional argument:
+
+```powershell
+python scripts/ai_review_benchmark.py --results path/to/review-run.jsonl `
+  --assessments path/to/judgments-with-coverage.json `
+  --coverage-reference benchmarks/ai/review-coverage-v1.json
+```
+
+The resulting `coverage` counts are labeled observations by the assessor. They
+are not automatic text matching, and the current short reference set is not a
+complete gold standard. Retain `quality_score: null` until a larger,
+independently reviewed corpus and scoring protocol exist.

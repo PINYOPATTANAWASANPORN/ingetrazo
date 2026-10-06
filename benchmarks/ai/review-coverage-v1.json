@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "description": "Public snapshot facts to check for omission; judgments still require a reviewer.",
+  "checks": [
+    {"case_id": "selected-object-metadata", "id": "selected-name", "entity_id": "benchmark-0001", "field": "name", "equals": "Box A", "roles": ["model_structure", "task_requirements"]},
+    {"case_id": "selected-object-metadata", "id": "selected-tag", "entity_id": "benchmark-0001", "field": "layer", "equals": "Layer 0", "roles": ["model_structure", "task_requirements"]},
+    {"case_id": "hidden-and-locked-model", "id": "box-a-hidden", "entity_id": "benchmark-0001", "field": "hidden", "equals": true, "roles": ["model_structure", "task_requirements"]},
+    {"case_id": "hidden-and-locked-model", "id": "box-b-tag-locked", "entity_id": "benchmark-0002", "field": "layer_locked", "equals": true, "roles": ["model_structure", "task_requirements"]},
+    {"case_id": "empty-model-thai", "id": "empty-scope", "entity_id": null, "field": "entity_count", "equals": 0, "roles": ["model_structure", "task_requirements"]}
+  ]
+}
