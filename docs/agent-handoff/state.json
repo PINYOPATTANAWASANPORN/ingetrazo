@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-07",
-    "pull_requests_total": 61,
-    "open": 61,
+    "pull_requests_total": 62,
+    "open": 62,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -315,5 +315,15 @@
     "remaining": "hosted Ubuntu CI, visible GUI input-to-paint latency, and safe Undo snapshot optimization",
     "command_benchmark": "7 fresh Move/Undo trials on bundled 7632-face example: snapshot 30.210 ms, Move do 58.996 ms, undo 18.676 ms median; excludes load and painting",
     "staged_build": "7ebc770 frozen bundle passed --check, 22-tool MCP list and 10-second offscreen GUI startup; not installed"
+  },
+  "move_position_snapshot_delivery": {
+    "branch": "perf/move-position-snapshot",
+    "base_branch": "perf/move-local-autofold",
+    "base_pull_request": 63,
+    "pull_request": 64,
+    "status": "draft",
+    "validation": "223 native Windows Move/Push-Pull/mesh/attrs/layers tests and 189 offscreen CI-selection tests with PYTHONUTF8=1 passed; collision full-state Undo/Redo equality and folding/broad-selection fallback passed",
+    "benchmark": "on 7633-face in-memory mesh with one detached triangle: full Move do 90.135ms vs position-only 15.336ms; full undo 20.698ms vs position-only 0.069ms median over 7 interleaved trials",
+    "remaining": "hosted CI; real GUI input-to-paint timing; installed build unchanged"
   }
 }

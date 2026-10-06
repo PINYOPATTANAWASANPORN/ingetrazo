@@ -98,5 +98,6 @@ jobs:
           tests/test_cota_radio_diametro.py
           tests/test_move_autofold_preview.py
           tests/test_move_vertex_pick.py
+          tests/test_move_undo.py
           tests/test_pushpull_ux.py
           tests/test_face_attrs.py

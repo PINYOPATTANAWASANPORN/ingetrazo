@@ -1000,6 +1000,29 @@ class Mesh:
         for f, attrs in snap.get("fattrs", {}).items():
             f.attrs = dict(attrs)
 
+    def capture_position_state(self, vertices: Iterable[Vertex]) -> dict:
+        """Snapshot a position-only edit that cannot change mesh topology.
+
+        Keep the registry as well as the moved objects' positions: a vertex
+        may land exactly on another registered vertex without being welded.
+        Restoring by position lookup or inverse translation would then move
+        the wrong object or leave the registry pointing at the wrong one.
+        Callers must use :meth:`capture_state` if edges/faces can change.
+        """
+        return {
+            "vpos": {v: QVector3D(v.position) for v in vertices},
+            "registry": dict(self._registry),
+        }
+
+    def restore_position_state(self, snap: dict) -> None:
+        """Restore a position-only snapshot while preserving object identity."""
+        self._chunk_dirty = True
+        self._mut_serial += 1
+        for v, position in snap["vpos"].items():
+            v.position = QVector3D(position)
+        self._registry.clear()
+        self._registry.update(snap["registry"])
+
     # ---- Reset --------------------------------------------------------------
     def clear(self) -> None:
         self._chunk_dirty = True
