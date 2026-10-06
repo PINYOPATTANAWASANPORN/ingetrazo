@@ -64,6 +64,7 @@ from core.topology import (
     find_containing_face,
     fold_nonplanar_faces,
     heal_overlapping_faces,
+    is_planar,
     loop_inside_face,
     orient_coplanar_faces,
     orphaned_edges_at,
@@ -2067,9 +2068,12 @@ class MoveVerticesCommand(Command):
     planar pieces along fold edges (the classic behaviour — a quad with a lifted
     corner becomes two triangles, not a fake bent "face").
 
-    Undo/redo restore identity-preserving snapshots. The old "cheap" inverse
-    translation resolved vertices *by position*, so when a moved corner landed
-    exactly on another vertex (an endpoint snap does this constantly) the undo
+    Undo/redo restore identity-preserving snapshots. Plain moves snapshot only
+    the moved positions and vertex registry; a move that could fold a face
+    still snapshots the entire mesh before changing its topology. The old
+    "cheap" inverse translation resolved vertices *by position*, so when a
+    moved corner landed exactly on another vertex (an endpoint snap does this
+    constantly) the undo
     dragged the innocent coincident vertex along too, warping the drawing. The
     before-snapshot was already being captured every time — restoring it is the
     exact inverse for every case (plain move, fold, landed-on-vertex)."""
@@ -2079,22 +2083,54 @@ class MoveVerticesCommand(Command):
         self.delta = QVector3D(delta)
         self._before: Optional[dict] = None
         self._after: Optional[dict] = None
+        self._position_only = False
+
+    def _restore(self, mesh: Mesh, snap: dict) -> None:
+        if self._position_only:
+            mesh.restore_position_state(snap)
+        else:
+            mesh.restore_state(snap)
 
     def do(self, scene) -> None:
         if self._after is not None:  # redo
-            scene.mesh.restore_state(self._after)
+            self._restore(scene.mesh, self._after)
             scene.version += 1
             return
-        self._before = scene.mesh.capture_state()
-        touched = translate_points(
-            scene, {_key(p) for p in self.src}, self.delta,
-            collect_faces=True)
-        fold_nonplanar_faces(scene.mesh, faces=touched)
-        self._after = scene.mesh.capture_state()
+        mesh = scene.mesh
+        keys = {_key(p) for p in self.src}
+        moving = [v for v in mesh.vertices if _key(v.position) in keys]
+        touched = {face for v in moving for face in v.faces()}
+        moving_set = set(moving)
+
+        # Match the exact QVector3D addition used by move_vertex. When every
+        # touched face stays planar, the edit cannot add/remove topology, so
+        # its much smaller position snapshot remains an exact inverse.
+        def projected(v):
+            return v.position + self.delta if v in moving_set else v.position
+
+        # Projection itself costs more than a full snapshot when a large
+        # selection touches thousands of faces. Keep the established full
+        # path for those broad edits; the small snapshot targets local drags.
+        requires_full_snapshot = len(touched) > 256 or any(
+            not is_planar([projected(v) for v in face.loop] + [
+                projected(v) for hole in face.hole_loops for v in hole])
+            for face in touched
+            if len(face.loop) + sum(map(len, face.hole_loops)) > 3
+        )
+        self._position_only = not requires_full_snapshot
+        capture = (mesh.capture_position_state if self._position_only
+                   else mesh.capture_state)
+        self._before = capture(moving) if self._position_only else capture()
+        for v in moving:
+            mesh.move_vertex(v, self.delta)
+        scene.version += 1
+        if requires_full_snapshot:
+            fold_nonplanar_faces(mesh, faces=touched)
+        self._after = capture(moving) if self._position_only else capture()
 
     def undo(self, scene) -> None:
         if self._before is not None:
-            scene.mesh.restore_state(self._before)
+            self._restore(scene.mesh, self._before)
             scene.version += 1
 
 

@@ -228,3 +228,9 @@ in-memory Move/Undo timing on bundled examples. A cumulative frozen build
 from `7ebc770` is staged and self-checked, but remains separate from the
 installed `3815ef8` build. See [AUTOFOLD_LOCAL_SCOPE.md](AUTOFOLD_LOCAL_SCOPE.md)
 and [INSTALLATION.md](INSTALLATION.md).
+
+Plain Move snapshot follow-up on `perf/move-position-snapshot` keeps only moved
+positions and the vertex registry for local moves that stay planar, while
+folding and broad edits retain full snapshots. See
+[MOVE_POSITION_SNAPSHOT.md](MOVE_POSITION_SNAPSHOT.md) for correctness gates,
+benchmark method, and limits.

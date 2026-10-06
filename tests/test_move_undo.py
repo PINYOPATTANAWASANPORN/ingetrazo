@@ -67,3 +67,63 @@ def test_plain_move_still_works():
     assert (0.0, 10.0) in _positions(scene)
     hist.undo()
     assert (0.0, 0.0) in _positions(scene)
+
+
+def test_plain_move_uses_position_snapshot_and_restores_registry_collision():
+    scene = Scene()
+    hist = History(scene)
+    _two_squares(scene, hist)
+    source = scene.mesh.vertex_at(V(0, 0))
+    stationary = scene.mesh.vertex_at(V(5, 0))
+    before = scene.mesh.capture_state()
+    command = MoveVerticesCommand([V(0, 0)], QVector3D(5, 0, 0))
+    hist.execute(command)
+    assert command._position_only
+    assert source.position == V(5, 0)
+    assert stationary.position == V(5, 0)
+    after = scene.mesh.capture_state()
+    hist.undo()
+    assert scene.mesh.capture_state() == before
+    assert scene.mesh.vertex_at(V(0, 0)) is source
+    assert scene.mesh.vertex_at(V(5, 0)) is stationary
+    hist.redo()
+    assert scene.mesh.capture_state() == after
+    assert source.position == stationary.position
+    hist.undo()
+    assert scene.mesh.capture_state() == before
+    assert scene.mesh.vertex_at(V(0, 0)) is source
+    assert scene.mesh.vertex_at(V(5, 0)) is stationary
+
+
+def test_warping_move_keeps_full_topology_snapshot():
+    scene = Scene()
+    hist = History(scene)
+    corners = [QVector3D(0, 0, 0), QVector3D(2, 0, 0),
+               QVector3D(2, 2, 0), QVector3D(0, 2, 0)]
+    face = scene.mesh.add_face(corners)
+    original_faces = list(scene.mesh.faces)
+    command = MoveVerticesCommand([corners[0]], QVector3D(0, 0, 1))
+    hist.execute(command)
+    assert not command._position_only
+    assert len(scene.mesh.faces) > 1
+    hist.undo()
+    assert scene.mesh.faces == original_faces
+    assert scene.mesh.faces[0] is face
+    hist.redo()
+    assert len(scene.mesh.faces) > 1
+
+
+def test_broad_plain_move_keeps_full_snapshot_without_projection_sweep():
+    scene = Scene()
+    positions = []
+    for i in range(257):
+        x = float(i * 4)
+        positions.append(QVector3D(x, 0, 0))
+        scene.mesh.add_face([QVector3D(x, 0, 0),
+                             QVector3D(x + 1, 0, 0),
+                             QVector3D(x, 1, 0)])
+    command = MoveVerticesCommand(positions, QVector3D(0, 0, 1))
+    command.do(scene)
+    assert not command._position_only
+    command.undo(scene)
+    assert all(scene.mesh.vertex_at(p) is not None for p in positions)
