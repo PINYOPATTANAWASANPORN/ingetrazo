@@ -55,6 +55,13 @@
     "broad_local_suite": "421 test files covered in 43 native-Windows isolated processes: 4594 passed, 11 skipped, 1 xfailed, 0 failed; Qt-lifetime follow-up passed 1378 tests and skipped 2 across the first 160 files in one process at 2.006 GB peak private memory, but the full single-process suite remains unverified",
     "windows_qt_gate": "Outliner native access violation fixed by deferred itemChanged rebuild; Qt-lifetime follow-up releases test windows at module boundaries and binds delayed UI callbacks to owner lifetime; 1378 tests passed and 2 skipped across the first 160 files in one process; full file-level sharded result stored in local test-shards-20261006/summary.json"
   },
+  "windows_qt_lifetime_delivery": {
+    "branch": "fix/qt-test-lifecycle",
+    "pull_request": 54,
+    "base_pull_request": 53,
+    "status": "draft",
+    "full_single_process_suite": "not_yet_verified"
+  },
   "ai_phases": [
     {
       "phase": 1,

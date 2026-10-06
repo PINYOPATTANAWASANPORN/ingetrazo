@@ -65,7 +65,9 @@ exercise cross-file state and resource accumulation in one process.
 
 ## Follow-up: Qt object lifetime in a single Windows process
 
-The full-suite memory failure was investigated on `fix/qt-test-lifecycle`.
+The full-suite memory failure was investigated on `fix/qt-test-lifecycle`
+([draft PR #54](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/54),
+stacked on PR #53).
 The native Windows test process created about 41,862 Qt widgets after 90
 tests, including 2,302 top-level widgets; one Assistant-heavy module
 accounted for most of them. A 40-file probe exceeded 2.5 GB private memory
