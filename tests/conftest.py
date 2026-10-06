@@ -10,6 +10,7 @@ import sys
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
+from PySide6.QtCore import QCoreApplication, QEvent  # noqa: E402
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
 if QApplication.instance() is None:
@@ -33,6 +34,40 @@ for scope in (QSettings.UserScope, QSettings.SystemScope):
 
 
 import pytest  # noqa: E402
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_teardown(item, nextitem):
+    """Release test windows once their module fixtures have finished.
+
+    MainWindow-heavy modules create thousands of child widgets. Their Python
+    references can outlive individual tests, so a long single-process run
+    otherwise retains every native Qt widget and OpenGL resource. A module
+    boundary preserves module-scoped fixtures while bounding that growth.
+    """
+    yield
+    if nextitem is not None and nextitem.module is item.module:
+        return
+    app = QApplication.instance()
+    if app is None:
+        return
+    windows = list(QApplication.topLevelWidgets())
+    for widget in windows:
+        try:
+            widget.hide()
+        except RuntimeError:
+            # Deleting a parent may already have destroyed a tool window.
+            pass
+    # Hiding docks queues zero-delay layout callbacks. Drain them while their
+    # MainWindow and viewport are still valid, then destroy the hierarchy.
+    app.processEvents()
+    for widget in windows:
+        try:
+            widget.deleteLater()
+        except RuntimeError:
+            pass
+    QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+    app.processEvents()
 
 
 @pytest.fixture(autouse=True)

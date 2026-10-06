@@ -293,14 +293,14 @@ class MainWindow(QMainWindow):
         from core import autosave
         if autosave.pending(None):
             from PySide6.QtCore import QTimer
-            QTimer.singleShot(0, self._offer_untitled_recovery)
+            QTimer.singleShot(0, self, self._offer_untitled_recovery)
 
     def showEvent(self, event) -> None:  # noqa: N802 — Qt override
         super().showEvent(event)
         if not getattr(self, "_toolbars_packed", True):
             from PySide6.QtCore import QTimer
             self._toolbars_packed = True
-            QTimer.singleShot(0, self._pack_toolbars)
+            QTimer.singleShot(0, self, self._pack_toolbars)
         if not getattr(self, "_ndof_connected", False):
             self._connect_ndof()
 
@@ -1591,7 +1591,7 @@ class MainWindow(QMainWindow):
         children above the handle, which then vanishes behind the dock
         (Marco, 2026-09-14) — every dock change re-places (and re-raises) it."""
         from PySide6.QtCore import QTimer
-        bump = lambda *_: QTimer.singleShot(0, self._place_sidebar_handle)
+        bump = lambda *_: QTimer.singleShot(0, self, self._place_sidebar_handle)
         for d in self._sidebar_docks():
             d.visibilityChanged.connect(bump)
             d.dockLocationChanged.connect(bump)
@@ -1600,8 +1600,11 @@ class MainWindow(QMainWindow):
     def _place_sidebar_handle(self) -> None:
         """On the resize line between the viewport and the trays, centred
         vertically; at the window's edge when the trays are folded."""
+        from shiboken6 import isValid
+        if not isValid(self):
+            return
         btn = getattr(self, "_sidebar_handle", None)
-        if btn is None:
+        if btn is None or not isValid(btn) or not isValid(self.viewport):
             return
         from PySide6.QtCore import QPoint
         edge = self.viewport.mapTo(self, QPoint(self.viewport.width(), 0))
@@ -1643,7 +1646,7 @@ class MainWindow(QMainWindow):
             self._icon_actions = [(a, (key if a is btn else k))
                                   for a, k in self._icon_actions]
             from PySide6.QtCore import QTimer
-            QTimer.singleShot(0, self._place_sidebar_handle)   # after the relayout
+            QTimer.singleShot(0, self, self._place_sidebar_handle)  # after relayout
 
     def _toggle_clean_screen(self, on: bool) -> None:
         """AutoCAD's Ctrl+0: fold away every toolbar, dock and bar so only
@@ -1672,7 +1675,7 @@ class MainWindow(QMainWindow):
             self.menuBar().show()
             self.statusBar().show()
             from PySide6.QtCore import QTimer
-            QTimer.singleShot(0, self._place_sidebar_handle)
+            QTimer.singleShot(0, self, self._place_sidebar_handle)
 
     def _clean_screen_exit_button(self):
         """A small «Exit clean screen» button floating at the viewport's

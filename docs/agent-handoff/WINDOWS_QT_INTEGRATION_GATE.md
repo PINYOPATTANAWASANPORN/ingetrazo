@@ -63,6 +63,34 @@ be reported as a single-process full-suite pass. The complete file-level
 sharded run above validates the tests in isolated processes, but does not
 exercise cross-file state and resource accumulation in one process.
 
+## Follow-up: Qt object lifetime in a single Windows process
+
+The full-suite memory failure was investigated on `fix/qt-test-lifecycle`.
+The native Windows test process created about 41,862 Qt widgets after 90
+tests, including 2,302 top-level widgets; one Assistant-heavy module
+accounted for most of them. A 40-file probe exceeded 2.5 GB private memory
+without cleanup. Releasing top-level test windows at module boundaries let
+the same probe finish 335 tests at 1.34 GB peak. The cleanup runs after
+pytest tears down module fixtures, drains queued layout callbacks while the
+windows are valid, then processes deferred Qt deletion.
+
+Delayed UI callbacks in MainWindow, Composer, and the tray are now scheduled
+with their owning QObject as context. Qt can discard them when the owner is
+destroyed. Before the Composer callback fix, a complete 72-file prefix
+repeatedly ended with Windows access violation `0xC0000005` around its
+Composer Items tests; each half passed separately. After the fix, that
+72-file prefix passed **623 tests in one process**, exit code 0, with 1.97 GB
+peak private memory and no fatal/runtime callback diagnostics. The broader
+160-file prefix then passed **1,378 tests, 2 skipped**, exit code 0, with
+2.006 GB peak private memory and no fatal/runtime callback diagnostics. Six
+related GUI test files also passed 28 tests after the MainWindow/tray changes.
+
+This is evidence of progress, not yet a full single-process pass. The
+421-file run before the Composer callback fix crashed at about 13%; the
+entire suite must be rerun with the final changes and a memory watchdog.
+The local probe logs are outside the repository under
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\memory-fix-*`.
+
 The staged bundle is in the ignored `dist/ingetrazo` directory. SHA-256:
 
 - `ingetrazo.exe`: `D4EF7D5C86AAE55F8AB4F0EE07EC5F0852BF5D4A2AEE16B53F0972823549744B`
