@@ -1867,6 +1867,7 @@ class OutlinerPanel(QWidget):
             scene.selection.clear()
             scene.bump_view()
             self._window.viewport.update()
+            self._sync_selection()
             return
         self._updating = True
         self._open_parent_path(path)

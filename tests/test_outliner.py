@@ -164,6 +164,7 @@ def test_locked_ancestor_blocks_selecting_a_nested_row():
     panel._items[id(leaf)].setSelected(True)
     assert not scene._edit_stack
     assert not scene.selection
+    assert not panel._selected_groups()
 
 
 def test_reorder_command_moves_siblings_and_undoes_at_both_levels():

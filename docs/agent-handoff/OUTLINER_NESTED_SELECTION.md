@@ -1,13 +1,14 @@
 # Nested Outliner selection follow-up
 
 Base: PR #55 (`ci/windows-qt-gate`), verified CI at `1b8dfb2`.
-Branch: `fix/outliner-nested-selection`.
+Branch: `fix/outliner-nested-selection`, draft PR #56.
 
 ## Corrected behavior
 
 - Search previously used `any(generator)` while recursively updating rows.
   The first matching child short-circuited the traversal, leaving later
   siblings stale. Every child is now visited, including when clearing search.
+- Selecting under a locked ancestor now clears the rejected tree highlight.
 - Cross-parent multi-selection was reduced in the viewport but not in the
   tree. Context-menu hide/lock could therefore affect extra rows. After
   choosing the supported edit context, tree selection now matches it.

@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 53,
-    "open": 53,
+    "pull_requests_total": 54,
+    "open": 54,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -231,9 +231,9 @@
     "branch": "fix/outliner-nested-selection",
     "base_branch": "ci/windows-qt-gate",
     "base_pull_request": 55,
-    "pull_request": null,
-    "status": "implemented_locally",
-    "validation": "9 Outliner tests passed on native Windows Qt and offscreen; both added regression tests fail on parent code",
+    "pull_request": 56,
+    "status": "draft",
+    "validation": "9 Outliner tests passed on native Windows Qt and offscreen after locked-ancestor selection sync; both added regression tests fail on parent code",
     "remaining": "Face/edge hierarchy, large-tree benchmarks and richer nested navigation remain open"
   }
 }
