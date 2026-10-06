@@ -102,3 +102,5 @@ jobs:
           tests/test_transactional_history.py
           tests/test_pushpull_ux.py
           tests/test_face_attrs.py
+          tests/test_face_geometry_cache.py
+          tests/test_document_boundary_caches.py

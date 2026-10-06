@@ -334,6 +334,16 @@
     "status": "draft",
     "validation": "195 Windows offscreen CI-selection tests passed, including transactional Move failure injection; full offscreen suite stopped on an unrelated Composer font-pixel test, which passes under native Windows Qt; full native suite pending",
     "benchmark": "7633-face example: median History.execute old extra guard 47.285ms vs self-guarded 16.852ms; native direct paintGL about 810ms, primarily edge cache sync",
-    "remaining": "hosted CI; renderer edge-cache optimization; real user-input-to-visible-pixel check; installed build unchanged"
+    "remaining": "renderer edge-cache optimization; real user-input-to-visible-pixel check; installed build unchanged; hosted CI succeeded on PR #65"
+  },
+  "move_face_geometry_cache_delivery": {
+    "branch": "perf/move-face-geometry-cache",
+    "base_branch": "perf/move-history-transaction",
+    "base_pull_request": 65,
+    "pull_request": null,
+    "status": "local_validation_passed",
+    "validation": "201 Windows offscreen CI-selection tests passed; unchanged face reuse, changed vertex/loop/hole, Move/Undo/Redo, cache cap and document boundary covered",
+    "benchmark": "direct native 640x480 paintGL on 7633-face example: about 810ms parent, 584-629ms across two five-trial cache runs; command near 17ms; excludes Qt scheduling, swap and scanout",
+    "remaining": "hosted CI, edge bucketing/drawing optimization and real GUI input-to-visible-pixel check; installed build unchanged"
   }
 }

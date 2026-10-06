@@ -186,7 +186,8 @@ class Face:
     rendering, bounds and ``.igz`` save consume a ``mesh.Face`` unchanged (M1).
     """
 
-    __slots__ = ("loop", "hole_loops", "interior", "attrs")
+    __slots__ = ("loop", "hole_loops", "interior", "attrs",
+                 "_render_geom_cache")
 
     def __init__(
         self, loop: list[Vertex], hole_loops: Optional[list[list[Vertex]]] = None
@@ -205,6 +206,11 @@ class Face:
         # replace face objects, so each inheritance point carries this dict to
         # the surviving/covering face — see tests/test_face_attrs.py.
         self.attrs: dict = {}
+        # Viewport geometry memo: (position signature, Newell vector,
+        # triangulation). It belongs to the face so deleting/replacing a face
+        # releases its cached triangles with it rather than retaining dead
+        # faces in a viewport-wide id() table.
+        self._render_geom_cache = None
 
     # ---- Legacy-compatible read interface (positions) -----------------------
     @property
