@@ -53,7 +53,7 @@
     "python_compile": "passed",
     "git_diff_check": "passed",
     "broad_local_suite": "not verified: offscreen Composer pixel test fails but native passes; Windows focus/font tests corrected; later native continuation stopped near 64% at approximately 20 GB Python memory; separate batch stopped at 4.6 GB",
-    "windows_qt_gate": "Outliner native access violation fixed by deferred itemChanged rebuild; 7 Outliner, 37 related model, 178 selected AI, 49 command-search, 8 Composer row, 41 push-pull, and another 40 later tests passed in targeted runs"
+    "windows_qt_gate": "Outliner native access violation fixed by deferred itemChanged rebuild; 7 Outliner, 37 related model, 178 selected AI, 49 command-search, 8 Composer row tests passed; separately sharded native files 300-420 yielded 1076 passed and 5 skipped after correcting a Style Editor test assumption"
   },
   "ai_phases": [
     {

@@ -17,6 +17,11 @@ and packaging evidence for branch `test/windows-qt-integration-gates` at
   the isolated test passed.
 - Two Composer layout tests use semantic font relationships or a small ink
   margin tolerance instead of platform-specific font-pixel thresholds.
+- The Style Editor tooltip test now checks the scoped button stylesheet
+  directly. Native Windows Qt did not create a visible tooltip window inside
+  the test harness, even after its parent widget was shown. The scoped
+  selector is the regression contract that prevents the swatch background
+  from cascading to a tooltip.
 
 ## Validation actually completed
 
@@ -32,6 +37,13 @@ and packaging evidence for branch `test/windows-qt-integration-gates` at
 - A clean PyInstaller build from `d70e782` passed; the frozen executable's
   `--check` returned 0, and the frozen MCP executable's JSON-RPC `tools/list`
   returned 22 tools including `begin_specialist_review`.
+- Files 300–420 of the 421 sorted `test_*.py` files were run in separate
+  10-file native-Windows processes: **1,076 passed, 5 skipped**. The
+  Style Editor test first failed in the 360–369 shard (109 passed, 1 failed),
+  then its corrected 16-test file and the full 360–369 shard passed
+  (110 passed). These counts use the successful rerun, not the failed run.
+  Logs for shards 340–420 are outside the repo in
+  `C:\Users\Lenovo\Desktop\IngeTrazoTest\test-shards-20261006`.
 
 The **full single-process suite did not complete**. The offscreen run first
 failed a Composer scale-label pixel test after 451 passed and 11 skipped;
@@ -53,3 +65,6 @@ installation or a merge of the stacked PRs, complete a memory-bounded broad
 test run, then verify the frozen GUI and representative live workflows. AI
 specialist factual quality also requires independent human evaluation and
 deterministic checking of claims against the model snapshot.
+
+The Style Editor change above is test-only and followed the staged build;
+no application binary changed after `d70e782`.
