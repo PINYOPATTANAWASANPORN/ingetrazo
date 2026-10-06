@@ -235,3 +235,11 @@ positions and the vertex registry for local moves that stay planar, while
 folding and broad edits retain full snapshots. See
 [MOVE_POSITION_SNAPSHOT.md](MOVE_POSITION_SNAPSHOT.md) for correctness gates,
 benchmark method, and limits.
+
+The next Move follow-up in [draft PR #65](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/65)
+on `perf/move-history-transaction` removes History's
+redundant whole-mesh guard for fresh Move commands while retaining rollback
+from the command's own pre-edit snapshot. A native Windows GL probe found
+edge-buffer rebuilds still dominate the forced paint after a local Move. See
+[MOVE_HISTORY_GUARD.md](MOVE_HISTORY_GUARD.md) for tests, benchmark method and
+the next renderer target.
