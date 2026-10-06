@@ -1,7 +1,7 @@
 # Multi-face Autofold integration gate
 
 Base: draft PR #60 (`fix/active-tag-indicator`).
-Branch: `test/autofold-shared-vertex-grid`.
+Branch: `test/autofold-shared-vertex-grid` ([draft PR #61](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/61)).
 
 A new integration test lifts the shared center vertex of a 3 × 3 quad grid.
 Four incident faces fold; the test compares all preview fold edges against
