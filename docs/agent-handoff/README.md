@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-06**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **53 open PRs in the 2026-10-06 snapshot**; check GitHub
+- PR inventory: **54 open PRs in the 2026-10-06 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -183,3 +183,12 @@ the test now compares short- and long-hint baselines. All 14 sheet-tab tests
 pass locally with both native and offscreen Qt; hosted revalidation is pending. A frozen `12d783c`
 bundle passed startup checks but is not installed; details and limitations
 are in [`WINDOWS_QT_INTEGRATION_GATE.md`](WINDOWS_QT_INTEGRATION_GATE.md).
+
+Latest verified CI: run [37465329555](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37465329555) passed both jobs at `1b8dfb2` (PR #55). This supersedes the pending status above.
+
+Nested-selection follow-up on `fix/outliner-nested-selection`, based on
+`ci/windows-qt-gate`: search visits every sibling and clearing it restores
+all nested rows; cross-parent selections are reflected back into the tree
+so hide/lock use the actual viewport selection. Nine Outliner tests passed
+on both native Windows Qt and offscreen. Both added regressions fail on
+the parent code. No installed-binary changes. See [OUTLINER_NESTED_SELECTION.md](OUTLINER_NESTED_SELECTION.md).

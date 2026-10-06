@@ -542,6 +542,17 @@
       "draft": true,
       "updated_at": "2026-10-06T09:23:40Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/55"
+    },
+    {
+      "number": 56,
+      "state": "open",
+      "title": "Fix nested Outliner filtering and selection consistency",
+      "base": "ci/windows-qt-gate",
+      "head": "fix/outliner-nested-selection",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T12:56:33Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/56"
     }
   ]
 }
