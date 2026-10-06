@@ -52,7 +52,8 @@ and packaging evidence for branch `test/windows-qt-integration-gates` at
   directory. It retains the original failing Style Editor log and uses the
   successful `shard-360-recheck.txt` after the test-only correction.
 
-The **full single-process suite did not complete**. The offscreen run first
+Before the Qt-lifetime follow-up, the **full single-process suite did not
+complete**. The offscreen run first
 failed a Composer scale-label pixel test after 451 passed and 11 skipped;
 that test passes with native Windows Qt. Native runs exposed the test focus
 and font-metric assumptions above. A later continuation reached about 64%
@@ -87,11 +88,17 @@ peak private memory and no fatal/runtime callback diagnostics. The broader
 2.006 GB peak private memory and no fatal/runtime callback diagnostics. Six
 related GUI test files also passed 28 tests after the MainWindow/tray changes.
 
-This is evidence of progress, not yet a full single-process pass. The
-421-file run before the Composer callback fix crashed at about 13%; the
-entire suite must be rerun with the final changes and a memory watchdog.
-The local probe logs are outside the repository under
-`C:\Users\Lenovo\Desktop\IngeTrazoTest\memory-fix-*`.
+The final **421-file single-process native-Windows run passed**: 4,594 passed,
+11 skipped, 1 expected failure, 0 failed; exit code 0 in 21 minutes 38
+seconds. Peak private memory was **2.55 GB** under a 4 GB watchdog limit, and
+stderr contained no fatal/runtime callback diagnostics. The same tests had
+previously required 43 isolated processes, while an earlier single-process
+run reached about 20 GB and was stopped at 64%. This closes the local
+single-process memory gate; it does not certify the staged binary or replace
+CI and live-GUI verification. The full-run log and memory trace are outside
+the repository at
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\memory-fix-full-final-pytest.txt`
+and `C:\Users\Lenovo\Desktop\IngeTrazoTest\memory-fix-full-final.csv`.
 
 The staged bundle is in the ignored `dist/ingetrazo` directory. SHA-256:
 
