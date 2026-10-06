@@ -575,6 +575,17 @@
       "draft": true,
       "updated_at": "2026-10-06T13:19:44Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/58"
+    },
+    {
+      "number": 59,
+      "state": "open",
+      "title": "Prune selected annotations when their tag becomes unavailable",
+      "base": "perf/outliner-incremental-refresh",
+      "head": "fix/tag-annotation-selection",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T13:32:40Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/59"
     }
   ]
 }

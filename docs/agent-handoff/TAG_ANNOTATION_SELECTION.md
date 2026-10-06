@@ -1,7 +1,7 @@
 # Tag selection consistency for annotations
 
 Base: draft PR #58 (`perf/outliner-incremental-refresh`).
-Branch: `fix/tag-annotation-selection`.
+Branch: `fix/tag-annotation-selection`, draft PR #59.
 
 Hiding or locking a Tag previously removed selected faces, edges and groups,
 but left selected dimensions and text labels on that Tag. The selection

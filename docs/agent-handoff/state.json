@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 56,
-    "open": 56,
+    "pull_requests_total": 57,
+    "open": 57,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -252,14 +252,19 @@
     "pull_request": 58,
     "status": "draft",
     "validation": "11 Outliner tests passed on native Windows and offscreen; synthetic 2000 rows, five refreshes: 0.7808s parent vs 0.3090s updated",
-    "remaining": "real large-document profiling and nested-tree stress cases"
+    "remaining": "real large-document profiling and nested-tree stress cases",
+    "latest_verified_ci": {
+      "run": 37470062040,
+      "result": "success",
+      "commit": "b182a25ed0596547141a6f228b3f90e122f42eb3"
+    }
   },
   "tag_annotation_selection_delivery": {
     "branch": "fix/tag-annotation-selection",
     "base_branch": "perf/outliner-incremental-refresh",
     "base_pull_request": 58,
-    "pull_request": null,
-    "status": "implemented_locally",
+    "pull_request": 59,
+    "status": "draft",
     "validation": "25 focused layer tests passed on native Windows Qt and offscreen; regression failed on parent code with selected Dimension and TextLabel",
     "remaining": "complex Tag workflow and rendering verification"
   }
