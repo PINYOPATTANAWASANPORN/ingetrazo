@@ -244,5 +244,14 @@
     "status": "draft",
     "validation": "10 Outliner tests passed on native Windows and offscreen; synthetic 2000 rows, 100 single-object changes: 1.6936s parent vs 0.0012s updated",
     "remaining": "representative real-model measurements, tree refresh/filter/render profiling, Face/Edge hierarchy"
+  },
+  "outliner_incremental_refresh_delivery": {
+    "branch": "perf/outliner-incremental-refresh",
+    "base_branch": "perf/outliner-selection-sync",
+    "base_pull_request": 57,
+    "pull_request": null,
+    "status": "implemented_locally",
+    "validation": "11 Outliner tests passed on native Windows and offscreen; synthetic 2000 rows, five refreshes: 0.7808s parent vs 0.3090s updated",
+    "remaining": "real large-document profiling and nested-tree stress cases"
   }
 }

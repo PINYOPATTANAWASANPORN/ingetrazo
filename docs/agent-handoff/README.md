@@ -196,3 +196,8 @@ the parent code. No installed-binary changes. See [OUTLINER_NESTED_SELECTION.md]
 Outliner performance follow-up: [draft PR #57](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/57) on `perf/outliner-selection-sync` changes only
 selected rows during viewport sync. See [OUTLINER_SELECTION_PERFORMANCE.md](OUTLINER_SELECTION_PERFORMANCE.md)
 for measured scope and limits.
+
+Outliner refresh follow-up: `perf/outliner-incremental-refresh` updates
+existing rows when the hierarchy is stable; see
+[OUTLINER_INCREMENTAL_REFRESH.md](OUTLINER_INCREMENTAL_REFRESH.md) for
+measured scope and regression checks.
