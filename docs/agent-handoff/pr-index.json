@@ -487,6 +487,17 @@
       "draft": true,
       "updated_at": "2026-10-06T01:33:26Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/50"
+    },
+    {
+      "number": 51,
+      "state": "open",
+      "title": "Add digest-bound manual assessment for specialist findings",
+      "base": "feature/ai-review-provider-usage",
+      "head": "feature/ai-review-finding-audit",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T01:41:23Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/51"
     }
   ]
 }

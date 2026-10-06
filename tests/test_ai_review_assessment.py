@@ -90,3 +90,24 @@ def test_cli_summarizes_bound_assessments_offline(tmp_path, monkeypatch, capsys)
     assert output["human_assessment"]["assessed_reviews"] == 2
     assert output["human_assessment"]["findings"]["grounded"]["yes"] == 2
     assert output["quality_score"] is None
+
+
+def test_opt_in_display_stays_out_of_metadata_file(tmp_path, monkeypatch, capsys):
+    def fake_chat(_provider, _model, _key, _system, _messages, **_kwargs):
+        return '{"summary":"public review marker","findings":[]}'
+
+    monkeypatch.setattr(ai, "chat", fake_chat)
+    config_path = tmp_path / "providers.json"
+    config_path.write_text(json.dumps({"schema_version": "1.0", "roles": {
+        role: {"provider": "ollama", "model": "test"}
+        for role in ai_review.ROLES}}), encoding="utf-8")
+    output_path = tmp_path / "run.jsonl"
+    assert main(["--run", "--show-findings", "--config", str(config_path),
+                 "--output", str(output_path)]) == 0
+    captured = capsys.readouterr()
+    assert "public review marker" in captured.err
+    assert "public review marker" not in output_path.read_text(encoding="utf-8")
+    records = [json.loads(line) for line in output_path.read_text(
+        encoding="utf-8").splitlines()]
+    assert all(record["roles"][role]["review_digest"]
+               for record in records for role in ai_review.ROLES)

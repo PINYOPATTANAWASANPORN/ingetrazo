@@ -140,3 +140,11 @@ reported case totals 1,049, 1,217 and 726 tokens. The selected AI suite
 passed 143 tests. Finding quality is still unscored; these counts do not
 establish savings. GitHub snapshot: 48 total PRs, 48 open, 0 merged. The
 installed Windows build remains at `3815ef8`.
+
+Latest finding-assessment workflow: [draft PR #51](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/51),
+`feature/ai-review-finding-audit` on #50, implementation `32068bd`.
+An opt-in public-fixture display and digest-bound manual judgments permit
+grounding/relevance review without saving provider prose in benchmark JSONL.
+The selected AI suite passed 176 tests. No human assessments have been
+collected yet, so `quality_score` remains null. GitHub snapshot: 49 total,
+49 open, 0 merged. Installed Windows build remains at `3815ef8`.

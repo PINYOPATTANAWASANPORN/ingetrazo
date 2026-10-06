@@ -217,3 +217,15 @@ On clean commit `eb748a2`, the three public Ollama review cases completed
 selected AI regression suite passed 143 tests with `PYTHONUTF8=1`. This is
 not a cost or savings claim, and finding quality remains unscored. The
 installed Windows build remains at `3815ef8`.
+
+## Digest-bound finding assessment (2026-10-06)
+
+`feature/ai-review-finding-audit` adds an explicit `--show-findings` path for
+the bundled public corpus and records a SHA-256 digest of each successful
+specialist response in metadata-only JSONL. A separate offline validator binds
+manual summary/finding labels to run, case, role, digest, and ordered finding
+count; it rejects mismatches and reports assessment coverage. The labels cover
+grounding and relevance, not omitted issues or overall quality. No human
+assessments have been collected; `quality_score` stays null. The AI suite
+passed 176 tests with `PYTHONUTF8=1`. Draft PR #51 is stacked on #50. The
+installed Windows build remains at `3815ef8`.
