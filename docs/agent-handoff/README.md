@@ -177,7 +177,7 @@ Current Windows CI follow-up: [draft PR #55](https://github.com/PINYOPATTANAWASA
 `ci/windows-qt-gate` on PR #54, adds a native
 Windows full-suite PR job and fixes Composer radial-property editing. Local
 targeted checks passed 45 tests with native Qt and 46 with offscreen Qt. The
-fork's Actions are disabled, so the job will not run until a maintainer
-enables workflows after reviewing their permissions. A frozen `12d783c`
+fork's Actions became active while PR #55 was being prepared; both CI jobs
+started, with results pending. A frozen `12d783c`
 bundle passed startup checks but is not installed; details and limitations
 are in [`WINDOWS_QT_INTEGRATION_GATE.md`](WINDOWS_QT_INTEGRATION_GATE.md).

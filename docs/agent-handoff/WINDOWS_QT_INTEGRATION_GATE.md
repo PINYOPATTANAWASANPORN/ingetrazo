@@ -118,15 +118,16 @@ no application binary changed after `d70e782`.
 ## Follow-up: Windows PR check and frozen smoke
 
 The follow-up is [draft PR #55](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/55),
-stacked on PR #54. The fork's GitHub Actions page reported that workflows are **disabled** for
-forked repositories. PR #54 therefore showed no check runs. A new `windows-qt`
+stacked on PR #54. The fork's GitHub Actions page initially reported that
+workflows were **disabled**, and PR #54 showed no check runs. GitHub Actions
+became active while PR #55 was being prepared; both CI jobs started. A new `windows-qt`
 job in `.github/workflows/ci.yml` runs the entire suite on `windows-latest`
 with native Windows Qt and a 60-minute timeout. The existing Ubuntu fast job
 remains. The native backend was chosen because the exact 421-file sequence
 passed locally in one Windows process (4,594 passed, 11 skipped, 1 xfailed).
-Merely adding the job does not enable fork Actions; a repository maintainer
-must explicitly enable workflows after reviewing all existing workflows,
-including release workflows with write permissions and secrets.
+Enabling Actions applies to all workflows in the fork, including release
+workflows with write permissions and secrets. Neither release workflow was
+manually dispatched in this slice. The PR CI result remains pending.
 
 An exploratory full offscreen run stopped making progress at
 `test_document_caches_reset.py` after about 22% of the suite. The test passed
