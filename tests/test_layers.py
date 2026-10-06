@@ -164,6 +164,25 @@ def test_layers_panel_active_tag_change_syncs_the_status_selector():
 
         combo = win._active_tag_combo
         assert combo.itemData(combo.currentIndex()) == "Estructura"
+        default_row = next(panel.tree.topLevelItem(i)
+                           for i in range(panel.tree.topLevelItemCount())
+                           if panel.tree.topLevelItem(i).data(0, Qt.UserRole)
+                           == DEFAULT_LAYER)
+        assert item.text(1) == "●" and default_row.text(1) == ""
+
+        # itemChanged must update both markers without rebuilding/deleting
+        # the row Qt is still processing.
+        item.setCheckState(3, Qt.Checked)
+        assert scene.active_layer == DEFAULT_LAYER
+        assert item.text(1) == "" and default_row.text(1) == "●"
+        assert combo.itemData(combo.currentIndex()) == DEFAULT_LAYER
+
+        item.setCheckState(3, Qt.Unchecked)
+        panel.tree.setCurrentItem(item)
+        panel._on_set_active()
+        item.setCheckState(2, Qt.Unchecked)
+        assert scene.active_layer == DEFAULT_LAYER
+        assert item.text(1) == "" and default_row.text(1) == "●"
     finally:
         win._saved_version = win.viewport.scene.version
         win.close()

@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-06**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **57 open PRs in the 2026-10-06 snapshot**; check GitHub
+- PR inventory: **58 open PRs in the 2026-10-06 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -205,3 +205,7 @@ measured scope and regression checks.
 Tag consistency follow-up: [draft PR #59](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/59) on `fix/tag-annotation-selection` clears selected
 annotations when their Tag becomes hidden/locked or they are assigned to
 one; see [TAG_ANNOTATION_SELECTION.md](TAG_ANNOTATION_SELECTION.md).
+
+Active Tag indicator follow-up: [draft PR #60](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/60) on `fix/active-tag-indicator` keeps the Tags
+panel marker aligned with the toolbar and scene; see
+[ACTIVE_TAG_INDICATOR.md](ACTIVE_TAG_INDICATOR.md).
