@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Run the fast test suite on every pull request and on every push to main.
+# Run the test suite on every pull request and on every push to main.
 #
 # This is the gate the release workflows don't provide: build-windows.yml and
 # release.yml only fire on a vX.Y.Z tag, so until now a PR showed "no checks
@@ -65,3 +65,34 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: python -m pytest -q -m "not slow"
+
+  windows-qt:
+    name: pytest (Windows Qt offscreen smoke)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -c "import PySide6, numpy, openskp, openskp.legacy; print('deps OK')"
+
+      - name: Windows Qt integration smoke
+        # Hosted Windows has no reliable interactive desktop. Pixel/font
+        # rendering tests that need it remain in the local native gate.
+        run: >-
+          python -m pytest -q
+          tests/test_ai_bridge.py
+          tests/test_ai_assistant.py
+          tests/test_outliner.py
+          tests/test_composer_borders.py
+          tests/test_cota_radio_diametro.py

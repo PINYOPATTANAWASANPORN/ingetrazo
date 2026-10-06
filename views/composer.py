@@ -7182,8 +7182,10 @@ class ComposerWindow(QMainWindow):
         return w
 
     def _on_cota_rad_props(self, *_a) -> None:
-        item = self._single_selected()
-        if self._updating or not isinstance(item, CotaRadialCanvasItem):
+        if self._updating:
+            return
+        item = self._selected_item()
+        if not isinstance(item, CotaRadialCanvasItem):
             return
         item.prepareGeometryChange()
         self._panel_edit(item, {

@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 51,
-    "open": 51,
+    "pull_requests_total": 53,
+    "open": 53,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -38,13 +38,15 @@
     ]
   },
   "staged_build": {
-    "source_commit": "3815ef8c672ada7f086eee1bcf1bba1e96d75449",
-    "manifest": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-latest-3815ef8.json",
-    "installer": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\install-latest-3815ef8.ps1",
+    "source_commit": "12d783c",
+    "path": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-qt-12d783c\\ingetrazo",
+    "manifest": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-staged-12d783c.json",
+    "main_sha256": "D6B241FD58D82476BF6843FD538D78EE4EFF6DEB0DB2219D9CFBBFCFD2D7FE45",
+    "mcp_sha256": "67FCDFD3465314623EF22D60AD37B1730641197B4D1A7A2CA4731FA45B8702EA",
     "bundle_check": "passed",
     "mcp_tools": 22,
-    "installed": true,
-    "installed_at_utc": "2026-10-05T23:07:03.629272Z"
+    "offscreen_gui_startup": "survived_10_seconds",
+    "installed": false
   },
   "validation": {
     "scope": "selected review benchmark, cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
@@ -53,7 +55,7 @@
     "python_compile": "passed",
     "git_diff_check": "passed",
     "broad_local_suite": "421 test files in one native-Windows process: 4594 passed, 11 skipped, 1 xfailed, 0 failed, exit 0 in 21m38s, peak private memory 2.55 GB under a 4 GB watchdog; the same counts were previously verified in 43 isolated processes",
-    "windows_qt_gate": "Outliner native access violation fixed by deferred itemChanged rebuild; Qt-lifetime follow-up releases test windows at module boundaries and binds delayed UI callbacks to owner lifetime; full 421-file single-process suite passed with no fatal/runtime callback diagnostics; logs in local memory-fix-full-final-*"
+    "windows_qt_gate": "Outliner native access violation fixed by deferred itemChanged rebuild; Qt-lifetime follow-up releases test windows at module boundaries and binds delayed UI callbacks to owner lifetime; full 421-file single-process native Windows suite passed locally; first hosted native Windows CI exited 1 at 4% without traceback; revised hosted offscreen smoke passed 116 tests; Ubuntu fast job had one platform-width assertion failure (3773 passed); baseline-relative regression correction passed all 14 sheet-tab tests on native and offscreen Qt; hosted revalidation pending; exploratory full offscreen run hung at 22%, then a 123-file prefix had five font/pixel failures; logs in local memory-fix-full-final-* and ci-offscreen-*"
   },
   "windows_qt_lifetime_delivery": {
     "branch": "fix/qt-test-lifecycle",
@@ -61,6 +63,17 @@
     "base_pull_request": 53,
     "status": "draft",
     "full_single_process_suite": "passed_native_windows_2026-10-06"
+  },
+  "windows_qt_ci_delivery": {
+    "branch": "ci/windows-qt-gate",
+    "implementation_commit": "12d783c",
+    "documentation_commit": "b38ed6d",
+    "pull_request": 55,
+    "base_pull_request": 54,
+    "status": "draft",
+    "fork_actions_enabled": true,
+    "validation": "45 native Windows Qt, 46 offscreen targeted, and 116 curated offscreen smoke tests passed locally; frozen build --check, 22-tool MCP list and ten-second offscreen GUI startup passed; first hosted native full run exited 1 at 4% without traceback; revised hosted Windows CI smoke passed 116 tests, Ubuntu fast job had one platform-width assertion failure (3773 passed); baseline-relative regression correction passed all 14 sheet-tab tests on native and offscreen Qt; hosted revalidation pending",
+    "hosted_windows_smoke_job": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37442507775/job/112199408353"
   },
   "ai_phases": [
     {

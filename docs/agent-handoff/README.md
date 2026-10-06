@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-06**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **51 open PRs in the 2026-10-06 snapshot**; check GitHub
+- PR inventory: **53 open PRs in the 2026-10-06 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -75,6 +75,7 @@ failed attempts that reveal a reusable constraint; add the lesson to
 
 
 Latest delivery: [PR #42](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/42), `feature/ai-review-export` on #41; implementation `5f1763b`. Selected regression suite: 113 passed with simulated providers. GitHub snapshot: 40 total, 40 open, 0 merged. Earlier snapshot counts above are historical. Installed build unchanged.
+
 
 
 Current development slice: `feature/ai-review-audit-trail` on PR #42 adds a session-only, hash-linked review status log through MCP. It is not a signed or persistent audit system.
@@ -171,3 +172,14 @@ assessment; quality remains unscored. The broad Windows test pass stopped at
 an unmodified Composer scale-label pixel test after 451 passed and 11 skipped.
 No new build was installed. The next review slice should validate claims
 against snapshot fields, then rerun independent assessment and the broad gate.
+
+Current Windows CI follow-up: [draft PR #55](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/55),
+`ci/windows-qt-gate` on PR #54, adds an offscreen Windows Qt smoke job and
+fixes Composer radial-property editing. Local targeted checks passed 45 tests
+with native Qt, 46 with offscreen Qt, and 116 in the curated smoke. The first
+hosted native full-suite job exited 1 at about 4% without a Python traceback;
+the revised hosted Windows smoke passed 116 tests. The Ubuntu fast run found one platform-dependent width assertion (3,773 passed);
+the test now compares short- and long-hint baselines. All 14 sheet-tab tests
+pass locally with both native and offscreen Qt; hosted revalidation is pending. A frozen `12d783c`
+bundle passed startup checks but is not installed; details and limitations
+are in [`WINDOWS_QT_INTEGRATION_GATE.md`](WINDOWS_QT_INTEGRATION_GATE.md).

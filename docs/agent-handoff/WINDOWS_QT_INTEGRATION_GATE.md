@@ -114,3 +114,64 @@ deterministic checking of claims against the model snapshot.
 
 The Style Editor change above is test-only and followed the staged build;
 no application binary changed after `d70e782`.
+
+## Follow-up: Windows PR check and frozen smoke
+
+The follow-up is [draft PR #55](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/55),
+stacked on PR #54. The fork's GitHub Actions page initially reported that
+workflows were **disabled**, and PR #54 showed no check runs. GitHub Actions
+became active while PR #55 was being prepared; both CI jobs started. The
+initial `windows-qt` job attempted the entire suite with native Windows Qt.
+Its dependencies installed, but pytest exited 1 without a Python traceback
+at about 4% on the hosted Windows Server 2025 runner. The same 421-file
+sequence had passed locally on a logged-in Windows 10 workstation (4,594
+passed, 11 skipped, 1 xfailed). This does not prove the hosted runner has a
+usable interactive desktop.
+
+The Windows job now runs a focused, offscreen integration smoke covering AI
+bridge, Assistant, Outliner, Composer borders, and radial dimensions. This
+selection passed **116 tests** locally with `QT_QPA_PLATFORM=offscreen`.
+It is not a full-suite CI gate. The existing Ubuntu fast job remains, and
+the local native full run remains separate integration evidence. The
+[hosted Windows smoke job](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37442507775/job/112199408353)
+passed **116 tests in 31.59 seconds** on Windows Server 2025 with Python
+3.12.10. The Ubuntu fast job in the same run finished with **1 failed,
+3,773 passed, 28 skipped, 805 deselected**. Its sole failure was
+`test_the_standing_hint_never_widens_the_window`: the platform minimum was
+exactly 1,000 px, violating an arbitrary `< 1000` bound. The test now compares
+minimum and resized widths against a short-hint baseline, preserving the
+actual no-growth contract across fonts and platforms. All **14 sheet-tab
+tests passed** locally on native Windows Qt (14.84s) and offscreen Qt (14.38s).
+Hosted revalidation of this correction is pending.
+Enabling Actions applies to all workflows in the fork, including release
+workflows with write permissions and secrets. Neither release workflow was
+manually dispatched in this slice. The PR CI result remains pending.
+
+An exploratory full offscreen run stopped making progress at
+`test_document_caches_reset.py` after about 22% of the suite. The test passed
+in 1.85 seconds alone and in an offscreen 46-test focused run. This is an
+unresolved cross-file/offscreen interaction, not a full-suite pass. A later
+123-file offscreen prefix with the radial fix reached its summary: 1,022
+passed, 15 skipped, **5 failed** because small font/pixel rendering differed
+from native Qt. The
+offscreen run also exposed repeated Composer radial-property callbacks to a
+nonexistent `_single_selected` method. The handler now uses `_selected_item`
+after the `_updating` guard; a regression test edits a selected radial
+dimension and undoes the edit. Composer/radial tests passed 45/45 on native
+Windows Qt and 46/46 offscreen (the latter also included the document-cache
+test). A tiny scale-label pixel assertion is conditional on a platform that
+rasterizes that glyph: local Windows offscreen produced no ink in the sampled
+region, while native Qt did. Semantic placement and save/load assertions
+still run in both backends.
+
+A clean frozen bundle from current code commit `12d783c` was staged outside
+the repo at `C:\Users\Lenovo\Desktop\IngeTrazoTest\dist-qt-12d783c\ingetrazo`.
+`ingetrazo.exe --check` exited 0, the frozen MCP server listed 22 tools, and
+an offscreen `--new-window` GUI process survived a ten-second startup smoke.
+This was a **startup** check, not a live GUI interaction. The build includes
+the radial-property fix and has not been installed. SHA-256:
+
+- `ingetrazo.exe`: `D6B241FD58D82476BF6843FD538D78EE4EFF6DEB0DB2219D9CFBBFCFD2D7FE45`
+- `ingetrazo-mcp.exe`: `67FCDFD3465314623EF22D60AD37B1730641197B4D1A7A2CA4731FA45B8702EA`
+
+The installed `C:\Program Files\IngeTrazo` files remain from `3815ef8`.

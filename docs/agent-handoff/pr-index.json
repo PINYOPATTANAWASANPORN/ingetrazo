@@ -520,6 +520,28 @@
       "draft": true,
       "updated_at": "2026-10-06T02:57:49Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/53"
+    },
+    {
+      "number": 54,
+      "state": "open",
+      "title": "Bound Qt test widget lifetime and pending UI callbacks",
+      "base": "test/windows-qt-integration-gates",
+      "head": "fix/qt-test-lifecycle",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T08:25:05Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/54"
+    },
+    {
+      "number": 55,
+      "state": "open",
+      "title": "Add Windows Qt CI smoke and fix Composer radial-property editing",
+      "base": "fix/qt-test-lifecycle",
+      "head": "ci/windows-qt-gate",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T09:23:40Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/55"
     }
   ]
 }

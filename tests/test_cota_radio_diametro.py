@@ -197,6 +197,35 @@ def test_two_clicks_place_it_and_ctrl_makes_it_a_diameter(monkeypatch):
         win.close()
 
 
+def test_radial_properties_edit_the_selected_dimension_and_undo(monkeypatch):
+    from views.composer import ComposerWindow, CotaRadialCanvasItem
+    from views.main_window import MainWindow
+
+    monkeypatch.setattr(ComposerWindow, "render_frame", lambda self, f: None)
+    win = MainWindow()
+    comp = None
+    try:
+        comp = ComposerWindow(win)
+        model = _r(radius_mm=20.0)
+        comp.comp.cotas_rad.append(model)
+        comp._rebuild_canvas()
+        item = next(it for it in comp.canvas.items()
+                    if isinstance(it, CotaRadialCanvasItem)
+                    and it.model is model)
+        item.setSelected(True)
+        comp.on_selection_changed()
+
+        comp.crad_radius.setValue(25.0)
+        assert model.radius_mm == pytest.approx(25.0)
+        assert comp.history.undo()
+        assert model.radius_mm == pytest.approx(20.0)
+    finally:
+        if comp is not None:
+            comp.close()
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
 # ---- the angular dimension finally snaps, and Shift gives an exact 90° ---
 
 def test_the_angular_dimension_snaps_to_the_drawing(monkeypatch):
