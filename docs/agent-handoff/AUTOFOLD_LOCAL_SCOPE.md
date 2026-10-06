@@ -36,3 +36,19 @@ viewport painting are excluded; these figures are **not** total Move latency
 or an end-to-end model-open benchmark. Both paths folded two source faces
 and produced the same resulting face count in each example. No installed
 binary changed.
+
+For a separate command-level measurement, run
+`python scripts/bench_move_command.py examples/pileta-fuente-yanque.igz`.
+Seven fresh Move/Undo commands on the largest quad-bearing mesh in each
+bundled example gave these Windows medians on 2026-10-07:
+
+| Example | Mesh faces | One full snapshot | Move `do` | Move `undo` |
+| --- | ---: | ---: | ---: | ---: |
+| `pileta-fuente-yanque.igz` | 7,632 | 30.210 ms | 58.996 ms | 18.676 ms |
+| `arco-yanque.igz` | 1,500 | 5.973 ms | 14.409 ms | 4.721 ms |
+
+Move captures before and after snapshots, so snapshot cost is now material.
+These are in-memory command timings, not GUI input-to-paint latency, and one
+seven-trial run is insufficient to justify changing the identity-preserving
+Undo mechanism. The benchmark uses fresh commands, undoes each, and checks
+the sampled vertex and face count after restoration.

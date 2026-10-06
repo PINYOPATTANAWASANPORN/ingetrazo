@@ -38,11 +38,11 @@
     ]
   },
   "staged_build": {
-    "source_commit": "12d783c",
-    "path": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-qt-12d783c\\ingetrazo",
-    "manifest": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-staged-12d783c.json",
-    "main_sha256": "D6B241FD58D82476BF6843FD538D78EE4EFF6DEB0DB2219D9CFBBFCFD2D7FE45",
-    "mcp_sha256": "67FCDFD3465314623EF22D60AD37B1730641197B4D1A7A2CA4731FA45B8702EA",
+    "source_commit": "7ebc770",
+    "path": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-qt-7ebc770\\ingetrazo",
+    "manifest": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-staged-7ebc770.json",
+    "main_sha256": "FEA8542DE431B6CA4168058AA6AE81181F5DAF7754EB22565F527C71352E467B",
+    "mcp_sha256": "E16459B45D6262E7AF2ABB68093A519660DEE5B4E740405E6BA849002A548668",
     "bundle_check": "passed",
     "mcp_tools": 22,
     "offscreen_gui_startup": "survived_10_seconds",
@@ -312,6 +312,8 @@
     "pull_request": 63,
     "status": "draft",
     "validation": "regression failed on parent and passed after fix; 267 native Windows transform/Push-Pull tests and 183 offscreen CI-selection tests passed; isolated Autofold median 77.089ms full vs 0.774ms scoped on 7632-face example",
-    "remaining": "hosted CI and representative end-to-end Move latency"
+    "remaining": "hosted Ubuntu CI, visible GUI input-to-paint latency, and safe Undo snapshot optimization",
+    "command_benchmark": "7 fresh Move/Undo trials on bundled 7632-face example: snapshot 30.210 ms, Move do 58.996 ms, undo 18.676 ms median; excludes load and painting",
+    "staged_build": "7ebc770 frozen bundle passed --check, 22-tool MCP list and 10-second offscreen GUI startup; not installed"
   }
 }

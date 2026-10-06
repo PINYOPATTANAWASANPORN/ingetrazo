@@ -77,3 +77,13 @@ SHA-256 values and test limits are recorded in
 [`WINDOWS_QT_INTEGRATION_GATE.md`](WINDOWS_QT_INTEGRATION_GATE.md).
 `C:\Program Files\IngeTrazo` still contains the older verified `3815ef8`
 build. The new bundle has not been deployed.
+
+On 2026-10-07 a separate cumulative bundle from `7ebc770` (draft PR #63)
+was staged at `C:\Users\Lenovo\Desktop\IngeTrazoTest\dist-qt-7ebc770\ingetrazo`.
+PyInstaller exited 0, its frozen `ingetrazo.exe --check` exited 0, the frozen
+MCP executable listed 22 tools, and the GUI process survived a ten-second
+offscreen startup check. The bundle contains 819 files. SHA-256 values and
+the exact bundle path are in the workspace-root `build-staged-7ebc770.json`.
+The installed main executable still matches the recorded `3815ef8` hash.
+This staged build has **not** replaced the installation or received a visible
+interactive GUI check.

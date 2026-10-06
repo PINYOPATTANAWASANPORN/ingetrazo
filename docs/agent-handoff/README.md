@@ -222,3 +222,9 @@ Move Autofold scope follow-up in [draft PR #63](https://github.com/PINYOPATTANAW
 inspect the same incident faces as preview. See
 [AUTOFOLD_LOCAL_SCOPE.md](AUTOFOLD_LOCAL_SCOPE.md) for regression and
 real-example phase timings.
+
+The same branch now includes `scripts/bench_move_command.py` for repeatable
+in-memory Move/Undo timing on bundled examples. A cumulative frozen build
+from `7ebc770` is staged and self-checked, but remains separate from the
+installed `3815ef8` build. See [AUTOFOLD_LOCAL_SCOPE.md](AUTOFOLD_LOCAL_SCOPE.md)
+and [INSTALLATION.md](INSTALLATION.md).
