@@ -181,15 +181,27 @@ class History:
 
     def execute(self, cmd: Command) -> None:
         _t0 = _time_mod.perf_counter() if _PERF else 0.0
-        snapshot = self.scene.mesh.capture_state()
+        # Move captures its own exact pre-edit snapshot before the first
+        # mutation. Reusing it on failure avoids a third whole-mesh copy for
+        # every drag. Restrict this to a fresh, exact Move command: a reused
+        # command or another Command keeps the established transactional guard.
+        move_owns_snapshot = (type(cmd) is MoveVerticesCommand
+                              and cmd._after is None and cmd._before is None)
+        snapshot = (None if move_owns_snapshot
+                    else self.scene.mesh.capture_state())
         if _PERF:
             _plog("command.snapshot",
                   (_time_mod.perf_counter() - _t0) * 1000.0,
-                  extra=type(cmd).__name__)
+                  extra=(f"{type(cmd).__name__}"
+                         f"{' self-managed' if move_owns_snapshot else ''}"),
+                  floor=0.0 if move_owns_snapshot else 100.0)
         try:
             cmd.do(self.scene)
         except Exception as exc:
-            self.scene.mesh.restore_state(snapshot)
+            if move_owns_snapshot:
+                cmd._rollback_failed_do(self.scene.mesh)
+            else:
+                self.scene.mesh.restore_state(snapshot)
             self.scene.selection.clear()
             self.scene.version += 1
             self.last_error = f"{type(cmd).__name__}: {exc}"
@@ -2090,6 +2102,16 @@ class MoveVerticesCommand(Command):
             mesh.restore_position_state(snap)
         else:
             mesh.restore_state(snap)
+
+    def _rollback_failed_do(self, mesh: Mesh) -> None:
+        """Restore the pre-edit state if `do` failed after its first mutation.
+
+        `_before` is assigned before any vertex changes. If it is still None,
+        preflight or snapshot capture failed and the mesh is untouched.
+        History handles the scene version, selection, error log and stacks.
+        """
+        if self._before is not None:
+            self._restore(mesh, self._before)
 
     def do(self, scene) -> None:
         if self._after is not None:  # redo
