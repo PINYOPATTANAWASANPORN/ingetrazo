@@ -28,8 +28,13 @@ provider retries and JSON validation. The public, metadata-only benchmark
 runner in [`../benchmarks/ai/README.md`](../benchmarks/ai/README.md) can
 capture per-role latency, parse success, and finding counts against chosen
 providers without saving credentials or review prose. The local measurement
-counts and its limits are in the benchmark README; token counts and quality
-scores stay unknown until measured and reviewed separately.
+counts and its limits are in the benchmark README. Quality scores remain
+unknown until findings are independently reviewed.
+
+Provider-reported token usage is now captured when a non-streaming specialist
+response includes it. The benchmark sums `total_tokens` only when both roles
+report totals; absent usage stays `null`. The first local Ollama measurement is
+documented in the benchmark README. Quality scores remain unmeasured.
 
 ## Data and authority
 

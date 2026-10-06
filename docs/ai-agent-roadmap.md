@@ -486,3 +486,14 @@ mark whether the source tree was dirty. The same three public cases completed
 commit `5f6215f`; this measures valid review responses only. Human evaluation
 of finding quality, token reporting, other provider compatibility and larger
 corpora remain outstanding.
+
+### Provider-reported review usage — 2026-10-06
+
+Non-streaming specialist requests now capture usage fields from provider
+responses without estimating missing values. The benchmark sums a case only
+when both roles report `total_tokens`, validates that sum on offline replay,
+and leaves quality scores null. On clean commit `eb748a2`, the three public
+Ollama cases again completed 3/3 in schema mode; reported case totals were
+1,049, 1,217 and 726 tokens. This is a measured baseline for one local
+pairing, not evidence of savings. Human scoring of finding quality and a
+broader corpus remain the next evaluation tasks.
