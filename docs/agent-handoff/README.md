@@ -122,3 +122,12 @@ diagnostic run found two invalid schemas and two out-of-scope entity references
 across the six role outcomes. The selected AI suite passed 136 tests with
 `PYTHONUTF8=1`. GitHub snapshot: 46 total PRs, 46 open, 0 merged. The
 installed Windows build remains at `3815ef8`.
+
+Latest structured review: [draft PR #49](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/49),
+`feature/ai-review-structured-output` on #48. Local specialist requests use
+a snapshot-specific JSON schema, with one prompt-only fallback if the local
+server explicitly rejects the format feature. The clean-tree baseline at
+implementation `5f6215f` completed 3/3 public metadata cases in schema mode
+for both roles. The selected AI suite passed 141 tests. This is response
+validity only; token usage and finding quality remain unmeasured. GitHub
+snapshot: 47 total PRs, 47 open, 0 merged. Installed build remains `3815ef8`.

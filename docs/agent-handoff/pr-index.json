@@ -465,6 +465,17 @@
       "draft": true,
       "updated_at": "2026-10-05T23:23:58Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/48"
+    },
+    {
+      "number": 49,
+      "state": "open",
+      "title": "Constrain local specialist reviews with snapshot JSON schema",
+      "base": "feature/ai-review-measurement-evidence",
+      "head": "feature/ai-review-structured-output",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T01:26:52Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/49"
     }
   ]
 }
