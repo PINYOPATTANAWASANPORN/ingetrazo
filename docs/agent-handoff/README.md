@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-06**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **51 open PRs in the 2026-10-06 snapshot**; check GitHub
+- PR inventory: **53 open PRs in the 2026-10-06 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -173,7 +173,8 @@ an unmodified Composer scale-label pixel test after 451 passed and 11 skipped.
 No new build was installed. The next review slice should validate claims
 against snapshot fields, then rerun independent assessment and the broad gate.
 
-Current Windows CI follow-up: `ci/windows-qt-gate` on PR #54 adds a native
+Current Windows CI follow-up: [draft PR #55](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/55),
+`ci/windows-qt-gate` on PR #54, adds a native
 Windows full-suite PR job and fixes Composer radial-property editing. Local
 targeted checks passed 45 tests with native Qt and 46 with offscreen Qt. The
 fork's Actions are disabled, so the job will not run until a maintainer

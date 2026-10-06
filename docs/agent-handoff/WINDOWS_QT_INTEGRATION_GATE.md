@@ -117,7 +117,8 @@ no application binary changed after `d70e782`.
 
 ## Follow-up: Windows PR check and frozen smoke
 
-The fork's GitHub Actions page reported that workflows are **disabled** for
+The follow-up is [draft PR #55](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/55),
+stacked on PR #54. The fork's GitHub Actions page reported that workflows are **disabled** for
 forked repositories. PR #54 therefore showed no check runs. A new `windows-qt`
 job in `.github/workflows/ci.yml` runs the entire suite on `windows-latest`
 with native Windows Qt and a 60-minute timeout. The existing Ubuntu fast job
