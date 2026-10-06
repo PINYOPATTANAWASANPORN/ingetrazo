@@ -131,3 +131,12 @@ implementation `5f6215f` completed 3/3 public metadata cases in schema mode
 for both roles. The selected AI suite passed 141 tests. This is response
 validity only; token usage and finding quality remain unmeasured. GitHub
 snapshot: 47 total PRs, 47 open, 0 merged. Installed build remains `3815ef8`.
+
+Latest usage measurement: [draft PR #50](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/50),
+`feature/ai-review-provider-usage` on #49, implementation `eb748a2`.
+Specialist benchmarks now retain only provider-reported token counts and keep
+missing values null. A clean-tree Ollama run completed 3/3 public cases with
+reported case totals 1,049, 1,217 and 726 tokens. The selected AI suite
+passed 143 tests. Finding quality is still unscored; these counts do not
+establish savings. GitHub snapshot: 48 total PRs, 48 open, 0 merged. The
+installed Windows build remains at `3815ef8`.
