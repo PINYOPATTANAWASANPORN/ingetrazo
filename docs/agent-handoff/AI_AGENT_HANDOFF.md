@@ -229,3 +229,23 @@ grounding and relevance, not omitted issues or overall quality. No human
 assessments have been collected; `quality_score` stays null. The AI suite
 passed 176 tests with `PYTHONUTF8=1`. Draft PR #51 is stacked on #50. The
 installed Windows build remains at `3815ef8`.
+
+## Field semantics and reference-fact coverage (2026-10-06)
+
+[Draft PR #52](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/52)
+stacks on #51. Specialist instructions distinguish entity names from tags
+(`layer`), object locks from tag locks (`locked` versus `layer_locked`), and
+visibility/parent/child/material fields. The parser rejects blank summaries.
+The new public `review-coverage-v1.json` enumerates checkable facts in the
+three fixture snapshots; the offline assessment summarizes independently
+labeled coverage as yes/no/unclear, without treating a missing judgment as
+success. The reference is validated against the actual fixture snapshots.
+
+At clean commits, one local `pinyo-chat:latest` / `pinyo-coder:latest` run
+completed 2/3 cases before the field-semantics prompt and 3/3 after. The
+second run still contained unsupported statements and an empty summary; it
+preceded the parser fix. Thus completion is not semantic correctness and no
+quality improvement is established. The final slice passed 178 selected AI
+tests with `PYTHONUTF8=1`, but has no final-code live provider run or human
+coverage labels. Benchmark metadata and public-fixture display files are kept
+outside the repository. The installed Windows build remains at `3815ef8`.

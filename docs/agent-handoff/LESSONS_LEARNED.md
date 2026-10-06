@@ -295,3 +295,17 @@ response. Record unassessed outcomes separately, and leave overall quality
 null because grounding/relevance labels do not measure omitted findings.
 An unsigned digest binds files against accidental mix-ups but does not prove
 who reviewed them or prevent deliberate alteration.
+
+## A valid specialist response can still misread a snapshot
+
+The local `pinyo-chat` / `pinyo-coder` pairing produced parseable reviews that
+confused an entity name with its tag, invented a child relationship, and
+claimed metadata was absent when it was present. Explicitly describe the
+meaning of each snapshot field in the role prompt and require the exact field
+as evidence. A second public-fixture run completed 3/3 versus 2/3 before that
+prompt change, but still had unsupported claims and a blank summary. Reject
+whitespace-only summaries in the parser. Measure omissions separately: a
+digest-bound reference-fact rubric can count yes/no/unclear human judgments,
+whereas finding grounding/relevance alone cannot reveal missed facts. One
+nondeterministic pairing and no completed human labels cannot justify a
+semantic quality or token-savings claim.

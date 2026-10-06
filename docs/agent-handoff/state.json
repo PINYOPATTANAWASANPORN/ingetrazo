@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 49,
-    "open": 49,
+    "pull_requests_total": 50,
+    "open": 50,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -48,7 +48,7 @@
   },
   "validation": {
     "scope": "selected review benchmark, cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
-    "passed": 176,
+    "passed": 178,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -86,7 +86,7 @@
     }
   ],
   "next_recommended_work": [
-    "collect independent human judgments on public specialist findings using the digest-bound assessment workflow; no labels have been collected yet and overall quality remains unscored",
+    "collect independent human judgments on public specialist findings and reference-fact coverage using the digest-bound assessment workflow; no labels have been collected yet and overall quality remains unscored",
     "compare additional named local and cloud models on the same public corpus with response mode, reported tokens, and human assessment coverage kept separate",
     "verify provider-reported usage and response-mode compatibility for additional local and cloud providers; current measured baseline covers one Ollama model pairing",
     "consider signed or independently anchored audit evidence; current saved history is unsigned",
@@ -102,6 +102,7 @@
     "docs/agent-handoff/pr-index.json",
     "benchmarks/ai/README.md",
     "benchmarks/ai/review-corpus-v1.json",
+    "benchmarks/ai/review-coverage-v1.json",
     "core/ai_review_assessment.py",
     "docs/ai-creation-contract.md",
     "docs/ai-specialist-review.md"
@@ -151,6 +152,14 @@
     "pull_request": 51,
     "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/51",
     "draft": true,
-    "validation": "175 selected AI tests passed with PYTHONUTF8=1; no live provider calls or human quality judgments in this slice"
+    "validation": "176 selected AI tests passed with PYTHONUTF8=1; no live provider calls or human quality judgments in this slice"
+  },
+  "field_semantics_delivery": {
+    "branch": "feature/ai-review-field-semantics",
+    "implementation_commits": ["0d04488", "312a5a3"],
+    "pull_request": 52,
+    "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/52",
+    "draft": true,
+    "validation": "178 selected AI tests passed with PYTHONUTF8=1; local pinyo-chat/pinyo-coder public-fixture review completed 2/3 before field-semantics prompt and 3/3 after at clean commits, but unsupported claims and a blank summary remained; no human labels or live run after the parser/coverage-reference change"
   }
 }
