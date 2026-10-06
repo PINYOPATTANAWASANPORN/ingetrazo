@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 57,
-    "open": 57,
+    "pull_requests_total": 58,
+    "open": 58,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -272,8 +272,8 @@
     "branch": "fix/active-tag-indicator",
     "base_branch": "fix/tag-annotation-selection",
     "base_pull_request": 59,
-    "pull_request": null,
-    "status": "implemented_locally",
+    "pull_request": 60,
+    "status": "draft",
     "validation": "25 focused Layers tests passed on native Windows and offscreen; marker transitions checked on set active, lock and hide",
     "remaining": "complex Tag workflow validation"
   }

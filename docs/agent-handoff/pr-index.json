@@ -586,6 +586,17 @@
       "draft": true,
       "updated_at": "2026-10-06T13:32:40Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/59"
+    },
+    {
+      "number": 60,
+      "state": "open",
+      "title": "Keep Layers panel active marker in sync with drawing tag",
+      "base": "fix/tag-annotation-selection",
+      "head": "fix/active-tag-indicator",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T13:44:04Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/60"
     }
   ]
 }

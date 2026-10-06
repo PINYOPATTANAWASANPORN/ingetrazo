@@ -1,7 +1,7 @@
 # Active Tag indicator consistency
 
 Base: draft PR #59 (`fix/tag-annotation-selection`).
-Branch: `fix/active-tag-indicator`.
+Branch: `fix/active-tag-indicator`, draft PR #60.
 
 The Layers panel's active dot previously stayed on the old Tag when the
 panel's Set active button changed the drawing Tag. Hiding or locking the
