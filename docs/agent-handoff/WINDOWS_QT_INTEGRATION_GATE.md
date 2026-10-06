@@ -52,7 +52,8 @@ and packaging evidence for branch `test/windows-qt-integration-gates` at
   directory. It retains the original failing Style Editor log and uses the
   successful `shard-360-recheck.txt` after the test-only correction.
 
-The **full single-process suite did not complete**. The offscreen run first
+Before the Qt-lifetime follow-up, the **full single-process suite did not
+complete**. The offscreen run first
 failed a Composer scale-label pixel test after 451 passed and 11 skipped;
 that test passes with native Windows Qt. Native runs exposed the test focus
 and font-metric assumptions above. A later continuation reached about 64%
@@ -62,6 +63,42 @@ test memory remains an integration risk. None of these partial runs should
 be reported as a single-process full-suite pass. The complete file-level
 sharded run above validates the tests in isolated processes, but does not
 exercise cross-file state and resource accumulation in one process.
+
+## Follow-up: Qt object lifetime in a single Windows process
+
+The full-suite memory failure was investigated on `fix/qt-test-lifecycle`
+([draft PR #54](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/54),
+stacked on PR #53).
+The native Windows test process created about 41,862 Qt widgets after 90
+tests, including 2,302 top-level widgets; one Assistant-heavy module
+accounted for most of them. A 40-file probe exceeded 2.5 GB private memory
+without cleanup. Releasing top-level test windows at module boundaries let
+the same probe finish 335 tests at 1.34 GB peak. The cleanup runs after
+pytest tears down module fixtures, drains queued layout callbacks while the
+windows are valid, then processes deferred Qt deletion.
+
+Delayed UI callbacks in MainWindow, Composer, and the tray are now scheduled
+with their owning QObject as context. Qt can discard them when the owner is
+destroyed. Before the Composer callback fix, a complete 72-file prefix
+repeatedly ended with Windows access violation `0xC0000005` around its
+Composer Items tests; each half passed separately. After the fix, that
+72-file prefix passed **623 tests in one process**, exit code 0, with 1.97 GB
+peak private memory and no fatal/runtime callback diagnostics. The broader
+160-file prefix then passed **1,378 tests, 2 skipped**, exit code 0, with
+2.006 GB peak private memory and no fatal/runtime callback diagnostics. Six
+related GUI test files also passed 28 tests after the MainWindow/tray changes.
+
+The final **421-file single-process native-Windows run passed**: 4,594 passed,
+11 skipped, 1 expected failure, 0 failed; exit code 0 in 21 minutes 38
+seconds. Peak private memory was **2.55 GB** under a 4 GB watchdog limit, and
+stderr contained no fatal/runtime callback diagnostics. The same tests had
+previously required 43 isolated processes, while an earlier single-process
+run reached about 20 GB and was stopped at 64%. This closes the local
+single-process memory gate; it does not certify the staged binary or replace
+CI and live-GUI verification. The full-run log and memory trace are outside
+the repository at
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\memory-fix-full-final-pytest.txt`
+and `C:\Users\Lenovo\Desktop\IngeTrazoTest\memory-fix-full-final.csv`.
 
 The staged bundle is in the ignored `dist/ingetrazo` directory. SHA-256:
 

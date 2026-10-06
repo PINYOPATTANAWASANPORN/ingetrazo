@@ -5054,7 +5054,7 @@ class ComposerCanvasView(QGraphicsView):
                 "canvas item without its Python object during %s: %s — "
                 "rebuilding the sheet", type(event).__name__, exc)
             event.accept()
-            QTimer.singleShot(0, self.composer._rebuild_canvas)
+            QTimer.singleShot(0, self.composer, self.composer._rebuild_canvas)
 
     def _finish_placement(self, end) -> None:
         start = self._drag_start
@@ -7562,7 +7562,7 @@ class ComposerWindow(QMainWindow):
         self._refresh_sheet_tabs()      # added / renamed / deleted sheets
 
     def _on_comp_switched(self, idx: int) -> None:
-        QTimer.singleShot(0, self._auto_render_stale)
+        QTimer.singleShot(0, self, self._auto_render_stale)
         if self._updating or idx < 0:
             return
         comps = self._scene().compositions
@@ -8352,7 +8352,7 @@ class ComposerWindow(QMainWindow):
             # item's mouseReleaseEvent, and _rebuild_canvas clears the
             # canvas — deleting the very item Qt is still delivering the
             # release to (a crash waiting for the right timing).
-            QTimer.singleShot(0, lambda: self._rebuild_after_drop(model))
+            QTimer.singleShot(0, self, lambda: self._rebuild_after_drop(model))
 
     def _rebuild_after_drop(self, model) -> None:
         from shiboken6 import isValid
@@ -9539,7 +9539,7 @@ class ComposerWindow(QMainWindow):
         # reference here would delete the C++ item while Qt is still inside
         # its event. Hold it until the event loop comes round.
         self._retired_editor = editor
-        QTimer.singleShot(0, lambda: setattr(self, "_retired_editor", None))
+        QTimer.singleShot(0, self, lambda: setattr(self, "_retired_editor", None))
         if text is not None and text != item.model.text:
             item.prepareGeometryChange()
             self.history.execute(EditItemCommand(item.model, {"text": text}),
@@ -9887,7 +9887,7 @@ class ComposerWindow(QMainWindow):
         if getattr(self, "_pending_sel", None) is None:
             selected = self._selected_item()
             self._pending_sel = selected.model if selected else None
-        QTimer.singleShot(0, self._rebuild_after_change)
+        QTimer.singleShot(0, self, self._rebuild_after_change)
 
     def _rebuild_after_change(self) -> None:
         self._rebuild_canvas()
@@ -11162,7 +11162,7 @@ class ComposerWindow(QMainWindow):
                 self.history.execute(EditItemCommand(model, {field: value}),
                                      notify=False)
                 self._mark_dirty()
-                QTimer.singleShot(0, self._rebuild_canvas)
+                QTimer.singleShot(0, self, self._rebuild_canvas)
             return
         for it in self.canvas.items():
             if isinstance(it, _SheetItem) and id(it.model) == target:
@@ -11177,7 +11177,7 @@ class ComposerWindow(QMainWindow):
                     self._mark_dirty()
                 break
         # Show the resolved text (the automatic name, the lock) again.
-        QTimer.singleShot(0, self._refresh_items_list)
+        QTimer.singleShot(0, self, self._refresh_items_list)
 
     def _open_item_properties(self) -> None:
         """The Properties tab for the item picked in the list."""
@@ -12346,7 +12346,7 @@ class ComposerWindow(QMainWindow):
             key = "side_collapse" if on else "side_expand"
             btn.setIcon(tool_icon(key))
             btn.setProperty("icon_key", key)
-            QTimer.singleShot(0, self._place_sidebar_handle)
+            QTimer.singleShot(0, self, self._place_sidebar_handle)
 
     def _build_sidebar_handle(self) -> None:
         """LibreOffice's handle on the splitter line, half-way down: click
@@ -12420,7 +12420,7 @@ class ComposerWindow(QMainWindow):
             self.ruler_v.show()
             if getattr(self, "_clean_screen_panel", True):
                 self._set_sidebar_visible(True)
-            QTimer.singleShot(0, self._place_sidebar_handle)
+            QTimer.singleShot(0, self, self._place_sidebar_handle)
 
     def _clean_screen_exit_button(self):
         btn = getattr(self, "_clean_exit_btn", None)
@@ -12484,9 +12484,9 @@ class ComposerWindow(QMainWindow):
             6000)
 
     def showEvent(self, event) -> None:
-        QTimer.singleShot(0, self._ensure_toolbars)
-        QTimer.singleShot(0, self._auto_render_stale)
-        QTimer.singleShot(0, self._reload_scale_options)
+        QTimer.singleShot(0, self, self._ensure_toolbars)
+        QTimer.singleShot(0, self, self._auto_render_stale)
+        QTimer.singleShot(0, self, self._reload_scale_options)
         # The document may have been swapped under us (New / Open) while
         # the window was closed — re-adopt the scene's compositions.
         scene = self._scene()

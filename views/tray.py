@@ -2373,7 +2373,7 @@ class MaterialsPanel(QWidget):
             from PySide6.QtCore import QTimer
             bar.setValue(keep)
             # …and once more after the layout settles its new height.
-            QTimer.singleShot(0, lambda b=bar, v=keep: b.setValue(v))
+            QTimer.singleShot(0, bar, lambda b=bar, v=keep: b.setValue(v))
 
     # ---- Apply / add --------------------------------------------------------
     def _apply_color(self, rgb, name: str | None = None) -> None:
@@ -3823,7 +3823,7 @@ class _ScrollAnchor(QObject):
                 target = bar.value() + delta
                 # After the layout has taken the new height, or the bar's
                 # range would clamp the move.
-                QTimer.singleShot(0, lambda b=bar, t=target: b.setValue(t))
+                QTimer.singleShot(0, bar, lambda b=bar, t=target: b.setValue(t))
         return False
 
 
