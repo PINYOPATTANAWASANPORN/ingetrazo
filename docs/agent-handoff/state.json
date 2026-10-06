@@ -276,5 +276,14 @@
     "status": "draft",
     "validation": "25 focused Layers tests passed on native Windows and offscreen; marker transitions checked on set active, lock and hide",
     "remaining": "complex Tag workflow validation"
+  },
+  "autofold_shared_vertex_gate_delivery": {
+    "branch": "test/autofold-shared-vertex-grid",
+    "base_branch": "fix/active-tag-indicator",
+    "base_pull_request": 60,
+    "pull_request": null,
+    "status": "implemented_locally",
+    "validation": "59 Move/Autofold tests passed on native Windows and offscreen; expanded nine-file Windows CI selection passed 179 locally offscreen in 42.24s",
+    "remaining": "hosted Windows result, holed/non-manifold stress, real meshes, optional Autofold controls"
   }
 }

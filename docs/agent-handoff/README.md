@@ -209,3 +209,7 @@ one; see [TAG_ANNOTATION_SELECTION.md](TAG_ANNOTATION_SELECTION.md).
 Active Tag indicator follow-up: [draft PR #60](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/60) on `fix/active-tag-indicator` keeps the Tags
 panel marker aligned with the toolbar and scene; see
 [ACTIVE_TAG_INDICATOR.md](ACTIVE_TAG_INDICATOR.md).
+
+Move Autofold follow-up: `test/autofold-shared-vertex-grid` adds a
+multi-face topology/preview/Undo gate and includes the four Move suites in
+Windows CI. See [AUTOFOLD_SHARED_VERTEX_GATE.md](AUTOFOLD_SHARED_VERTEX_GATE.md).
