@@ -169,6 +169,60 @@ def test_layers_panel_active_tag_change_syncs_the_status_selector():
         win.close()
 
 
+def test_hiding_or_locking_tag_prunes_selected_annotations():
+    from PySide6.QtCore import Qt
+    from core.dimension import Dimension
+    from core.group import Group
+    from core.mesh import Mesh
+    from core.textlabel import TextLabel
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    try:
+        scene = win.viewport.scene
+        scene.layers.append(Layer("Annotations"))
+        face = _slab(scene)
+        group = Group(Mesh(), name="Tagged group")
+        dimension = Dimension(V(0, 0), V(1, 0), V(0, 1))
+        label = TextLabel(V(0, 0), V(0, 1), "Note")
+        for entity in (face, group, dimension, label):
+            assign_layer(entity, "Annotations")
+        scene.groups.append(group)
+        scene.dimensions.append(dimension)
+        scene.text_labels.append(label)
+        other = Group(Mesh(), name="Other tag")
+        scene.groups.append(other)
+        panel = win.tray.layers
+        panel.refresh()
+        row = next(panel.tree.topLevelItem(i)
+                   for i in range(panel.tree.topLevelItemCount())
+                   if panel.tree.topLevelItem(i).data(0, Qt.UserRole)
+                   == "Annotations")
+
+        for column, state in ((2, Qt.Unchecked), (3, Qt.Checked)):
+            scene.selection.update((face, group, dimension, label, other))
+            row.setCheckState(column, state)
+            assert scene.selection == {other}
+            assert not scene.entity_selectable(dimension)
+            assert not scene.entity_selectable(label)
+            if column == 2:
+                row.setCheckState(2, Qt.Checked)
+
+        untagged_label = TextLabel(V(2, 0), V(0, 1), "New note")
+        scene.text_labels.append(untagged_label)
+        scene.selection.clear()
+        scene.selection.add(untagged_label)
+        panel.tree.setCurrentItem(row)
+        panel._on_assign()
+        assert layer_of(untagged_label) == "Annotations"
+        assert not scene.selection
+        assert win.viewport.history.undo()
+        assert layer_of(untagged_label) == DEFAULT_LAYER
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
 def test_hidden_layer_filters_render_views():
     scene = Scene()
     f1 = _slab(scene, 0)

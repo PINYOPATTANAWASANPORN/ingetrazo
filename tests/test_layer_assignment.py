@@ -98,6 +98,12 @@ def test_entity_info_shows_the_layer_and_changes_it():
         panel._layer_box.setCurrentIndex(panel._layer_box.findData("Muros"))
         assert layer_of(face) == "Muros" and layer_of(g) == "Muros"
 
+        panel._layer_box.setCurrentIndex(panel._layer_box.findData("Referencia"))
+        assert layer_of(face) == "Referencia" and layer_of(g) == "Referencia"
+        assert not scene.selection
+        vp.history.undo()
+        assert layer_of(face) == "Muros" and layer_of(g) == "Muros"
+
         scene.clear_selection()
         panel.refresh()
         assert not panel._layer_box.isVisibleTo(panel)
