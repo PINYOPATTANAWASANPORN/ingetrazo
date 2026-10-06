@@ -20,7 +20,7 @@ from views import prompts as _prompts
 
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QPoint, QRect, QSettings, QSize, Qt
+from PySide6.QtCore import QObject, QPoint, QRect, QSettings, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QIcon, QImage, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -1673,6 +1673,7 @@ class OutlinerPanel(QWidget):
         from PySide6.QtWidgets import QVBoxLayout
         self._window = window
         self._updating = False
+        self._refresh_pending = False
         self._items: dict[int, object] = {}
         self._paths: dict[int, tuple] = {}
         self.setMinimumWidth(0)
@@ -1760,6 +1761,17 @@ class OutlinerPanel(QWidget):
         self._updating = False
         self._sync_selection()
         self._apply_filter(self.search.text())
+
+    def _refresh_after_item_change(self) -> None:
+        self._refresh_pending = False
+        self.refresh()
+
+    def _schedule_item_refresh(self) -> None:
+        # itemChanged is emitted from QTreeWidgetItem.setText/setCheckState.
+        # Clearing the tree here deletes that item while Qt is still using it.
+        if not self._refresh_pending:
+            self._refresh_pending = True
+            QTimer.singleShot(0, self, self._refresh_after_item_change)
 
     def _sync_selection(self) -> None:
         selected = self._scene().selection
@@ -1907,7 +1919,7 @@ class OutlinerPanel(QWidget):
                     self._leave_if_context([group])
                 history.execute(LockGroupsCommand([group], locked=locked))
         self._window.viewport.update()
-        self.refresh()
+        self._schedule_item_refresh()
 
     def _on_context_menu(self, pos) -> None:
         item = self.tree.itemAt(pos)

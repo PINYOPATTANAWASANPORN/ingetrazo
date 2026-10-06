@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication
 
 from core.group import Group
 from core.history import History, LockGroupsCommand, ReorderGroupCommand
@@ -92,6 +93,8 @@ def test_visibility_lock_and_rename_are_undoable():
 
     panel._items[id(room)].setCheckState(2, Qt.Checked)
     assert room.locked and not scene.entity_selectable(room)
+    QApplication.processEvents()  # queued tree rebuild must not delete the active item
+    assert panel._items[id(room)].checkState(2) == Qt.Checked
     win.viewport.history.undo()
     assert not room.locked and scene.entity_selectable(room)
 
