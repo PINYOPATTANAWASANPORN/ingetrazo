@@ -52,7 +52,8 @@
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed",
-    "broad_local_suite": "not verified: first failure in unmodified Composer scale-label pixel test after 451 passed and 11 skipped; isolated repro fails on this Windows host"
+    "broad_local_suite": "not verified: offscreen Composer pixel test fails but native passes; Windows focus/font tests corrected; later native continuation stopped near 64% at approximately 20 GB Python memory; separate batch stopped at 4.6 GB",
+    "windows_qt_gate": "Outliner native access violation fixed by deferred itemChanged rebuild; 7 Outliner, 37 related model, 178 selected AI, 49 command-search, 8 Composer row, 41 push-pull, and another 40 later tests passed in targeted runs"
   },
   "ai_phases": [
     {
@@ -90,7 +91,8 @@
     "implement deterministic checking of specialist field claims against the snapshot; prompt-only clarification did not prevent unsupported claims in local runs",
     "collect independent human judgments on public specialist findings and reference-fact coverage; current developer-agent labels are preliminary and overall quality remains unscored",
     "compare additional named local and cloud models on a larger public corpus with response mode, reported tokens, and independently judged coverage kept separate",
-    "resolve or isolate the unmodified Composer scale-label pixel test failure on Windows, then complete a broad suite and frozen-bundle verification before merging the 50-PR stack or installing a newer build",
+    "bound cumulative Windows GUI/OpenGL test memory and finish the broad suite; the offscreen Composer scale-label pixel failure is backend-specific and native Windows passes",
+    "verify staged frozen GUI and representative live workflows before installing or merging the stacked PRs",
     "verify provider-reported usage and response-mode compatibility for additional local and cloud providers; current measured baseline covers one Ollama model pairing",
     "consider signed or independently anchored audit evidence; current saved history is unsigned",
     "design independently authenticated specialist identities if external agents need trust separation",
@@ -98,6 +100,7 @@
   ],
   "documents": [
     "docs/agent-handoff/README.md",
+    "docs/agent-handoff/WINDOWS_QT_INTEGRATION_GATE.md",
     "docs/agent-handoff/INSTALLATION.md",
     "docs/agent-handoff/DEVELOPMENT_SUMMARY.md",
     "docs/agent-handoff/AI_AGENT_HANDOFF.md",
@@ -179,5 +182,15 @@
     "prompt_trial": "additional literal-field instructions at 7d3984f still allowed false claims; reverted, not in PR #52 head",
     "report": "benchmarks/ai/review-local-study-2026-10-06.md",
     "installed_build_updated": false
+  },
+  "windows_qt_integration_gate": {
+    "branch": "test/windows-qt-integration-gates",
+    "commit": "d70e7826c0fe3f742e51257ce3578581fc35c5e6",
+    "base_branch": "feature/ai-review-field-semantics",
+    "report": "docs/agent-handoff/WINDOWS_QT_INTEGRATION_GATE.md",
+    "full_suite_passed": false,
+    "staged_bundle_installed": false,
+    "frozen_main_sha256": "D4EF7D5C86AAE55F8AB4F0EE07EC5F0852BF5D4A2AEE16B53F0972823549744B",
+    "frozen_mcp_sha256": "85A42FE3F0B106227A9E3B32F93D4A6C51FBC4D0A8ED724D8907412048C46DF5"
   }
 }

@@ -8,9 +8,9 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-06**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **43 open PRs in the 2026-10-05 snapshot**; check GitHub
+- PR inventory: **50 open PRs in the 2026-10-06 snapshot**; check GitHub
   before treating that count as current.
-- Local installation: **verified on Windows 10** from code commit `b0dce0f`;
+- Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
 
 ## Read in this order
@@ -24,6 +24,8 @@ and the engineering knowledge extracted from the work.
    and failure patterns.
 5. [`pr-index.json`](pr-index.json) — GitHub API snapshot of every fork PR.
 6. [`INSTALLATION.md`](INSTALLATION.md) — verified local build and rollback record.
+7. [`WINDOWS_QT_INTEGRATION_GATE.md`](WINDOWS_QT_INTEGRATION_GATE.md) —
+   latest Windows test and staged-bundle evidence.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
@@ -60,8 +62,7 @@ The detailed design documents remain authoritative for their domains:
 - **Merged** means GitHub reports a non-null merge time into the intended base.
 - **Installed** means a build containing the commit was deployed on the local
   machine and checked at the installed path. The Windows installation now
-  contains code through `b0dce0f`; later documentation-only commits do not
-  change its binary.
+  contains code through `3815ef8`; subsequent staged bundles are not installed.
 - Percentages are planning estimates derived from acceptance targets. They are
   not test coverage or proof of release readiness.
 

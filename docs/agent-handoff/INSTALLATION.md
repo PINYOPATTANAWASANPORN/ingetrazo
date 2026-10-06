@@ -67,3 +67,13 @@ hashes match the manifest: main
 MCP `141905CFE38CC9545610EBBE3DB9308D9C6D52867EEDB414CE40601F5710AE66`.
 Independent installed-path checks found 823 runtime files, `--check` exit 0,
 and 22 MCP tools. The GUI was not relaunched for visual verification.
+
+## Newer staged build, not installed
+
+On 2026-10-06, `test/windows-qt-integration-gates` at `d70e782` was built into
+the ignored `dist/ingetrazo` directory. The frozen main executable passed
+`--check`, and the frozen MCP executable returned 22 tools. Main and MCP
+SHA-256 values and test limits are recorded in
+[`WINDOWS_QT_INTEGRATION_GATE.md`](WINDOWS_QT_INTEGRATION_GATE.md).
+`C:\Program Files\IngeTrazo` still contains the older verified `3815ef8`
+build. The new bundle has not been deployed.
