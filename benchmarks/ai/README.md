@@ -110,3 +110,58 @@ Structure-role totals were 565, 508, and 348; requirements-role totals were
 priced costs. The three-case sample and absent human quality scores do not
 support a claim of token savings or better review decisions. The local JSONL
 remains outside the repository and contains no review prose.
+
+## Manual finding assessment
+
+Run a new public-fixture benchmark with `--show-findings` to print each bounded
+snapshot, summary, and ordered findings to the terminal for inspection. The
+JSONL still saves only metadata, including a SHA-256 `review_digest` for each
+successful specialist response. This opt-in display is intended only for the
+public corpus. Do not use it with private project fixtures or capture terminal
+output in a shared log.
+
+Judge each successful specialist response against its displayed snapshot:
+
+- `summary_grounded`: `yes` if the summary is supported by the snapshot, `no`
+  if it asserts an unsupported fact, `unclear` if the metadata cannot decide.
+- For every finding, in displayed order, label `grounded` using the same rule.
+  Label `relevant` `yes` if it addresses the stated intent and the specialist's
+  role, `no` if it does not, or `unclear` if the relation cannot be decided.
+- Treat absence of geometry, dimensions, images, and regulation evidence as
+  unknown. A sensible caution about missing evidence can be grounded; an
+  assertion about unseen geometry cannot. Do not score omissions or overall
+  task quality from these labels alone.
+
+Save a separate JSON array of judgments outside the repository, one object per
+successful role being assessed. Copy the `run_id`, `case_id`, `role`, and
+`review_digest` from the displayed review and benchmark JSONL. For example:
+
+```json
+[
+  {
+    "run_id": "copy-from-run",
+    "case_id": "selected-object-metadata",
+    "role": "model_structure",
+    "review_digest": "copy-64-character-digest",
+    "assessor": "reviewer-1",
+    "summary_grounded": "yes",
+    "findings": [{"grounded": "yes", "relevant": "yes"}]
+  }
+]
+```
+
+Use `"findings": []` when the role returned no findings. Then validate and
+aggregate without contacting a provider:
+
+```powershell
+python scripts/ai_review_benchmark.py --results path/to/review-run.jsonl `
+  --assessments path/to/judgments.json
+```
+
+The offline summary reports eligible, assessed, and unassessed role outcomes,
+and counts of each human label. It rejects mismatched digests, duplicate
+judgments, failed reviews, and a finding-count mismatch. These counts are
+evidence of a manual assessment, not a blinded or independent quality study;
+`quality_score` remains `null`. A digest detects accidental misassociation,
+not malicious alteration or reviewer identity. Keep the judgment file and
+terminal review evidence together if an audit trail is needed.

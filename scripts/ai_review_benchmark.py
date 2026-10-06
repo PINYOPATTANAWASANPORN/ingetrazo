@@ -17,8 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from core import ai, ai_review
-from core.ai_review_eval import (make_snapshot, run_case,
+from core.ai_review_eval import (make_snapshot, review_digest, run_case,
                                  summarize_review_records, validate_review_corpus)
+from core.ai_review_assessment import summarize_assessments
 
 DEFAULT_CORPUS = ROOT / "benchmarks/ai/review-corpus-v1.json"
 ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,127}$")
@@ -73,7 +74,17 @@ def main(argv: list[str] | None = None) -> int:
                         help="new JSONL output path; existing files are not overwritten")
     parser.add_argument("--results", type=Path,
                         help="summarize an existing review JSONL file offline")
+    parser.add_argument("--assessments", type=Path,
+                        help="validate metadata-only human judgments against --results")
+    parser.add_argument("--show-findings", action="store_true",
+                        help="show public-fixture review prose on stderr for manual assessment")
     args = parser.parse_args(argv)
+    if args.show_findings and not args.run:
+        parser.error("--show-findings requires --run")
+    if args.show_findings and args.corpus.resolve() != DEFAULT_CORPUS.resolve():
+        parser.error("--show-findings is limited to the bundled public corpus")
+    if args.assessments is not None and args.results is None:
+        parser.error("--assessments requires --results")
     cases = validate_review_corpus(json.loads(args.corpus.read_text(encoding="utf-8")))
     if args.results is not None:
         if args.run:
@@ -81,7 +92,13 @@ def main(argv: list[str] | None = None) -> int:
         records = [json.loads(line) for line in
                    args.results.read_text(encoding="utf-8").splitlines()
                    if line.strip()]
-        print(json.dumps(summarize_review_records(cases, records),
+        summary = summarize_review_records(cases, records)
+        if args.assessments is not None:
+            assessments = json.loads(args.assessments.read_text(encoding="utf-8"))
+            if not isinstance(assessments, list):
+                raise ValueError("assessments must be an array")
+            summary["human_assessment"] = summarize_assessments(records, assessments)
+        print(json.dumps(summary,
                          ensure_ascii=False, indent=2))
         return 0
     if not args.run:
@@ -104,9 +121,19 @@ def main(argv: list[str] | None = None) -> int:
         ["git", "status", "--porcelain", "--untracked-files=no"],
         cwd=ROOT, text=True).strip())
     run_id = uuid.uuid4().hex
+    def show_findings(case_id, role, packet, result):
+        # Explicit opt-in, public fixtures only. The benchmark JSONL stays prose-free.
+        print(json.dumps({"run_id": run_id, "case_id": case_id,
+                          "role": role, "snapshot": packet,
+                          "review_digest": review_digest(result),
+                          "summary": result["summary"],
+                          "findings": result["findings"]},
+                         ensure_ascii=False, indent=2), file=sys.stderr)
+
     with args.output.open("x", encoding="utf-8", newline="\n") as output:
         for case in cases:
-            result = run_case(case, connections)
+            result = run_case(case, connections,
+                              review_callback=show_findings if args.show_findings else None)
             record = {
                 "schema_version": "1.0", "run_id": run_id,
                 "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
