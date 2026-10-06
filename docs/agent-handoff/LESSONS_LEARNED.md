@@ -309,3 +309,25 @@ digest-bound reference-fact rubric can count yes/no/unclear human judgments,
 whereas finding grounding/relevance alone cannot reveal missed facts. One
 nondeterministic pairing and no completed human labels cannot justify a
 semantic quality or token-savings claim.
+
+## More explicit prompting is not a grounding gate
+
+Three local model pairings on identical public fixtures showed that structural
+completion (2/3 or 3/3) does not rank factual reliability. Codex's
+preliminary labels favored some responses from a pairing with lower completion,
+but that tiny unblinded sample is not a quality score. A follow-up prompt
+spelling out zero counts, empty material, tag locks and empty scopes still
+produced reversed hidden/visible claims and an invented empty document name.
+Revert an ineffective prompt experiment rather than promoting its 3/3 parse
+rate. The next safeguard needs deterministic checks of claims against snapshot
+facts and a larger independently judged corpus.
+
+## A broad test gate must report its first real blocker
+
+The Windows `pytest -x -q -m 'not slow' tests` run passed 451 tests before
+an unmodified Composer scale-label pixel test failed at `under-right`. It also
+failed in isolation with both offscreen and native Qt platform settings.
+Neither that test nor its painter implementation changed in this PR stack.
+Do not describe the entire stack as fully tested or install a fresh binary
+based only on the selected 178 AI tests. First isolate or fix the renderer
+regression and complete the broad suite, then verify the frozen bundle.
