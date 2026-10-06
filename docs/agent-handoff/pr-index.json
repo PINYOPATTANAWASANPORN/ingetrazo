@@ -630,6 +630,17 @@
       "draft": true,
       "updated_at": "2026-10-06T21:59:33Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/63"
+    },
+    {
+      "number": 64,
+      "state": "open",
+      "title": "Speed up local planar Move undo with position snapshots",
+      "base": "perf/move-local-autofold",
+      "head": "perf/move-position-snapshot",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T22:19:52Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/64"
     }
   ]
 }

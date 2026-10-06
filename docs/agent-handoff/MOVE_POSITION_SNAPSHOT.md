@@ -1,7 +1,7 @@
 # Position-only snapshots for plain Move
 
 Base: draft PR #63 (`perf/move-local-autofold`). Branch:
-`perf/move-position-snapshot`.
+`perf/move-position-snapshot` ([draft PR #64](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/64)).
 
 The scoped Autofold check removed the whole-mesh face scan, but a plain Move
 still captured the entire mesh twice for Undo/Redo. On the bundled 7,632-face
