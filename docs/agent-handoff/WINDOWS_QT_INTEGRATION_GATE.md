@@ -120,11 +120,20 @@ no application binary changed after `d70e782`.
 The follow-up is [draft PR #55](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/55),
 stacked on PR #54. The fork's GitHub Actions page initially reported that
 workflows were **disabled**, and PR #54 showed no check runs. GitHub Actions
-became active while PR #55 was being prepared; both CI jobs started. A new `windows-qt`
-job in `.github/workflows/ci.yml` runs the entire suite on `windows-latest`
-with native Windows Qt and a 60-minute timeout. The existing Ubuntu fast job
-remains. The native backend was chosen because the exact 421-file sequence
-passed locally in one Windows process (4,594 passed, 11 skipped, 1 xfailed).
+became active while PR #55 was being prepared; both CI jobs started. The
+initial `windows-qt` job attempted the entire suite with native Windows Qt.
+Its dependencies installed, but pytest exited 1 without a Python traceback
+at about 4% on the hosted Windows Server 2025 runner. The same 421-file
+sequence had passed locally on a logged-in Windows 10 workstation (4,594
+passed, 11 skipped, 1 xfailed). This does not prove the hosted runner has a
+usable interactive desktop.
+
+The Windows job now runs a focused, offscreen integration smoke covering AI
+bridge, Assistant, Outliner, Composer borders, and radial dimensions. This
+selection passed **116 tests** locally with `QT_QPA_PLATFORM=offscreen`.
+It is not a full-suite CI gate. The existing Ubuntu fast job remains, and
+the local native full run remains separate integration evidence. The hosted
+Windows smoke result is pending.
 Enabling Actions applies to all workflows in the fork, including release
 workflows with write permissions and secrets. Neither release workflow was
 manually dispatched in this slice. The PR CI result remains pending.
@@ -132,7 +141,10 @@ manually dispatched in this slice. The PR CI result remains pending.
 An exploratory full offscreen run stopped making progress at
 `test_document_caches_reset.py` after about 22% of the suite. The test passed
 in 1.85 seconds alone and in an offscreen 46-test focused run. This is an
-unresolved cross-file/offscreen interaction, not a full-suite pass. The
+unresolved cross-file/offscreen interaction, not a full-suite pass. A later
+123-file offscreen prefix with the radial fix reached its summary: 1,022
+passed, 15 skipped, **5 failed** because small font/pixel rendering differed
+from native Qt. The
 offscreen run also exposed repeated Composer radial-property callbacks to a
 nonexistent `_single_selected` method. The handler now uses `_selected_item`
 after the `_updating` guard; a regression test edits a selected radial

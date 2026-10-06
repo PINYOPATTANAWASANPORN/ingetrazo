@@ -174,10 +174,10 @@ No new build was installed. The next review slice should validate claims
 against snapshot fields, then rerun independent assessment and the broad gate.
 
 Current Windows CI follow-up: [draft PR #55](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/55),
-`ci/windows-qt-gate` on PR #54, adds a native
-Windows full-suite PR job and fixes Composer radial-property editing. Local
-targeted checks passed 45 tests with native Qt and 46 with offscreen Qt. The
-fork's Actions became active while PR #55 was being prepared; both CI jobs
-started, with results pending. A frozen `12d783c`
+`ci/windows-qt-gate` on PR #54, adds an offscreen Windows Qt smoke job and
+fixes Composer radial-property editing. Local targeted checks passed 45 tests
+with native Qt, 46 with offscreen Qt, and 116 in the curated smoke. The first
+hosted native full-suite job exited 1 at about 4% without a Python traceback;
+the revised Windows smoke result is pending. A frozen `12d783c`
 bundle passed startup checks but is not installed; details and limitations
 are in [`WINDOWS_QT_INTEGRATION_GATE.md`](WINDOWS_QT_INTEGRATION_GATE.md).
