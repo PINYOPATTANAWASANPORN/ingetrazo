@@ -535,12 +535,12 @@
     {
       "number": 55,
       "state": "open",
-      "title": "Add native Windows Qt CI gate and fix Composer radial-property editing",
+      "title": "Add Windows Qt CI smoke and fix Composer radial-property editing",
       "base": "fix/qt-test-lifecycle",
       "head": "ci/windows-qt-gate",
       "merged": false,
       "draft": true,
-      "updated_at": "2026-10-06T09:02:22Z",
+      "updated_at": "2026-10-06T09:23:40Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/55"
     }
   ]

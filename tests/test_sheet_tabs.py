@@ -153,14 +153,20 @@ def test_the_standing_hint_never_widens_the_window(monkeypatch):
         # The window's own hint refresh (a timer) would put the real hint
         # back over this stand-in mid-test — the flake this test had.
         win._update_status_hint = lambda: None
-        bar.showMessage(long_hint)
-        assert len(bar.currentMessage()) > 100
-        # a plain QLabel with this hint asked for ~2200 px; the app's own
-        # floor (toolbars, docks) is under 1000 on the offscreen platform
-        assert win.minimumSizeHint().width() < 1000
+        bar.showMessage("Select")
         win.resize(700, 500)
         _app.processEvents()
-        assert win.width() < 1000                       # it shrank
+        baseline_minimum = win.minimumSizeHint().width()
+        baseline_width = win.width()
+        bar.showMessage(long_hint)
+        _app.processEvents()
+        assert len(bar.currentMessage()) > 100
+        # Toolbars, fonts and docks set a platform-dependent floor. Only
+        # the hint changes here, so it must not increase that floor.
+        assert win.minimumSizeHint().width() == baseline_minimum
+        win.resize(700, 500)
+        _app.processEvents()
+        assert win.width() == baseline_width           # same resize floor
         assert bar.currentMessage() == long_hint        # full text kept
     finally:
         _close(win)

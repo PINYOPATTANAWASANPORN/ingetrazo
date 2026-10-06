@@ -132,8 +132,17 @@ The Windows job now runs a focused, offscreen integration smoke covering AI
 bridge, Assistant, Outliner, Composer borders, and radial dimensions. This
 selection passed **116 tests** locally with `QT_QPA_PLATFORM=offscreen`.
 It is not a full-suite CI gate. The existing Ubuntu fast job remains, and
-the local native full run remains separate integration evidence. The hosted
-Windows smoke result is pending.
+the local native full run remains separate integration evidence. The
+[hosted Windows smoke job](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37442507775/job/112199408353)
+passed **116 tests in 31.59 seconds** on Windows Server 2025 with Python
+3.12.10. The Ubuntu fast job in the same run finished with **1 failed,
+3,773 passed, 28 skipped, 805 deselected**. Its sole failure was
+`test_the_standing_hint_never_widens_the_window`: the platform minimum was
+exactly 1,000 px, violating an arbitrary `< 1000` bound. The test now compares
+minimum and resized widths against a short-hint baseline, preserving the
+actual no-growth contract across fonts and platforms. All **14 sheet-tab
+tests passed** locally on native Windows Qt (14.84s) and offscreen Qt (14.38s).
+Hosted revalidation of this correction is pending.
 Enabling Actions applies to all workflows in the fork, including release
 workflows with write permissions and secrets. Neither release workflow was
 manually dispatched in this slice. The PR CI result remains pending.

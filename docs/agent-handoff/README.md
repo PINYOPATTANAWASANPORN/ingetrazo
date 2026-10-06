@@ -178,6 +178,8 @@ Current Windows CI follow-up: [draft PR #55](https://github.com/PINYOPATTANAWASA
 fixes Composer radial-property editing. Local targeted checks passed 45 tests
 with native Qt, 46 with offscreen Qt, and 116 in the curated smoke. The first
 hosted native full-suite job exited 1 at about 4% without a Python traceback;
-the revised Windows smoke result is pending. A frozen `12d783c`
+the revised hosted Windows smoke passed 116 tests. The Ubuntu fast run found one platform-dependent width assertion (3,773 passed);
+the test now compares short- and long-hint baselines. All 14 sheet-tab tests
+pass locally with both native and offscreen Qt; hosted revalidation is pending. A frozen `12d783c`
 bundle passed startup checks but is not installed; details and limitations
 are in [`WINDOWS_QT_INTEGRATION_GATE.md`](WINDOWS_QT_INTEGRATION_GATE.md).
