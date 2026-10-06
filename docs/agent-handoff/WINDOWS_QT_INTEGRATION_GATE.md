@@ -114,3 +114,41 @@ deterministic checking of claims against the model snapshot.
 
 The Style Editor change above is test-only and followed the staged build;
 no application binary changed after `d70e782`.
+
+## Follow-up: Windows PR check and frozen smoke
+
+The fork's GitHub Actions page reported that workflows are **disabled** for
+forked repositories. PR #54 therefore showed no check runs. A new `windows-qt`
+job in `.github/workflows/ci.yml` runs the entire suite on `windows-latest`
+with native Windows Qt and a 60-minute timeout. The existing Ubuntu fast job
+remains. The native backend was chosen because the exact 421-file sequence
+passed locally in one Windows process (4,594 passed, 11 skipped, 1 xfailed).
+Merely adding the job does not enable fork Actions; a repository maintainer
+must explicitly enable workflows after reviewing all existing workflows,
+including release workflows with write permissions and secrets.
+
+An exploratory full offscreen run stopped making progress at
+`test_document_caches_reset.py` after about 22% of the suite. The test passed
+in 1.85 seconds alone and in an offscreen 46-test focused run. This is an
+unresolved cross-file/offscreen interaction, not a full-suite pass. The
+offscreen run also exposed repeated Composer radial-property callbacks to a
+nonexistent `_single_selected` method. The handler now uses `_selected_item`
+after the `_updating` guard; a regression test edits a selected radial
+dimension and undoes the edit. Composer/radial tests passed 45/45 on native
+Windows Qt and 46/46 offscreen (the latter also included the document-cache
+test). A tiny scale-label pixel assertion is conditional on a platform that
+rasterizes that glyph: local Windows offscreen produced no ink in the sampled
+region, while native Qt did. Semantic placement and save/load assertions
+still run in both backends.
+
+A clean frozen bundle from current code commit `12d783c` was staged outside
+the repo at `C:\Users\Lenovo\Desktop\IngeTrazoTest\dist-qt-12d783c\ingetrazo`.
+`ingetrazo.exe --check` exited 0, the frozen MCP server listed 22 tools, and
+an offscreen `--new-window` GUI process survived a ten-second startup smoke.
+This was a **startup** check, not a live GUI interaction. The build includes
+the radial-property fix and has not been installed. SHA-256:
+
+- `ingetrazo.exe`: `D6B241FD58D82476BF6843FD538D78EE4EFF6DEB0DB2219D9CFBBFCFD2D7FE45`
+- `ingetrazo-mcp.exe`: `67FCDFD3465314623EF22D60AD37B1730641197B4D1A7A2CA4731FA45B8702EA`
+
+The installed `C:\Program Files\IngeTrazo` files remain from `3815ef8`.

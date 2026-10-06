@@ -77,6 +77,7 @@ failed attempts that reveal a reusable constraint; add the lesson to
 Latest delivery: [PR #42](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/42), `feature/ai-review-export` on #41; implementation `5f1763b`. Selected regression suite: 113 passed with simulated providers. GitHub snapshot: 40 total, 40 open, 0 merged. Earlier snapshot counts above are historical. Installed build unchanged.
 
 
+
 Current development slice: `feature/ai-review-audit-trail` on PR #42 adds a session-only, hash-linked review status log through MCP. It is not a signed or persistent audit system.
 
 
@@ -171,3 +172,11 @@ assessment; quality remains unscored. The broad Windows test pass stopped at
 an unmodified Composer scale-label pixel test after 451 passed and 11 skipped.
 No new build was installed. The next review slice should validate claims
 against snapshot fields, then rerun independent assessment and the broad gate.
+
+Current Windows CI follow-up: `ci/windows-qt-gate` on PR #54 adds a native
+Windows full-suite PR job and fixes Composer radial-property editing. Local
+targeted checks passed 45 tests with native Qt and 46 with offscreen Qt. The
+fork's Actions are disabled, so the job will not run until a maintainer
+enables workflows after reviewing their permissions. A frozen `12d783c`
+bundle passed startup checks but is not installed; details and limitations
+are in [`WINDOWS_QT_INTEGRATION_GATE.md`](WINDOWS_QT_INTEGRATION_GATE.md).
