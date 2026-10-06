@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 50,
-    "open": 50,
+    "pull_requests_total": 51,
+    "open": 51,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -187,6 +187,9 @@
     "branch": "test/windows-qt-integration-gates",
     "commit": "d70e7826c0fe3f742e51257ce3578581fc35c5e6",
     "base_branch": "feature/ai-review-field-semantics",
+    "pull_request": 53,
+    "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/53",
+    "draft": true,
     "report": "docs/agent-handoff/WINDOWS_QT_INTEGRATION_GATE.md",
     "full_suite_passed": false,
     "staged_bundle_installed": false,
