@@ -71,10 +71,12 @@ explicitly rejected the schema request; compare it separately from schema runs.
 Failure codes distinguish provider errors, invalid JSON/schema, oversized
 responses, out-of-scope entity IDs, and duplicate findings. Older records
 without a failure code are summarized as `unclassified`.
-`tokens` and `quality_score` remain `null`: the current provider adapter does
-not return usage, and valid JSON is not a quality score. Human review of the
-findings and real-provider samples are still required before claiming quality
-or token improvements. A partial file after an interrupted run contains only
+Each role now includes provider-reported `input_tokens`, `output_tokens`, and
+`total_tokens` when present. The case total is populated only when both roles
+report a total; missing counts remain `null` rather than being estimated.
+Offline token summaries count only cases with reported totals. `quality_score`
+remains `null`: valid JSON is not a quality score. Human review of findings
+is required before claiming quality improvements. A partial file after an interrupted run contains only
 cases completed before the interruption; inspect its sample count.
 
 On 2026-10-06, an opt-in local baseline with `llama3.2:latest` for structure
@@ -98,4 +100,13 @@ wire format. On committed `5f6215f` (`application_dirty=false`), the same
 local model pairing completed 3/3 cases with schema mode for both roles:
 overall latency p50 19,212 ms and p95 30,747 ms. This is a single three-case
 run, so neither a statistical performance claim nor an assessment of finding
-quality. Tokens and quality scores remain `null`.
+quality. Tokens and quality scores were still `null` in that earlier run.
+
+At clean commit `eb748a2` (`application_dirty=false`), the same three public
+fixtures completed 3/3 with both roles in schema mode. Ollama reported total
+token counts of 1,049, 1,217, and 726 per case; median 1,049, p95 1,217.
+Structure-role totals were 565, 508, and 348; requirements-role totals were
+484, 709, and 378. These are provider-reported counts, not estimated or
+priced costs. The three-case sample and absent human quality scores do not
+support a claim of token savings or better review decisions. The local JSONL
+remains outside the repository and contains no review prose.

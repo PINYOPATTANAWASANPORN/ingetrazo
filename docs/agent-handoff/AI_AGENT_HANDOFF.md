@@ -205,3 +205,15 @@ completed 3/3 public cases in schema mode for both roles, versus 0/3 in two
 earlier prompt-only runs. This is response validity evidence, not reviewed
 finding quality or a cross-provider claim. The installed build remains at
 `3815ef8`.
+
+## Provider-reported specialist usage (2026-10-06)
+
+`feature/ai-review-provider-usage` adds optional non-streaming usage capture
+to the provider layer. It records only provider-supplied input/output/total
+token counts; absent or invalid usage stays null. Case totals require both
+specialists to report totals, and offline summary validation checks the sum.
+On clean commit `eb748a2`, the three public Ollama review cases completed
+3/3 in schema mode with reported total tokens 1,049, 1,217 and 726. The
+selected AI regression suite passed 143 tests with `PYTHONUTF8=1`. This is
+not a cost or savings claim, and finding quality remains unscored. The
+installed Windows build remains at `3815ef8`.

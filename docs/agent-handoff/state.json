@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 47,
-    "open": 47,
+    "pull_requests_total": 48,
+    "open": 48,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -48,7 +48,7 @@
   },
   "validation": {
     "scope": "selected review benchmark, cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
-    "passed": 141,
+    "passed": 143,
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed"
@@ -87,7 +87,7 @@
   ],
   "next_recommended_work": [
     "evaluate specialist finding quality with human-reviewed public fixtures and compare additional named models; the structured local pairing completed 3/3 for response validity only",
-    "extend provider adapters to capture reported token usage without estimating missing usage",
+    "verify provider-reported usage and response-mode compatibility for additional local and cloud providers; current measured baseline covers one Ollama model pairing",
     "consider signed or independently anchored audit evidence; current saved history is unsigned",
     "design independently authenticated specialist identities if external agents need trust separation",
     "extend architectural editing to existing-wall openings, arbitrary slab profiles and isolated geometry previews"
@@ -134,5 +134,13 @@
     "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/49",
     "draft": true,
     "validation": "141 selected AI tests passed with PYTHONUTF8=1; clean-tree local Ollama schema-mode review completed 3/3 public cases; tokens and quality unmeasured"
+  },
+  "provider_usage_delivery": {
+    "branch": "feature/ai-review-provider-usage",
+    "implementation_commit": "eb748a223fb8c9867c8ff9b8bd24456da89a12fd",
+    "pull_request": 50,
+    "pull_request_url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/50",
+    "draft": true,
+    "validation": "143 selected AI tests passed with PYTHONUTF8=1; clean-tree local Ollama review completed 3/3 public cases and reported case token totals 1049, 1217, 726; quality unmeasured"
   }
 }

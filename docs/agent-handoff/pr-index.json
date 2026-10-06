@@ -476,6 +476,17 @@
       "draft": true,
       "updated_at": "2026-10-06T01:26:52Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/49"
+    },
+    {
+      "number": 50,
+      "state": "open",
+      "title": "Capture provider-reported token usage for specialist reviews",
+      "base": "feature/ai-review-structured-output",
+      "head": "feature/ai-review-provider-usage",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T01:33:26Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/50"
     }
   ]
 }

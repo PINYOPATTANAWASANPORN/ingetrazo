@@ -273,3 +273,13 @@ checks even when the provider accepts a schema. Record a prompt fallback
 separately so compatibility behavior does not contaminate schema benchmark
 results. Passing the response contract says nothing about whether findings
 are useful or correct.
+
+## Do not turn absent provider usage into estimated tokens
+
+Ollama's OpenAI-compatible response included `prompt_tokens`,
+`completion_tokens` and `total_tokens` in the `usage` object. Capture those
+integer fields directly; retain null when a provider omits them or reports
+malformed values. A two-specialist total is measured only when both roles
+reported totals. Keep each role's response mode and model name with the count,
+and do not convert a three-case local run into a savings claim without a
+comparable baseline and quality assessment.

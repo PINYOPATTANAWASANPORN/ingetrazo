@@ -110,6 +110,28 @@ def test_parse_reply_and_extract_code():
     assert ai.extract_code("sin código") is None
 
 
+def test_provider_usage_is_reported_without_estimating_missing_values(monkeypatch):
+    local = json.dumps({"choices": [{"message": {"content": "ok"}}],
+                        "usage": {"prompt_tokens": 21, "completion_tokens": 10,
+                                  "total_tokens": 31}}).encode()
+    assert ai.parse_usage("ollama", local) == {
+        "input_tokens": 21, "output_tokens": 10, "total_tokens": 31}
+    anthropic = json.dumps({"usage": {"input_tokens": 8,
+                                       "output_tokens": 5}}).encode()
+    assert ai.parse_usage("anthropic", anthropic) == {
+        "input_tokens": 8, "output_tokens": 5, "total_tokens": None}
+    for bad in ({"usage": {"prompt_tokens": True}},
+                {"usage": {"prompt_tokens": -1}}, {"usage": {}}, {}):
+        assert ai.parse_usage("ollama", json.dumps(bad).encode()) is None
+
+    monkeypatch.setattr(ai, "_urlopen", lambda *_args, **_kwargs: local)
+    received = []
+    assert ai.chat("ollama", "m", "", "SYS", [{"role": "user", "text": "x"}],
+                   usage_callback=received.append) == "ok"
+    assert received == [{"input_tokens": 21, "output_tokens": 10,
+                         "total_tokens": 31}]
+
+
 def test_stream_request_and_sse_parsers(monkeypatch):
     class Response:
         def __init__(self):
