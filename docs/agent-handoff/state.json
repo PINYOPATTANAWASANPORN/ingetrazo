@@ -235,5 +235,14 @@
     "status": "draft",
     "validation": "9 Outliner tests passed on native Windows Qt and offscreen after locked-ancestor selection sync; both added regression tests fail on parent code",
     "remaining": "Face/edge hierarchy, large-tree benchmarks and richer nested navigation remain open"
+  },
+  "outliner_selection_performance_delivery": {
+    "branch": "perf/outliner-selection-sync",
+    "base_branch": "fix/outliner-nested-selection",
+    "base_pull_request": 56,
+    "pull_request": null,
+    "status": "implemented_locally",
+    "validation": "10 Outliner tests passed on native Windows and offscreen; synthetic 2000 rows, 100 single-object changes: 1.6936s parent vs 0.0012s updated",
+    "remaining": "representative real-model measurements, tree refresh/filter/render profiling, Face/Edge hierarchy"
   }
 }

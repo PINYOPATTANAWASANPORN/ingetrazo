@@ -192,3 +192,7 @@ all nested rows; cross-parent selections are reflected back into the tree
 so hide/lock use the actual viewport selection. Nine Outliner tests passed
 on both native Windows Qt and offscreen. Both added regressions fail on
 the parent code. No installed-binary changes. See [OUTLINER_NESTED_SELECTION.md](OUTLINER_NESTED_SELECTION.md).
+
+Outliner performance follow-up: `perf/outliner-selection-sync` changes only
+selected rows during viewport sync. See [OUTLINER_SELECTION_PERFORMANCE.md](OUTLINER_SELECTION_PERFORMANCE.md)
+for measured scope and limits.

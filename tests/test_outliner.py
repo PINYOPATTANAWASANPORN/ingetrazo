@@ -116,6 +116,27 @@ def test_cross_level_selection_matches_viewport_and_bulk_action_targets():
         panel.deleteLater()
 
 
+def test_viewport_selection_sync_adds_and_removes_only_real_rows():
+    scene, room, chair, leaf, tree = _model()
+    panel = OutlinerPanel(_Window(scene))
+    try:
+        scene.selection.update((room, tree))
+        panel._sync_selection()
+        assert set(panel._selected_groups()) == {room, tree}
+        scene.selection.clear()
+        scene.selection.add(leaf)
+        panel._sync_selection()
+        assert panel._selected_groups() == [leaf]
+        # Repeating an unchanged sync cannot emit a selection change.
+        changes = []
+        panel.tree.itemSelectionChanged.connect(lambda: changes.append(1))
+        panel._sync_selection()
+        assert changes == []
+    finally:
+        panel.close()
+        panel.deleteLater()
+
+
 def test_visibility_lock_and_rename_are_undoable():
     scene, room, _chair, _leaf, _tree = _model()
     win = _Window(scene)
