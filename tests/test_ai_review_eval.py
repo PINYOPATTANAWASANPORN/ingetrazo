@@ -68,8 +68,35 @@ def test_review_benchmark_records_metadata_without_secret_or_prose(monkeypatch):
     assert summary["tokens"] is None and summary["quality_score"] is None
 
     fabricated = {"schema_version": "1.0", **record, "tokens": 100}
-    with pytest.raises(ValueError, match="unsupported"):
+    with pytest.raises(ValueError, match="token total"):
         summarize_review_records(cases(), [fabricated])
+
+
+def test_benchmark_sums_only_provider_reported_role_totals(monkeypatch):
+    def fake_chat(_provider, model, _key, _system, _messages,
+                  usage_callback=None, **_kwargs):
+        usage_callback({"input_tokens": 10, "output_tokens": 5,
+                        "total_tokens": 15 if model == "structure" else 17})
+        return '{"summary":"checked","findings":[]}'
+    monkeypatch.setattr(ai, "chat", fake_chat)
+    connections = {
+        "model_structure": {"provider": "ollama", "model": "structure", "key": "",
+                            "ollama_url": "local"},
+        "task_requirements": {"provider": "ollama", "model": "requirements", "key": "",
+                              "ollama_url": "local"},
+    }
+    record = run_case(cases()[0], connections)
+    assert record["tokens"] == 32
+    summary = summarize_review_records(cases(), [{"schema_version": "1.0", **record}])
+    assert summary["tokens"] == {"samples": 1, "p50": 32, "p95": 32}
+    assert {item["tokens"]["p50"] for item in summary["by_role"]} == {15, 17}
+
+    record["roles"]["task_requirements"]["usage"]["total_tokens"] = None
+    record["tokens"] = None
+    summary = summarize_review_records(cases(), [{"schema_version": "1.0", **record}])
+    assert summary["tokens"] is None
+    assert next(item for item in summary["by_role"]
+                if item["role"] == "task_requirements")["tokens"] is None
 
 
 def test_connection_config_rejects_literal_keys_and_never_echoes_secret(tmp_path,

@@ -95,13 +95,17 @@ def run_case(case: dict, connections: dict) -> dict:
             "ok": result["ok"], "latency_ms": role_ms,
             "finding_count": len(result.get("findings", [])),
             "failure_code": result.get("failure_code") if not result["ok"] else None,
+            "usage": result.get("usage"),
         }
+    totals = [item["usage"].get("total_tokens") if isinstance(item["usage"], dict)
+              else None for item in roles.values()]
     return {
         "case_id": case["id"], "status": report["status"],
         "input_bytes": input_bytes, "latency_ms": latency_ms,
         "roles": roles, "conflict_count": len(report["conflicts"]),
         "document_changed": bool(report["changed"]),
-        "tokens": None, "quality_score": None,
+        "tokens": sum(totals) if all(total is not None for total in totals) else None,
+        "quality_score": None,
     }
 
 
@@ -116,10 +120,10 @@ def summarize_review_records(cases: list[dict], records: list[dict]) -> dict:
                 record["case_id"] not in known or
                 not isinstance(record.get("status"), str) or
                 record["status"] not in {"completed", "partial", "failed"} or
-                record.get("tokens") is not None or
                 record.get("quality_score") is not None):
             raise ValueError("invalid or unsupported review benchmark record")
         _number(record.get("latency_ms"))
+        _tokens(record.get("tokens"))
         roles = record.get("roles")
         if not isinstance(roles, dict) or set(roles) != set(ai_review.ROLES):
             raise ValueError("review record must contain both role outcomes")
@@ -139,8 +143,23 @@ def summarize_review_records(cases: list[dict], records: list[dict]) -> dict:
                     not outcome["ok"] and failure_code is not None and
                     failure_code not in ai_review.FAILURE_CODES):
                 raise ValueError("invalid specialist failure code")
+            usage = outcome.get("usage")
+            if usage is not None:
+                if not isinstance(usage, dict) or set(usage) != {
+                        "input_tokens", "output_tokens", "total_tokens"}:
+                    raise ValueError("invalid specialist usage")
+                for value in usage.values():
+                    _tokens(value)
+                if all(value is None for value in usage.values()):
+                    raise ValueError("empty specialist usage")
             _number(outcome.get("latency_ms"))
             groups.setdefault((role, provider, model, response_mode), []).append(outcome)
+        totals = [outcome.get("usage", {}).get("total_tokens")
+                  if isinstance(outcome.get("usage"), dict) else None
+                  for outcome in roles.values()]
+        if record.get("tokens") != (sum(totals) if all(
+                total is not None for total in totals) else None):
+            raise ValueError("review record token total does not match reported usage")
     by_role = []
     for (role, provider, model, response_mode), outcomes in sorted(groups.items()):
         by_role.append({
@@ -149,6 +168,10 @@ def summarize_review_records(cases: list[dict], records: list[dict]) -> dict:
             "samples": len(outcomes),
             "ok_rate": sum(item["ok"] for item in outcomes) / len(outcomes),
             "latency_ms": _latencies([item["latency_ms"] for item in outcomes]),
+            "tokens": _token_summary([
+                item["usage"]["total_tokens"] for item in outcomes
+                if isinstance(item.get("usage"), dict) and
+                item["usage"]["total_tokens"] is not None]),
             "failures": {code: sum(not item["ok"] and
                                    (item.get("failure_code") or "unclassified") == code
                                    for item in outcomes)
@@ -163,8 +186,22 @@ def summarize_review_records(cases: list[dict], records: list[dict]) -> dict:
         "completion_rate": (sum(r["status"] == "completed" for r in records)
                             / len(records) if records else None),
         "latency_ms": _latencies([r["latency_ms"] for r in records]),
-        "by_role": by_role, "tokens": None, "quality_score": None,
+        "by_role": by_role,
+        "tokens": _token_summary([r["tokens"] for r in records
+                                  if r.get("tokens") is not None]),
+        "quality_score": None,
     }
+
+
+def _tokens(value) -> None:
+    if value is not None and (isinstance(value, bool) or
+                              not isinstance(value, int) or
+                              not 0 <= value <= 1_000_000_000):
+        raise ValueError("tokens must be a reported non-negative integer or null")
+
+
+def _token_summary(values: list[int]) -> dict | None:
+    return {"samples": len(values), **_latencies(values)} if values else None
 
 
 def _number(value) -> None:

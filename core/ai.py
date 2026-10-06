@@ -621,6 +621,31 @@ def parse_reply(provider: str, raw: bytes) -> str:
     return choices[0].get("message", {}).get("content", "") or ""
 
 
+def parse_usage(provider: str, raw: bytes) -> dict | None:
+    """Return provider-reported counts only; never infer missing totals."""
+    try:
+        data = json.loads(raw)
+    except (TypeError, ValueError):
+        return None
+    usage = data.get("usage") if isinstance(data, dict) else None
+    if not isinstance(usage, dict):
+        return None
+    names = (("input_tokens", "output_tokens", "total_tokens")
+             if provider == "anthropic" else
+             ("prompt_tokens", "completion_tokens", "total_tokens"))
+    counts = []
+    for name in names:
+        value = usage.get(name)
+        if value is not None and (isinstance(value, bool) or
+                                  not isinstance(value, int) or
+                                  not 0 <= value <= 1_000_000_000):
+            return None
+        counts.append(value)
+    if all(value is None for value in counts):
+        return None
+    return dict(zip(("input_tokens", "output_tokens", "total_tokens"), counts))
+
+
 def parse_stream_event(provider: str, raw: bytes | str) -> str:
     """Return text from one SSE data event, ignoring metadata events."""
     if isinstance(raw, bytes):
@@ -706,13 +731,14 @@ def chat(provider: str, model: str, api_key: str, system: str,
          timeout: float = 180.0, max_tokens: int = 4096,
          retries: int = 4, on_retry=None, on_chunk=None,
          cancel_token: CancellationToken | None = None,
-         stream: bool = False, response_schema: dict | None = None) -> str:
+         stream: bool = False, response_schema: dict | None = None,
+         usage_callback=None) -> str:
     """One blocking chat turn. Raises with a readable message on failure —
     callers run this in a worker thread, never on the UI thread. A busy
     provider is retried ``retries`` times (see :func:`_urlopen`)."""
     if stream:
-        if response_schema is not None:
-            raise ValueError("structured responses require non-streaming local chat")
+        if response_schema is not None or usage_callback is not None:
+            raise ValueError("structured responses and usage capture require non-streaming chat")
         return chat_stream(
             provider, model, api_key, system, messages, ollama_url=ollama_url,
             timeout=timeout, max_tokens=max_tokens, retries=retries,
@@ -721,8 +747,11 @@ def chat(provider: str, model: str, api_key: str, system: str,
     url, headers, payload = build_request(
         provider, model, api_key, system, messages, ollama_url, max_tokens,
         response_schema=response_schema)
-    return parse_reply(provider, _urlopen(url, headers, payload, timeout,
-                                          retries=retries, on_retry=on_retry))
+    raw = _urlopen(url, headers, payload, timeout,
+                   retries=retries, on_retry=on_retry)
+    if usage_callback is not None:
+        usage_callback(parse_usage(provider, raw))
+    return parse_reply(provider, raw)
 
 
 def chat_stream(provider: str, model: str, api_key: str, system: str,
