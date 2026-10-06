@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-07",
-    "pull_requests_total": 63,
-    "open": 63,
+    "pull_requests_total": 64,
+    "open": 64,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -340,8 +340,8 @@
     "branch": "perf/move-face-geometry-cache",
     "base_branch": "perf/move-history-transaction",
     "base_pull_request": 65,
-    "pull_request": null,
-    "status": "local_validation_passed",
+    "pull_request": 66,
+    "status": "draft",
     "validation": "201 Windows offscreen CI-selection tests passed; unchanged face reuse, changed vertex/loop/hole, Move/Undo/Redo, cache cap and document boundary covered",
     "benchmark": "direct native 640x480 paintGL on 7633-face example: about 810ms parent, 584-629ms across two five-trial cache runs; command near 17ms; excludes Qt scheduling, swap and scanout",
     "remaining": "hosted CI, edge bucketing/drawing optimization and real GUI input-to-visible-pixel check; installed build unchanged"

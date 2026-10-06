@@ -1,7 +1,7 @@
 # Reuse unchanged face geometry after a local Move
 
 Base: draft PR #65 (`perf/move-history-transaction`). Branch:
-`perf/move-face-geometry-cache` (draft PR pending).
+`perf/move-face-geometry-cache` ([draft PR #66](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/66)).
 
 After Move, the scene version changes and the viewport used to discard all
 per-version Newell and triangulation results. The next paint then recalculated
