@@ -1,7 +1,7 @@
 # Autofold opening and radial-edge gate
 
 Base: draft PR #61 (`test/autofold-shared-vertex-grid`).
-Branch: `test/autofold-holed-nonmanifold`.
+Branch: `test/autofold-holed-nonmanifold` ([draft PR #62](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/62)).
 
 The previous shared-grid regression checked four ordinary incident quads. This
 follow-up covers two distinct mesh contracts:

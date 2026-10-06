@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 59,
-    "open": 59,
+    "pull_requests_total": 60,
+    "open": 60,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -295,8 +295,8 @@
     "branch": "test/autofold-holed-nonmanifold",
     "base_branch": "test/autofold-shared-vertex-grid",
     "base_pull_request": 61,
-    "pull_request": null,
-    "status": "implemented_locally",
+    "pull_request": 62,
+    "status": "draft",
     "validation": "62 Move/Autofold tests passed on native Windows and offscreen; expanded nine-file Windows CI selection passed 182 locally offscreen",
     "remaining": "hosted CI, larger real meshes, degenerate input, optional Autofold controls"
   }
