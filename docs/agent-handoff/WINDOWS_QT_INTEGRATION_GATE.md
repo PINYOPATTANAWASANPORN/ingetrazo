@@ -44,6 +44,13 @@ and packaging evidence for branch `test/windows-qt-integration-gates` at
   (110 passed). These counts use the successful rerun, not the failed run.
   Logs for shards 340–420 are outside the repo in
   `C:\Users\Lenovo\Desktop\IngeTrazoTest\test-shards-20261006`.
+- The remaining files 0–299 were then run in 30 separate 10-file processes:
+  **3,518 passed, 6 skipped, 1 expected failure, 0 failed**. Across all
+  421 files and 43 successful shards the final tally is **4,594 passed,
+  11 skipped, 1 expected failure, 0 failed**. The selected results and
+  per-shard log paths are recorded in the local `summary.json` in that same
+  directory. It retains the original failing Style Editor log and uses the
+  successful `shard-360-recheck.txt` after the test-only correction.
 
 The **full single-process suite did not complete**. The offscreen run first
 failed a Composer scale-label pixel test after 451 passed and 11 skipped;
@@ -52,7 +59,9 @@ and font-metric assumptions above. A later continuation reached about 64%
 before Python consumed approximately 20 GB of memory and was stopped. A
 separate large batch was stopped at 4.6 GB near 9%. Cumulative GUI/OpenGL
 test memory remains an integration risk. None of these partial runs should
-be reported as a full-suite pass.
+be reported as a single-process full-suite pass. The complete file-level
+sharded run above validates the tests in isolated processes, but does not
+exercise cross-file state and resource accumulation in one process.
 
 The staged bundle is in the ignored `dist/ingetrazo` directory. SHA-256:
 
@@ -62,7 +71,7 @@ The staged bundle is in the ignored `dist/ingetrazo` directory. SHA-256:
 The installation at `C:\Program Files\IngeTrazo` remains the older verified
 build from `3815ef8`. The staged bundle has **not** been installed. Before
 installation or a merge of the stacked PRs, complete a memory-bounded broad
-test run, then verify the frozen GUI and representative live workflows. AI
+test run in CI, then verify the frozen GUI and representative live workflows. AI
 specialist factual quality also requires independent human evaluation and
 deterministic checking of claims against the model snapshot.
 
