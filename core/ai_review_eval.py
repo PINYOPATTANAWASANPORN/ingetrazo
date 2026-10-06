@@ -7,6 +7,7 @@ is not evidence that a provider found the right issue; that needs human review.
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 import statistics
 import time
@@ -70,7 +71,15 @@ def make_snapshot(case: dict) -> dict:
     return packet
 
 
-def run_case(case: dict, connections: dict) -> dict:
+def review_digest(result: dict) -> str:
+    """Bind an assessment to the exact ordered prose shown to its reviewer."""
+    payload = {"summary": result["summary"], "findings": result["findings"]}
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True,
+                         separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def run_case(case: dict, connections: dict, review_callback=None) -> dict:
     """Run both specialists and return only bounded measurement metadata."""
     packet = make_snapshot(case)
     input_bytes = len(json.dumps(packet, ensure_ascii=False,
@@ -96,7 +105,10 @@ def run_case(case: dict, connections: dict) -> dict:
             "finding_count": len(result.get("findings", [])),
             "failure_code": result.get("failure_code") if not result["ok"] else None,
             "usage": result.get("usage"),
+            "review_digest": review_digest(result) if result["ok"] else None,
         }
+        if review_callback is not None and result["ok"]:
+            review_callback(case["id"], role, packet, result)
     totals = [item["usage"].get("total_tokens") if isinstance(item["usage"], dict)
               else None for item in roles.values()]
     return {

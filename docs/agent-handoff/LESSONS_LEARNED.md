@@ -283,3 +283,15 @@ malformed values. A two-specialist total is measured only when both roles
 reported totals. Keep each role's response mode and model name with the count,
 and do not convert a three-case local run into a savings claim without a
 comparable baseline and quality assessment.
+
+## Bind manual judgments to the exact review response
+
+Response validity and provider tokens cannot establish that a specialist's
+claims are grounded. For public fixtures, show the snapshot and ordered
+findings only through an explicit terminal option; keep the benchmark JSONL
+prose-free. A digest of the parsed response plus run/case/role and finding
+count lets an offline validator reject a judgment copied to a different
+response. Record unassessed outcomes separately, and leave overall quality
+null because grounding/relevance labels do not measure omitted findings.
+An unsigned digest binds files against accidental mix-ups but does not prove
+who reviewed them or prevent deliberate alteration.
