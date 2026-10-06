@@ -1728,8 +1728,57 @@ class OutlinerPanel(QWidget):
         return {getattr(item.data(0, Qt.UserRole), "uid", "")
                 for item in self._items.values() if item.isExpanded()}
 
+    def _matches_structure(self) -> bool:
+        """Check identity and sibling order before reusing existing rows."""
+        if not self._items:
+            return False
+
+        def matches(groups, parent) -> bool:
+            count = (self.tree.topLevelItemCount() if parent is None
+                     else parent.childCount())
+            if len(groups) != count:
+                return False
+            for index, group in enumerate(groups):
+                item = (self.tree.topLevelItem(index) if parent is None
+                        else parent.child(index))
+                if item.data(0, Qt.UserRole) is not group:
+                    return False
+                if not matches(getattr(group, "children", None) or (), item):
+                    return False
+            return True
+
+        return matches(self._scene().groups, None)
+
+    def _refresh_existing_rows(self) -> None:
+        """Update properties without destroying expanded/selected Qt items."""
+        self._updating = True
+        self.tree.blockSignals(True)
+        try:
+            for item in self._items.values():
+                group = item.data(0, Qt.UserRole)
+                if item.text(0) != group.name:
+                    item.setText(0, group.name)
+                visible = Qt.Unchecked if group.hidden else Qt.Checked
+                if item.checkState(1) != visible:
+                    item.setCheckState(1, visible)
+                locked = (Qt.Checked if getattr(group, "locked", False)
+                          else Qt.Unchecked)
+                if item.checkState(2) != locked:
+                    item.setCheckState(2, locked)
+                kind = tr("Component") if group.is_component() else tr("Group")
+                if item.toolTip(0) != kind:
+                    item.setToolTip(0, kind)
+        finally:
+            self.tree.blockSignals(False)
+            self._updating = False
+        self._sync_selection()
+        self._apply_filter(self.search.text())
+
     def refresh(self) -> None:
         from PySide6.QtWidgets import QTreeWidgetItem
+        if self._matches_structure():
+            self._refresh_existing_rows()
+            return
         expanded = self._expanded()
         first_fill = not self._items
         self._updating = True

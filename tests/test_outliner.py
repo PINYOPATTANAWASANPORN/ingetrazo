@@ -137,6 +137,37 @@ def test_viewport_selection_sync_adds_and_removes_only_real_rows():
         panel.deleteLater()
 
 
+def test_refresh_reuses_rows_for_properties_and_rebuilds_on_tree_change():
+    scene, room, chair, leaf, tree = _model()
+    panel = OutlinerPanel(_Window(scene))
+    try:
+        row = panel._items[id(chair)]
+        scene.selection.add(chair)
+        chair.name = "Dining chair"
+        chair.hidden = True
+        chair.locked = True
+        panel.search.setText("dining")
+        row.setExpanded(False)
+        panel.refresh()
+        assert panel._items[id(chair)] is row
+        assert row.text(0) == "Dining chair"
+        assert row.checkState(1) == Qt.Unchecked
+        assert row.checkState(2) == Qt.Checked
+        assert not row.isExpanded()
+        assert row.isSelected()
+        assert panel._items[id(tree)].isHidden()
+
+        new_child = Group(name="Table")
+        room.adopt([chair, new_child])
+        panel.refresh()
+        assert panel._items[id(chair)] is not row
+        assert id(new_child) in panel._items
+        assert panel._items[id(tree)].isHidden()
+    finally:
+        panel.close()
+        panel.deleteLater()
+
+
 def test_visibility_lock_and_rename_are_undoable():
     scene, room, _chair, _leaf, _tree = _model()
     win = _Window(scene)

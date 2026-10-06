@@ -564,6 +564,17 @@
       "draft": true,
       "updated_at": "2026-10-06T13:14:51Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/57"
+    },
+    {
+      "number": 58,
+      "state": "open",
+      "title": "Reuse Outliner rows when group hierarchy is unchanged",
+      "base": "perf/outliner-selection-sync",
+      "head": "perf/outliner-incremental-refresh",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T13:19:44Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/58"
     }
   ]
 }
