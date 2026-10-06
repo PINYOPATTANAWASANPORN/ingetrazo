@@ -1774,13 +1774,24 @@ class OutlinerPanel(QWidget):
             QTimer.singleShot(0, self, self._refresh_after_item_change)
 
     def _sync_selection(self) -> None:
-        selected = self._scene().selection
+        # A viewport selection is usually tiny even in a large model. The
+        # index is rebuilt with the tree, so touch only changed rows rather
+        # than setting selection on every item after each viewport click.
+        wanted = {self._items[id(group)] for group in self._scene().selection
+                  if id(group) in self._items}
+        current = set(self.tree.selectedItems())
+        if current == wanted:
+            return
         self._updating = True
         self.tree.blockSignals(True)
-        for item in self._items.values():
-            item.setSelected(item.data(0, Qt.UserRole) in selected)
-        self.tree.blockSignals(False)
-        self._updating = False
+        try:
+            for item in current - wanted:
+                item.setSelected(False)
+            for item in wanted - current:
+                item.setSelected(True)
+        finally:
+            self.tree.blockSignals(False)
+            self._updating = False
 
     def _apply_filter(self, text: str) -> None:
         needle = text.strip().casefold()
