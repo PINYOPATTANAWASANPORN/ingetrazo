@@ -248,10 +248,16 @@ def test_a_menu_scope_searches_only_that_menu(ventana):
 
 
 def test_a_letter_typed_in_an_open_menu_searches_it(ventana):
+    # A previous search popup can leave the native Windows menu without an
+    # active top-level window; activate it before exercising menu typing.
+    ventana.raise_()
+    ventana.activateWindow()
+    QApplication.processEvents()
     edit = next(a.menu() for a in ventana.menuBar().actions()
                 if a.menu() is not None and a.menu().title() == "Edit")
     edit.popup(ventana.mapToGlobal(ventana.rect().center()))
     QApplication.processEvents()
+    assert edit.isVisible()
     QTest.keyClick(edit, Qt.Key_O)
     QApplication.processEvents()
     box = ventana._command_search

@@ -509,6 +509,17 @@
       "draft": true,
       "updated_at": "2026-10-06T01:51:39Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/52"
+    },
+    {
+      "number": 53,
+      "state": "open",
+      "title": "Prevent Outliner item-change crash and stabilize Windows test gates",
+      "base": "feature/ai-review-field-semantics",
+      "head": "test/windows-qt-integration-gates",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T02:57:49Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/53"
     }
   ]
 }

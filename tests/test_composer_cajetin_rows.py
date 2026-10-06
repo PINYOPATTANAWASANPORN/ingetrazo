@@ -77,7 +77,9 @@ def test_the_long_row_grows_and_the_others_pay_for_it():
 def test_every_value_now_reads_at_about_one_size():
     grown = _value_sizes(ROWS, _heights(ROWS))
     equal = _value_sizes(ROWS, [H / 5] * 5)
-    assert min(equal) < max(equal) * 0.85       # the defect: the odd one out
+    # Font metrics vary by platform; the long value must still be the one
+    # squeezed by equal rows without assuming a particular percentage.
+    assert equal[0] < min(equal[1:])
     assert grown[0] > equal[0]                  # the project name got bigger
     assert min(grown) >= max(grown) * 0.95      # …and now they match
 
