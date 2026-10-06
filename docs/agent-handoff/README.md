@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-06**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **58 open PRs in the 2026-10-06 snapshot**; check GitHub
+- PR inventory: **59 open PRs in the 2026-10-06 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -209,3 +209,7 @@ one; see [TAG_ANNOTATION_SELECTION.md](TAG_ANNOTATION_SELECTION.md).
 Active Tag indicator follow-up: [draft PR #60](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/60) on `fix/active-tag-indicator` keeps the Tags
 panel marker aligned with the toolbar and scene; see
 [ACTIVE_TAG_INDICATOR.md](ACTIVE_TAG_INDICATOR.md).
+
+Move Autofold follow-up: [draft PR #61](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/61) on `test/autofold-shared-vertex-grid` adds a
+multi-face topology/preview/Undo gate and includes the four Move suites in
+Windows CI. See [AUTOFOLD_SHARED_VERTEX_GATE.md](AUTOFOLD_SHARED_VERTEX_GATE.md).

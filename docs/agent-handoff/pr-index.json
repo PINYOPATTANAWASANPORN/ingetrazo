@@ -597,6 +597,17 @@
       "draft": true,
       "updated_at": "2026-10-06T13:44:04Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/60"
+    },
+    {
+      "number": 61,
+      "state": "open",
+      "title": "Gate shared-vertex Autofold topology in Windows CI",
+      "base": "fix/active-tag-indicator",
+      "head": "test/autofold-shared-vertex-grid",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T14:05:06Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/61"
     }
   ]
 }

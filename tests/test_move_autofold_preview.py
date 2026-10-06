@@ -194,3 +194,53 @@ def test_moving_a_pentagon_edge_commits_only_planar_pieces():
     assert all(is_planar(list(piece.vertices)) for piece in scene.mesh.faces)
     assert len([item for item in scene.mesh.edges if len(item.faces) == 2]) == predicted
     assert len(vp.history.undo_stack) == 1
+
+
+def test_shared_grid_vertex_folds_all_incident_faces_and_round_trips():
+    """One lift must fold four neighboring quads without losing any face."""
+    scene = Scene()
+    for y in range(3):
+        for x in range(3):
+            face = scene.mesh.add_face([
+                V(x, y), V(x + 1, y), V(x + 1, y + 1), V(x, y + 1)])
+            face.attrs["material"] = f"tile-{x}-{y}"
+    original_edges = {
+        tuple(sorted((_key(edge.a), _key(edge.b))))
+        for edge in scene.mesh.edges}
+    moved_original_edges = {
+        tuple(sorted(_key(V(1, 1, 0.75)) if point == _key(V(1, 1))
+                     else point for point in edge))
+        for edge in original_edges}
+    vp = _Vp(scene, V(1, 1))
+    tool = MoveTool()
+
+    tool.on_click(_ctx(vp, V(1, 1)))
+    tool.on_hover(_ctx(vp, V(1, 1, 0.75)))
+    assert len(scene.mesh.faces) == 9  # preview does not split topology
+    predicted = {tuple(sorted((_key(a), _key(b))))
+                 for a, b in tool.autofold_preview_lines()}
+    assert len(predicted) == 4
+    assert tool._fold_face_count == 4
+
+    tool.on_click(_ctx(vp, V(1, 1, 0.75)))
+    assert len(scene.mesh.faces) == 13
+    assert all(is_planar(list(face.vertices)) for face in scene.mesh.faces)
+    assert max(len(edge.faces) for edge in scene.mesh.edges) == 2
+    actual = {tuple(sorted((_key(edge.a), _key(edge.b))))
+              for edge in scene.mesh.edges if len(edge.faces) == 2
+              and tuple(sorted((_key(edge.a), _key(edge.b))))
+              not in moved_original_edges}
+    assert actual == predicted
+    counts = {}
+    for face in scene.mesh.faces:
+        material = face.attrs["material"]
+        counts[material] = counts.get(material, 0) + 1
+    assert sorted(counts.values()) == [1] * 5 + [2] * 4
+
+    assert len(vp.history.undo_stack) == 1
+    assert vp.history.undo()
+    assert len(scene.mesh.faces) == 9
+    assert scene.mesh.vertex_at(V(1, 1)) is not None
+    assert vp.history.redo()
+    assert len(scene.mesh.faces) == 13
+    assert scene.mesh.vertex_at(V(1, 1, 0.75)) is not None
