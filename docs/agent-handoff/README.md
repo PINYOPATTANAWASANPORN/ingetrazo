@@ -148,3 +148,25 @@ grounding/relevance review without saving provider prose in benchmark JSONL.
 The selected AI suite passed 176 tests. No human assessments have been
 collected yet, so `quality_score` remains null. GitHub snapshot: 49 total,
 49 open, 0 merged. Installed Windows build remains at `3815ef8`.
+
+Latest coverage work: [draft PR #52](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/52),
+`feature/ai-review-field-semantics` on #51, implementations `0d04488` and
+`312a5a3`. Specialist prompts now explain snapshot fields, whitespace-only
+summaries are rejected, and a public reference-fact file supports manual
+omission checks bound to benchmark responses. A local `pinyo-chat` /
+`pinyo-coder` run completed 2/3 public cases before the prompt clarification
+and 3/3 after it, but still made unsupported claims. These two runs preceded
+the parser and coverage-reference changes. The selected AI suite passed 178
+tests with `PYTHONUTF8=1`. No human labels or final-code live run exist; review
+quality remains unscored. GitHub snapshot: 50 total, 50 open, 0 merged.
+Installed Windows build remains at `3815ef8`.
+
+Follow-up local study: [`review-local-study-2026-10-06.md`](../../benchmarks/ai/review-local-study-2026-10-06.md)
+compares three named Ollama pairings on the same three public cases. Structural
+completion ranged from 2/3 to 3/3, while preliminary Codex inspection found
+unsupported field claims even in a 3/3 run. A stronger prompt trial did not
+resolve them and was reverted. These agent labels are not independent human
+assessment; quality remains unscored. The broad Windows test pass stopped at
+an unmodified Composer scale-label pixel test after 451 passed and 11 skipped.
+No new build was installed. The next review slice should validate claims
+against snapshot fields, then rerun independent assessment and the broad gate.

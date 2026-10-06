@@ -498,6 +498,17 @@
       "draft": true,
       "updated_at": "2026-10-06T01:41:23Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/51"
+    },
+    {
+      "number": 52,
+      "state": "open",
+      "title": "Measure specialist omissions and reject blank summaries",
+      "base": "feature/ai-review-finding-audit",
+      "head": "feature/ai-review-field-semantics",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T01:51:39Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/52"
     }
   ]
 }

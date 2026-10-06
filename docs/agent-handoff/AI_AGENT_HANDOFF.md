@@ -229,3 +229,42 @@ grounding and relevance, not omitted issues or overall quality. No human
 assessments have been collected; `quality_score` stays null. The AI suite
 passed 176 tests with `PYTHONUTF8=1`. Draft PR #51 is stacked on #50. The
 installed Windows build remains at `3815ef8`.
+
+## Field semantics and reference-fact coverage (2026-10-06)
+
+[Draft PR #52](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/52)
+stacks on #51. Specialist instructions distinguish entity names from tags
+(`layer`), object locks from tag locks (`locked` versus `layer_locked`), and
+visibility/parent/child/material fields. The parser rejects blank summaries.
+The new public `review-coverage-v1.json` enumerates checkable facts in the
+three fixture snapshots; the offline assessment summarizes independently
+labeled coverage as yes/no/unclear, without treating a missing judgment as
+success. The reference is validated against the actual fixture snapshots.
+
+At clean commits, one local `pinyo-chat:latest` / `pinyo-coder:latest` run
+completed 2/3 cases before the field-semantics prompt and 3/3 after. The
+second run still contained unsupported statements and an empty summary; it
+preceded the parser fix. Thus completion is not semantic correctness and no
+quality improvement is established. The final slice passed 178 selected AI
+tests with `PYTHONUTF8=1`, but has no final-code live provider run or human
+coverage labels. Benchmark metadata and public-fixture display files are kept
+outside the repository. The installed Windows build remains at `3815ef8`.
+
+## Same-fixture local comparison and integration gate (2026-10-06)
+
+The [`local study`](../../benchmarks/ai/review-local-study-2026-10-06.md)
+ran three named Ollama pairings on clean `c25c69b`, three public fixtures
+each. Case completion was 3/3 for `pinyo-chat`/`pinyo-coder`, 2/3 for
+`llama3.2`/`qwen2.5-coder:1.5b`, and 2/3 for `llama3.2` in both roles.
+Codex's preliminary, unblinded labels on the first pairing marked only 4/10
+reference-fact checks covered and 4/6 summaries unsupported; these are not
+independent human labels or an overall quality score. A stronger literal-field
+prompt trial at `7d3984f` still made false claims and was reverted. Preserve
+the strict response contract and pursue deterministic claim validation.
+
+The GitHub stack remained 50 open PRs with seven drafts, zero merged, and no
+check runs on #52. The broad Windows `pytest -x -q -m 'not slow' tests`
+attempt stopped at an unmodified Composer scale-label pixel test: 451 passed,
+11 skipped, one failed before the stop; isolated reproduction failed too.
+This does not establish full-suite readiness. Installed build `3815ef8` was
+not changed. Resolve the broad gate before merging or deploying the stack.

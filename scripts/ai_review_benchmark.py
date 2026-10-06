@@ -19,7 +19,8 @@ sys.path.insert(0, str(ROOT))
 from core import ai, ai_review
 from core.ai_review_eval import (make_snapshot, review_digest, run_case,
                                  summarize_review_records, validate_review_corpus)
-from core.ai_review_assessment import summarize_assessments
+from core.ai_review_assessment import (summarize_assessments,
+                                       validate_coverage_reference)
 
 DEFAULT_CORPUS = ROOT / "benchmarks/ai/review-corpus-v1.json"
 ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,127}$")
@@ -76,6 +77,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="summarize an existing review JSONL file offline")
     parser.add_argument("--assessments", type=Path,
                         help="validate metadata-only human judgments against --results")
+    parser.add_argument("--coverage-reference", type=Path,
+                        help="public snapshot facts to assess for omissions")
     parser.add_argument("--show-findings", action="store_true",
                         help="show public-fixture review prose on stderr for manual assessment")
     args = parser.parse_args(argv)
@@ -85,6 +88,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--show-findings is limited to the bundled public corpus")
     if args.assessments is not None and args.results is None:
         parser.error("--assessments requires --results")
+    if args.coverage_reference is not None and args.assessments is None:
+        parser.error("--coverage-reference requires --assessments")
     cases = validate_review_corpus(json.loads(args.corpus.read_text(encoding="utf-8")))
     if args.results is not None:
         if args.run:
@@ -97,7 +102,12 @@ def main(argv: list[str] | None = None) -> int:
             assessments = json.loads(args.assessments.read_text(encoding="utf-8"))
             if not isinstance(assessments, list):
                 raise ValueError("assessments must be an array")
-            summary["human_assessment"] = summarize_assessments(records, assessments)
+            checks = None
+            if args.coverage_reference is not None:
+                checks = validate_coverage_reference(json.loads(
+                    args.coverage_reference.read_text(encoding="utf-8")), cases)
+            summary["human_assessment"] = summarize_assessments(
+                records, assessments, checks)
         print(json.dumps(summary,
                          ensure_ascii=False, indent=2))
         return 0
