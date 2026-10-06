@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-06",
-    "pull_requests_total": 55,
-    "open": 55,
+    "pull_requests_total": 56,
+    "open": 56,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -249,8 +249,8 @@
     "branch": "perf/outliner-incremental-refresh",
     "base_branch": "perf/outliner-selection-sync",
     "base_pull_request": 57,
-    "pull_request": null,
-    "status": "implemented_locally",
+    "pull_request": 58,
+    "status": "draft",
     "validation": "11 Outliner tests passed on native Windows and offscreen; synthetic 2000 rows, five refreshes: 0.7808s parent vs 0.3090s updated",
     "remaining": "real large-document profiling and nested-tree stress cases"
   }

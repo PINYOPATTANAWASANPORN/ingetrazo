@@ -1,7 +1,7 @@
 # Incremental Outliner refresh
 
 Base: draft PR #57 (`perf/outliner-selection-sync`).
-Branch: `perf/outliner-incremental-refresh`.
+Branch: `perf/outliner-incremental-refresh`, draft PR #58.
 
 The Outliner checks group identity and sibling order against the existing
 rows. When structure is unchanged, it updates changed name, visibility,

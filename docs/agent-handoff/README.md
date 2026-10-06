@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-06**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **55 open PRs in the 2026-10-06 snapshot**; check GitHub
+- PR inventory: **56 open PRs in the 2026-10-06 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -197,7 +197,7 @@ Outliner performance follow-up: [draft PR #57](https://github.com/PINYOPATTANAWA
 selected rows during viewport sync. See [OUTLINER_SELECTION_PERFORMANCE.md](OUTLINER_SELECTION_PERFORMANCE.md)
 for measured scope and limits.
 
-Outliner refresh follow-up: `perf/outliner-incremental-refresh` updates
+Outliner refresh follow-up: [draft PR #58](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/58) on `perf/outliner-incremental-refresh` updates
 existing rows when the hierarchy is stable; see
 [OUTLINER_INCREMENTAL_REFRESH.md](OUTLINER_INCREMENTAL_REFRESH.md) for
 measured scope and regression checks.
