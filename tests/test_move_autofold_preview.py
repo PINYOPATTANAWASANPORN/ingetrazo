@@ -2,6 +2,8 @@
 """Move shows the fold it will create before changing real topology."""
 from __future__ import annotations
 
+import pytest
+
 from PySide6.QtCore import QPointF, Qt
 from PySide6.QtGui import QVector3D
 
@@ -244,3 +246,78 @@ def test_shared_grid_vertex_folds_all_incident_faces_and_round_trips():
     assert vp.history.redo()
     assert len(scene.mesh.faces) == 13
     assert scene.mesh.vertex_at(V(1, 1, 0.75)) is not None
+
+
+@pytest.mark.parametrize("corner", [(4, 4), (3, 3)])
+def test_holed_face_autofold_preserves_opening_and_undo(corner):
+    """Folding an outer or hole corner must not fill the wall's window."""
+    scene = Scene()
+    face = scene.mesh.add_face(
+        [V(0, 0), V(4, 0), V(4, 4), V(0, 4)],
+        [[V(1, 1), V(3, 1), V(3, 3), V(1, 3)]],
+    )
+    face.attrs["material"] = "wall"
+    source = V(*corner)
+    destination = V(*corner, 1)
+    vp = _Vp(scene, source)
+    tool = MoveTool()
+
+    tool.on_click(_ctx(vp, source))
+    tool.on_hover(_ctx(vp, destination))
+    assert len(scene.mesh.faces) == 1
+    assert tool.autofold_preview_lines()
+    tool.on_click(_ctx(vp, destination))
+
+    assert len(scene.mesh.faces) > 1
+    assert all(is_planar(list(piece.vertices) + [v for h in piece.holes for v in h])
+               for piece in scene.mesh.faces)
+    assert all(piece.attrs["material"] == "wall" for piece in scene.mesh.faces)
+    # The XY projection stays a 4x4 wall minus the 2x2 window, even when
+    # Autofold replaces the original holed face with planar pieces.
+    projected_area = sum(
+        abs((b.x() - a.x()) * (c.y() - a.y())
+            - (b.y() - a.y()) * (c.x() - a.x())) / 2
+        for piece in scene.mesh.faces for a, b, c in piece.triangulate()
+    )
+    assert abs(projected_area - 12.0) < 1e-6
+    assert len(vp.history.undo_stack) == 1
+    assert vp.history.undo()
+    assert len(scene.mesh.faces) == 1
+    assert len(scene.mesh.faces[0].holes) == 1
+    assert vp.history.redo()
+    assert len(scene.mesh.faces) > 1
+
+
+def test_nonmanifold_shared_edge_folds_all_three_incident_faces():
+    """Three faces on one edge must keep their radial connection after Move."""
+    scene = Scene()
+    boundaries = [
+        [V(0, 0), V(2, 0), V(2, 2), V(0, 2)],
+        [V(2, 0), V(0, 0), V(0, -2), V(2, -2)],
+        [V(0, 0), V(2, 0), V(2, 1, 2), V(0, 1, 2)],
+    ]
+    for index, boundary in enumerate(boundaries):
+        face = scene.mesh.add_face(boundary)
+        face.attrs["material"] = f"side-{index}"
+    vp = _Vp(scene, V(0, 0))
+    tool = MoveTool()
+
+    tool.on_click(_ctx(vp, V(0, 0)))
+    tool.on_hover(_ctx(vp, V(0, 0, 0.75)))
+    assert len(scene.mesh.faces) == 3
+    assert tool._fold_face_count == 3
+    assert len(tool.autofold_preview_lines()) == 3
+    tool.on_click(_ctx(vp, V(0, 0, 0.75)))
+
+    assert len(scene.mesh.faces) == 6
+    assert all(is_planar(list(piece.vertices)) for piece in scene.mesh.faces)
+    shared = scene.mesh.find_edge(
+        scene.mesh.vertex_at(V(0, 0, 0.75)), scene.mesh.vertex_at(V(2, 0)))
+    assert shared is not None and len(shared.faces) == 3
+    assert sorted(piece.attrs["material"] for piece in scene.mesh.faces) == [
+        "side-0", "side-0", "side-1", "side-1", "side-2", "side-2"]
+    assert len(vp.history.undo_stack) == 1
+    assert vp.history.undo()
+    assert len(scene.mesh.faces) == 3
+    assert vp.history.redo()
+    assert len(scene.mesh.faces) == 6

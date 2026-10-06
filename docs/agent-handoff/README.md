@@ -213,3 +213,7 @@ panel marker aligned with the toolbar and scene; see
 Move Autofold follow-up: [draft PR #61](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/61) on `test/autofold-shared-vertex-grid` adds a
 multi-face topology/preview/Undo gate and includes the four Move suites in
 Windows CI. See [AUTOFOLD_SHARED_VERTEX_GATE.md](AUTOFOLD_SHARED_VERTEX_GATE.md).
+
+Further Autofold stress on `test/autofold-holed-nonmanifold` checks a face
+with an opening and a three-face radial edge. See
+[AUTOFOLD_OPENING_RADIAL_GATE.md](AUTOFOLD_OPENING_RADIAL_GATE.md).

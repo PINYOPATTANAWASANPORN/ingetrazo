@@ -284,6 +284,20 @@
     "pull_request": 61,
     "status": "draft",
     "validation": "59 Move/Autofold tests passed on native Windows and offscreen; expanded nine-file Windows CI selection passed 179 locally offscreen in 42.24s",
-    "remaining": "hosted Windows result, holed/non-manifold stress, real meshes, optional Autofold controls"
+    "remaining": "hosted Ubuntu result, real meshes, degenerate geometry, optional Autofold controls",
+    "latest_verified_ci": {
+      "run": 37476294358,
+      "result": "windows_success_ubuntu_in_progress",
+      "commit": "c99161d9296660e8a5a8acfc873e06c05a4c92b5"
+    }
+  },
+  "autofold_opening_radial_gate_delivery": {
+    "branch": "test/autofold-holed-nonmanifold",
+    "base_branch": "test/autofold-shared-vertex-grid",
+    "base_pull_request": 61,
+    "pull_request": null,
+    "status": "implemented_locally",
+    "validation": "62 Move/Autofold tests passed on native Windows and offscreen; expanded nine-file Windows CI selection passed 182 locally offscreen",
+    "remaining": "hosted CI, larger real meshes, degenerate input, optional Autofold controls"
   }
 }
