@@ -57,6 +57,7 @@ def test_review_benchmark_records_metadata_without_secret_or_prose(monkeypatch):
     assert all(role["latency_ms"] >= 0 and role["finding_count"] == 1
                for role in record["roles"].values())
     assert all(role["failure_code"] is None for role in record["roles"].values())
+    assert all(role["response_mode"] == "prompt" for role in record["roles"].values())
     assert all(text not in encoded for text in
                (secret, "private review prose", "private evidence text"))
     summary = summarize_review_records(cases(), [
@@ -106,6 +107,7 @@ def test_runner_writes_only_metadata_and_summarizes_offline(tmp_path, monkeypatc
     records = [json.loads(line) for line in output.read_text(encoding="utf-8").splitlines()]
     assert len(records) == len(cases())
     assert {r["application_commit"] for r in records}
+    assert all(isinstance(r["application_dirty"], bool) for r in records)
     assert all(r["tokens"] is None and r["quality_score"] is None for r in records)
     capsys.readouterr()
     assert main(["--results", str(output)]) == 0
@@ -154,4 +156,9 @@ def test_failure_summary_counts_only_safe_codes_and_reads_older_records(monkeypa
     invalid = json.loads(json.dumps(record))
     invalid["roles"]["model_structure"]["failure_code"] = "private provider response"
     with pytest.raises(ValueError, match="failure code"):
+        summarize_review_records(cases(), [{"schema_version": "1.0", **invalid}])
+
+    invalid = json.loads(json.dumps(record))
+    invalid["roles"]["model_structure"]["response_mode"] = "private mode"
+    with pytest.raises(ValueError, match="response mode"):
         summarize_review_records(cases(), [{"schema_version": "1.0", **invalid}])

@@ -548,13 +548,17 @@ class CancellationToken:
 def build_request(provider: str, model: str, api_key: str,
                   system: str, messages: list,
                   ollama_url: str = "http://localhost:11434",
-                  max_tokens: int = 4096, stream: bool = False):
+                  max_tokens: int = 4096, stream: bool = False,
+                  response_schema: dict | None = None):
     """(url, headers, payload-bytes) for one chat turn.
 
     ``messages``: [{"role": "user"/"assistant", "text": str,
     "image_png_b64" / "image_b64"+"image_mime": optional}] — images ride
     only on user turns.
     """
+    if response_schema is not None and (provider != "ollama" or stream or
+                                        not isinstance(response_schema, dict)):
+        raise ValueError("structured responses require non-streaming local chat")
     if provider == "anthropic":
         content_msgs = []
         for m in messages:
@@ -596,6 +600,11 @@ def build_request(provider: str, model: str, api_key: str,
         headers["Authorization"] = f"Bearer {api_key}"
     payload = {"model": model, "max_tokens": max_tokens,
                "messages": oai_msgs}
+    if response_schema is not None:
+        payload["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {"name": "structured_reply", "strict": True,
+                            "schema": response_schema}}
     if stream:
         payload["stream"] = True
     return (f"{base}/chat/completions", headers,
@@ -697,18 +706,21 @@ def chat(provider: str, model: str, api_key: str, system: str,
          timeout: float = 180.0, max_tokens: int = 4096,
          retries: int = 4, on_retry=None, on_chunk=None,
          cancel_token: CancellationToken | None = None,
-         stream: bool = False) -> str:
+         stream: bool = False, response_schema: dict | None = None) -> str:
     """One blocking chat turn. Raises with a readable message on failure —
     callers run this in a worker thread, never on the UI thread. A busy
     provider is retried ``retries`` times (see :func:`_urlopen`)."""
     if stream:
+        if response_schema is not None:
+            raise ValueError("structured responses require non-streaming local chat")
         return chat_stream(
             provider, model, api_key, system, messages, ollama_url=ollama_url,
             timeout=timeout, max_tokens=max_tokens, retries=retries,
             on_retry=on_retry, on_chunk=on_chunk,
             cancel_token=cancel_token)
     url, headers, payload = build_request(
-        provider, model, api_key, system, messages, ollama_url, max_tokens)
+        provider, model, api_key, system, messages, ollama_url, max_tokens,
+        response_schema=response_schema)
     return parse_reply(provider, _urlopen(url, headers, payload, timeout,
                                           retries=retries, on_retry=on_retry))
 

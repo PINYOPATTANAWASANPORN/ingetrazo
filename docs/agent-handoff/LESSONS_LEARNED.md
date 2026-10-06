@@ -261,3 +261,15 @@ entity IDs; this is evidence to compare model choices and response handling,
 not a reason to accept fabricated findings. When benchmarking with uncommitted
 instrumentation, note the base commit and the uncommitted diff: a recorded
 commit hash alone does not identify the exact code that produced the run.
+
+## Structured generation still needs independent validation
+
+An Ollama JSON-object request returned valid JSON but still failed the review
+contract; a snapshot-specific JSON schema completed the three public fixtures
+with the same local model pairing. The schema must include the actual allowed
+entity IDs and use `maxItems: 0` for an empty snapshot: an empty ID enum was
+rejected by the local server. Keep the parser's scope, uniqueness and length
+checks even when the provider accepts a schema. Record a prompt fallback
+separately so compatibility behavior does not contaminate schema benchmark
+results. Passing the response contract says nothing about whether findings
+are useful or correct.

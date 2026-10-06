@@ -19,6 +19,7 @@ SCHEMA_VERSION = "1.0"
 CASE_FIELDS = {"id", "fixture", "scope", "goal", "intent", "expected_scope_count"}
 SCOPES = {"selection", "visible_model", "whole_model"}
 GOALS = {"check", "explain"}
+RESPONSE_MODES = {"schema", "prompt", "prompt_fallback", "unspecified"}
 
 
 def validate_review_corpus(data: dict) -> list[dict]:
@@ -90,6 +91,7 @@ def run_case(case: dict, connections: dict) -> dict:
             raise ValueError("specialist latency measurement is missing")
         roles[role] = {
             "provider": result["provider"], "model": result["model"],
+            "response_mode": result.get("response_mode", "unspecified"),
             "ok": result["ok"], "latency_ms": role_ms,
             "finding_count": len(result.get("findings", [])),
             "failure_code": result.get("failure_code") if not result["ok"] else None,
@@ -106,7 +108,7 @@ def run_case(case: dict, connections: dict) -> dict:
 def summarize_review_records(cases: list[dict], records: list[dict]) -> dict:
     """Aggregate only measured values; unknown tokens and quality stay null."""
     known = {case["id"] for case in cases}
-    groups: dict[tuple[str, str, str], list[dict]] = {}
+    groups: dict[tuple[str, str, str, str], list[dict]] = {}
     for record in records:
         if (not isinstance(record, dict) or
                 record.get("schema_version") != SCHEMA_VERSION or
@@ -129,17 +131,21 @@ def summarize_review_records(cases: list[dict], records: list[dict]) -> dict:
                     not isinstance(model, str) or not model or
                     not isinstance(outcome.get("ok"), bool)):
                 raise ValueError("invalid role identity or status")
+            response_mode = outcome.get("response_mode", "unspecified")
+            if not isinstance(response_mode, str) or response_mode not in RESPONSE_MODES:
+                raise ValueError("invalid specialist response mode")
             failure_code = outcome.get("failure_code")
             if (outcome["ok"] and failure_code is not None) or (
                     not outcome["ok"] and failure_code is not None and
                     failure_code not in ai_review.FAILURE_CODES):
                 raise ValueError("invalid specialist failure code")
             _number(outcome.get("latency_ms"))
-            groups.setdefault((role, provider, model), []).append(outcome)
+            groups.setdefault((role, provider, model, response_mode), []).append(outcome)
     by_role = []
-    for (role, provider, model), outcomes in sorted(groups.items()):
+    for (role, provider, model, response_mode), outcomes in sorted(groups.items()):
         by_role.append({
             "role": role, "provider": provider, "model": model,
+            "response_mode": response_mode,
             "samples": len(outcomes),
             "ok_rate": sum(item["ok"] for item in outcomes) / len(outcomes),
             "latency_ms": _latencies([item["latency_ms"] for item in outcomes]),
