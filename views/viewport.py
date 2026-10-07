@@ -329,8 +329,8 @@ def _face_geometry_signature(face):
     QVector3D objects after a Move replaces a vertex position.
     """
     def positions(loop):
-        return tuple((v.position.x(), v.position.y(), v.position.z())
-                     for v in loop)
+        # One Qt/Python crossing per vertex rather than three scalar getters.
+        return tuple(v.position.toTuple() for v in loop)
 
     return (positions(face.loop), tuple(positions(h) for h in face.hole_loops))
 

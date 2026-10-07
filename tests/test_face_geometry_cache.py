@@ -108,6 +108,20 @@ def test_hole_and_loop_changes_invalidate_geometry_cache(monkeypatch):
     assert calls == 3
 
 
+def test_signature_detects_in_place_vertex_and_hole_position_changes():
+    mesh = Mesh()
+    face = _triangle(mesh, 0)
+    face.hole_loops = [[mesh.vertex(QVector3D(.1, .1, 0)),
+                        mesh.vertex(QVector3D(.2, .1, 0)),
+                        mesh.vertex(QVector3D(.1, .2, 0))]]
+    original = viewport_module._face_geometry_signature(face)
+    face.loop[0].position.setZ(.25)
+    changed_outer = viewport_module._face_geometry_signature(face)
+    assert changed_outer != original
+    face.hole_loops[0][0].position.setZ(.125)
+    assert viewport_module._face_geometry_signature(face) != changed_outer
+
+
 def test_move_undo_redo_refreshes_face_geometry():
     mesh = Mesh()
     face = _triangle(mesh, 0)
