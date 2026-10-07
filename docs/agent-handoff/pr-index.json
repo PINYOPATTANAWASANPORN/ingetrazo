@@ -663,6 +663,17 @@
       "draft": true,
       "updated_at": "2026-10-06T23:01:52Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/66"
+    },
+    {
+      "number": 67,
+      "state": "open",
+      "title": "Speed up loose-edge rebuilds after Move",
+      "base": "perf/move-face-geometry-cache",
+      "head": "perf/move-loose-edge-render",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-07T11:04:02Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/67"
     }
   ]
 }
