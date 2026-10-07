@@ -4773,7 +4773,12 @@ class Viewport(QOpenGLWidget):
             hit = memo[1][id(face)] = (face, tris)
         return hit[1]
 
-    def _vcol_face_block(self, face, base) -> bytes:
+    def _face_block_key(self, face):
+        """Share the geometry check between front and default-back buffers."""
+        retain = isinstance(face, Face) and _retain_face_geometry(self, face)
+        return retain, (_face_geometry_signature_of(self, face) if retain else None)
+
+    def _vcol_face_block(self, face, base, key=None) -> bytes:
         """Packed front-colour triangles, reused across unrelated edits.
 
         The geometry key includes every vertex in the outer and hole loops;
@@ -4781,8 +4786,7 @@ class Viewport(QOpenGLWidget):
         Only small faces of the active edit mesh persist, keeping retained
         bytes bounded even when an imported face has many triangles.
         """
-        retain = isinstance(face, Face) and _retain_face_geometry(self, face)
-        sig = _face_geometry_signature_of(self, face) if retain else None
+        retain, sig = self._face_block_key(face) if key is None else key
         cached = face._render_vcol_cache if retain else None
         if cached is not None and cached[0] == sig and cached[1] == base:
             return cached[2]
@@ -4799,10 +4803,9 @@ class Viewport(QOpenGLWidget):
                                        else None)
         return raw
 
-    def _dback_face_block(self, face) -> bytes:
+    def _dback_face_block(self, face, key=None) -> bytes:
         """Packed default-back positions for an unchanged active-mesh face."""
-        retain = isinstance(face, Face) and _retain_face_geometry(self, face)
-        sig = _face_geometry_signature_of(self, face) if retain else None
+        retain, sig = self._face_block_key(face) if key is None else key
         cached = face._render_dback_cache if retain else None
         if cached is not None and cached[0] == sig:
             return cached[1]
@@ -5195,8 +5198,10 @@ class Viewport(QOpenGLWidget):
                 return
             attrs = _eff_attrs(face.attrs, ctx_paint)
             fcull = bucket_back(face)
+            key = None
             if back_is_default(attrs):
-                sink["dback"].frombytes(self._dback_face_block(face))
+                key = self._face_block_key(face)
+                sink["dback"].frombytes(self._dback_face_block(face, key))
             tex = attrs.get("texture")
             op = float(attrs.get("opacity", 1.0))
             if tex is not None and tex.get("path"):
@@ -5218,7 +5223,7 @@ class Viewport(QOpenGLWidget):
             # world light — the matte-model look. World-fixed, so
             # it doesn't change as you orbit. The shaded colour rides per
             # vertex, so the whole pass is ONE draw call.
-            raw = self._vcol_face_block(face, base)
+            raw = self._vcol_face_block(face, base, key)
             if op < 0.999:
                 tcol_runs.setdefault((round(op, 3), fcull),
                                      []).append(raw)
