@@ -696,6 +696,17 @@
       "draft": true,
       "updated_at": "2026-10-07T11:48:12Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/69"
+    },
+    {
+      "number": 70,
+      "state": "open",
+      "title": "Speed up face geometry signature scans after Move",
+      "base": "perf/move-face-visibility-back-buffer",
+      "head": "perf/move-face-signature-tuples",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-07T16:00:20Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/70"
     }
   ]
 }
