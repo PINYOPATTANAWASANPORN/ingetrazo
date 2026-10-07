@@ -674,6 +674,17 @@
       "draft": true,
       "updated_at": "2026-10-07T11:04:02Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/67"
+    },
+    {
+      "number": 68,
+      "state": "open",
+      "title": "Reuse packed face colour blocks after local Move",
+      "base": "perf/move-loose-edge-render",
+      "head": "perf/move-face-color-buffer",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-07T11:20:55Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/68"
     }
   ]
 }

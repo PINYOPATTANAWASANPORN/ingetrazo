@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-07**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **65 open PRs in the 2026-10-07 snapshot**; check GitHub
+- PR inventory: **66 open PRs in the 2026-10-07 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -30,6 +30,8 @@ and the engineering knowledge extracted from the work.
    local-Move viewport geometry cache, validation and remaining paint cost.
 9. [`MOVE_LOOSE_EDGE_RENDER.md`](MOVE_LOOSE_EDGE_RENDER.md) —
    loose-edge visibility optimization and native Windows paint evidence.
+10. [`MOVE_FACE_COLOR_BUFFER.md`](MOVE_FACE_COLOR_BUFFER.md) —
+    packed face-colour reuse, correctness checks and paint measurements.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
@@ -253,3 +255,9 @@ on `perf/move-loose-edge-render` skips soft/hidden edges before Tag lookup
 and resolves Tag visibility once per rebuild. See
 [MOVE_LOOSE_EDGE_RENDER.md](MOVE_LOOSE_EDGE_RENDER.md) for measurements,
 regression checks and limits.
+
+Face-colour buffer follow-up in [draft PR #68](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/68)
+on `perf/move-face-color-buffer` reuses packed shaded triangles when both the
+geometry and effective front colour agree. See
+[MOVE_FACE_COLOR_BUFFER.md](MOVE_FACE_COLOR_BUFFER.md) for the measured scope
+and remaining rendering work.
