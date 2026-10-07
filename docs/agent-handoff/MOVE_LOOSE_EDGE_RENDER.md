@@ -23,7 +23,9 @@ indicate renderer cost, not measured user-visible latency.
 
 Focused Tag/hide/cache tests passed 27/27. Broader render/pick tests passed
 18 with five platform skips. New coverage checks Tag visibility changes and
-Hide/Undo. `compileall` and `git diff --check` passed. Hosted CI is pending.
+Hide/Undo. `compileall` and `git diff --check` passed. Hosted
+[CI run 37611689496](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37611689496)
+passed Windows Qt offscreen smoke and Ubuntu `pytest (not slow)` at `d8d6984`.
 
 Next, profile face bucketing and edge draw cost on a model with hard edges,
 then measure actual input-to-visible-pixel latency in the installed GUI. The

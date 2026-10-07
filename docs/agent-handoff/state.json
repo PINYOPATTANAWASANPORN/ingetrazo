@@ -360,6 +360,12 @@
     "status": "draft",
     "validation": "27 Tag/hide/cache tests and 18 render/pick tests passed, 5 platform skips; compileall and diff check passed",
     "benchmark": "15,312 soft edges: forced block rebuild median 72ms old vs 0.3ms new; native direct 640x480 paintGL after Move 576ms old vs 508ms new over 3 trials; excludes scheduling, swap and scanout",
-    "remaining": "hosted CI; profile hard-edge draw and face bucketing; real GUI input-to-visible-pixel check; installed build unchanged"
+    "remaining": "profile hard-edge draw and face bucketing; real GUI input-to-visible-pixel check; installed build unchanged",
+    "latest_verified_ci": {
+      "run": 37611689496,
+      "result": "success",
+      "commit": "d8d6984f48f71b5776182e29ee6ea3bb9a61b6a5",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
   }
 }
