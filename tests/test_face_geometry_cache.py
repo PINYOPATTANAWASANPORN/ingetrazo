@@ -50,6 +50,29 @@ def test_unrelated_move_keeps_face_triangulation(monkeypatch):
     assert calls == {edited: 2, untouched: 1}
 
 
+def test_signature_checked_once_per_face_and_scene_version(monkeypatch):
+    mesh = Mesh()
+    face = _triangle(mesh, 0)
+    scene = Scene(mesh=mesh)
+    view = _view(scene)
+    original = viewport_module._face_geometry_signature
+    calls = 0
+
+    def counted(current):
+        nonlocal calls
+        calls += 1
+        return original(current)
+
+    monkeypatch.setattr(viewport_module, "_face_geometry_signature", counted)
+    view._normal_of(face)
+    view._tris_of(face)
+    assert calls == 1
+    scene.version += 1
+    view._normal_of(face)
+    view._tris_of(face)
+    assert calls == 2
+
+
 def test_hole_and_loop_changes_invalidate_geometry_cache(monkeypatch):
     mesh = Mesh()
     face = _triangle(mesh, 0)

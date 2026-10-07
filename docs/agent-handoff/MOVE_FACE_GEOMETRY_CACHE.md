@@ -11,7 +11,9 @@ list across scene versions. The cache key contains the ordered coordinates of
 the outer loop and every hole loop. A changed position, winding or hole
 invalidates the entry; paint, tag and visibility are still evaluated by the
 existing VBO bucketing path. Per-version viewport memos remain in place to
-avoid repeated key checks within one paint.
+avoid repeated key checks within one paint. Newell and triangulation share
+one signature read per face and scene version, rather than walking the same
+loops twice in a cold frame.
 
 The persistent cache applies only to faces in the active edit mesh when that
 mesh has at most 20,000 faces. Group/reference geometry retains its existing
@@ -20,11 +22,12 @@ retained triangle data. A document switch clears viewport references to old
 faces. The face-owned entry itself is released when its face is discarded.
 
 Validation on Windows with `QT_QPA_PLATFORM=offscreen` and `PYTHONUTF8=1`:
-the 201-test CI selection passed. Focused tests cover unchanged-face reuse,
+the 202-test CI selection passed. Focused tests cover unchanged-face reuse,
 changed vertex/loop/hole invalidation, Move/Undo/Redo, cache size cap and
 document switch. `compileall` and `git diff --check` passed. Hosted
 [CI run 37544278293](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37544278293)
-on `f65795d` also passed Windows Qt offscreen smoke and Ubuntu `not slow`.
+on `f65795d` passed Windows Qt offscreen smoke and Ubuntu `not slow` before
+the follow-up signature memo; hosted revalidation of that refinement is pending.
 
 Native Windows `scripts/bench_move_paint.py` on the bundled
 `pileta-fuente-yanque.igz` plus one detached triangle measured median direct
@@ -33,7 +36,9 @@ Native Windows `scripts/bench_move_paint.py` on the bundled
 viewport and forced synchronous paint; it is not user-input-to-visible-pixel
 latency. Variation between runs is material, so treat the result as a direction
 for further profiling, not a precise speedup claim. The command stayed near
-17 ms. Edge bucketing and drawing remain the largest work in this fixture;
+17 ms. The follow-up signature memo measured about 599 ms in one five-trial
+run, within the existing run-to-run variance. Edge bucketing and drawing
+remain the largest work in this fixture;
 the next slice should measure and reduce that cost without stale buffers.
 
 The installed `C:\Program Files\IngeTrazo` build remains `3815ef8`; this

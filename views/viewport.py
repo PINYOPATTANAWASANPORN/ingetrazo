@@ -334,6 +334,23 @@ def _face_geometry_signature(face):
     return (positions(face.loop), tuple(positions(h) for h in face.hole_loops))
 
 
+def _face_geometry_signature_of(vp, face):
+    """Read each face's coordinate key once per scene version.
+
+    Both Newell and triangulation consult the persistent cache on a cold
+    frame. Holding the key in this bounded per-version memo avoids walking
+    the same loops twice while preserving the cross-version check.
+    """
+    version = _cache_ver(vp)
+    memo = getattr(vp, "_face_sig_memo", None)
+    if memo is None or memo[0] != version:
+        memo = vp._face_sig_memo = (version, {})
+    hit = memo[1].get(id(face))
+    if hit is None or hit[0] is not face:
+        hit = memo[1][id(face)] = (face, _face_geometry_signature(face))
+    return hit[1]
+
+
 _PERSISTENT_FACE_LIMIT = 20_000
 
 
@@ -3524,6 +3541,7 @@ class Viewport(QOpenGLWidget):
         # them at the document boundary instead of waiting for another paint.
         self._tri_memo = None
         self._newell_memo = None
+        self._face_sig_memo = None
         self._persistent_face_ids = None
         self._edges_version = -1          # rebuild the VBOs from nothing
         self._frozen_cache_version = None
@@ -4627,7 +4645,7 @@ class Viewport(QOpenGLWidget):
         hit = memo[1].get(id(face))
         if hit is None or hit[0] is not face:
             if isinstance(face, Face) and _retain_face_geometry(self, face):
-                sig = _face_geometry_signature(face)
+                sig = _face_geometry_signature_of(self, face)
                 cached = face._render_geom_cache
                 if cached is not None and cached[0] == sig:
                     newell = cached[1]
@@ -4656,7 +4674,7 @@ class Viewport(QOpenGLWidget):
         hit = memo[1].get(id(face))
         if hit is None or hit[0] is not face:
             if isinstance(face, Face) and _retain_face_geometry(self, face):
-                sig = _face_geometry_signature(face)
+                sig = _face_geometry_signature_of(self, face)
                 cached = face._render_geom_cache
                 if cached is not None and cached[0] == sig and cached[2] is not None:
                     tris = cached[2]
