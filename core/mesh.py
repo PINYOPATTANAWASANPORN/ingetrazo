@@ -187,7 +187,8 @@ class Face:
     """
 
     __slots__ = ("loop", "hole_loops", "interior", "attrs",
-                 "_render_geom_cache", "_render_vcol_cache")
+                 "_render_geom_cache", "_render_vcol_cache",
+                 "_render_dback_cache")
 
     def __init__(
         self, loop: list[Vertex], hole_loops: Optional[list[list[Vertex]]] = None
@@ -213,6 +214,7 @@ class Face:
         self._render_geom_cache = None
         # Small packed viewport colour blocks survive unrelated scene edits.
         self._render_vcol_cache = None
+        self._render_dback_cache = None
 
     # ---- Legacy-compatible read interface (positions) -----------------------
     @property

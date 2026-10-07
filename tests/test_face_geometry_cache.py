@@ -4,7 +4,8 @@ from __future__ import annotations
 from PySide6.QtGui import QVector3D
 
 from core.mesh import Face, Mesh
-from core.history import History, MoveVerticesCommand
+from core.history import HideCommand, History, MoveVerticesCommand
+from core.layers import Layer, assign_layer
 from core.scene import Scene
 from views.viewport import Viewport
 import views.viewport as viewport_module
@@ -17,7 +18,8 @@ def _view(scene):
     view = Stub()
     view.scene = scene
     for name in ("_newell_of", "_normal_of", "_tris_of",
-                 "_shade_factor", "_shaded_color", "_vcol_face_block"):
+                 "_shade_factor", "_shaded_color", "_vcol_face_block",
+                 "_dback_face_block", "_visible_loose_faces"):
         setattr(view, name, getattr(Viewport, name).__get__(view))
     view._LIGHT = Viewport._LIGHT
     return view
@@ -136,18 +138,24 @@ def test_packed_face_colour_reuses_only_matching_geometry_and_paint():
     base = (0.8, 0.5, 0.2)
     before = view._vcol_face_block(untouched, base)
     edited_before = view._vcol_face_block(edited, base)
+    back_before = view._dback_face_block(untouched)
+    edited_back_before = view._dback_face_block(edited)
 
     history.execute(MoveVerticesCommand([QVector3D(0, 0, 0)],
                                         QVector3D(0, 0, 1)))
     assert view._vcol_face_block(untouched, base) is before
+    assert view._dback_face_block(untouched) is back_before
     assert view._vcol_face_block(edited, base) != edited_before
+    assert view._dback_face_block(edited) != edited_back_before
     recoloured = view._vcol_face_block(untouched, (0.2, 0.5, 0.8))
     assert recoloured != before
     assert view._vcol_face_block(untouched, base) == before
     assert history.undo()
     assert view._vcol_face_block(edited, base) == edited_before
+    assert view._dback_face_block(edited) == edited_back_before
     assert history.redo()
     assert view._vcol_face_block(edited, base) != edited_before
+    assert view._dback_face_block(edited) != edited_back_before
 
 
 def test_packed_face_colour_cache_respects_cap_and_mesh_switch(monkeypatch):
@@ -156,19 +164,64 @@ def test_packed_face_colour_cache_respects_cap_and_mesh_switch(monkeypatch):
     scene = Scene(mesh=mesh)
     view = _view(scene)
     view._vcol_face_block(old_face, (1, 1, 1))
+    view._dback_face_block(old_face)
     assert old_face._render_vcol_cache is not None
+    assert old_face._render_dback_cache is not None
 
     second = Mesh()
     next_face = _triangle(second, 10)
     scene.mesh = second
     scene.version += 1
     view._vcol_face_block(next_face, (1, 1, 1))
+    view._dback_face_block(next_face)
     assert old_face._render_vcol_cache is None
+    assert old_face._render_dback_cache is None
 
     monkeypatch.setattr(viewport_module, "_PERSISTENT_FACE_LIMIT", 0)
     scene.version += 1
     view._vcol_face_block(next_face, (1, 1, 1))
+    view._dback_face_block(next_face)
     assert next_face._render_vcol_cache is None
+    assert next_face._render_dback_cache is None
+
+
+def test_loose_face_visibility_matches_tags_hide_and_custom_predicate():
+    mesh = Mesh()
+    visible = _triangle(mesh, 0)
+    hidden = _triangle(mesh, 10)
+    unknown_tag = _triangle(mesh, 20)
+    locked_tag = _triangle(mesh, 30)
+    scene = Scene(mesh=mesh)
+    view = _view(scene)
+    scene.layers.extend([Layer("Hidden", visible=False),
+                         Layer("Locked", locked=True)])
+    assign_layer(hidden, "Hidden")
+    assign_layer(unknown_tag, "Missing")
+    assign_layer(locked_tag, "Locked")
+    assert list(view._visible_loose_faces()) == [visible, unknown_tag,
+                                                  locked_tag]
+
+    scene.layer("Hidden").visible = True
+    hidden.attrs["hidden"] = True
+    assert list(view._visible_loose_faces()) == [visible, unknown_tag,
+                                                  locked_tag]
+    hidden.attrs.pop("hidden")
+    assert list(view._visible_loose_faces()) == list(mesh.faces)
+    scene.layers.append(Layer("Hidden", visible=False))
+    assert list(view._visible_loose_faces()) == list(mesh.faces)
+
+    history = History(scene)
+    history.execute(HideCommand([visible]))
+    assert list(view._visible_loose_faces()) == [hidden, unknown_tag,
+                                                  locked_tag]
+    assert history.undo()
+    assert list(view._visible_loose_faces()) == list(mesh.faces)
+
+    calls = []
+    original = scene.entity_visible
+    scene.entity_visible = lambda face: (calls.append(face) or original(face))
+    assert list(view._visible_loose_faces()) == list(mesh.faces)
+    assert calls == list(mesh.faces)
 
 
 def test_large_active_mesh_does_not_keep_persistent_face_cache(monkeypatch):
