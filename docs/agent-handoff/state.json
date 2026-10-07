@@ -344,6 +344,12 @@
     "status": "draft",
     "validation": "201 Windows offscreen CI-selection tests passed; unchanged face reuse, changed vertex/loop/hole, Move/Undo/Redo, cache cap and document boundary covered",
     "benchmark": "direct native 640x480 paintGL on 7633-face example: about 810ms parent, 584-629ms across two five-trial cache runs; command near 17ms; excludes Qt scheduling, swap and scanout",
-    "remaining": "hosted CI, edge bucketing/drawing optimization and real GUI input-to-visible-pixel check; installed build unchanged"
+    "remaining": "edge bucketing/drawing optimization and real GUI input-to-visible-pixel check; installed build unchanged",
+    "latest_verified_ci": {
+      "run": 37544278293,
+      "result": "success",
+      "commit": "f65795d03b715616f4296ccec56a99cbaf4de863",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
   }
 }

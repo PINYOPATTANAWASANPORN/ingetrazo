@@ -22,7 +22,9 @@ faces. The face-owned entry itself is released when its face is discarded.
 Validation on Windows with `QT_QPA_PLATFORM=offscreen` and `PYTHONUTF8=1`:
 the 201-test CI selection passed. Focused tests cover unchanged-face reuse,
 changed vertex/loop/hole invalidation, Move/Undo/Redo, cache size cap and
-document switch. `compileall` and `git diff --check` passed.
+document switch. `compileall` and `git diff --check` passed. Hosted
+[CI run 37544278293](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37544278293)
+on `f65795d` also passed Windows Qt offscreen smoke and Ubuntu `not slow`.
 
 Native Windows `scripts/bench_move_paint.py` on the bundled
 `pileta-fuente-yanque.igz` plus one detached triangle measured median direct
