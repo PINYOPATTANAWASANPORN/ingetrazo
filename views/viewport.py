@@ -110,6 +110,7 @@ from core.i18n import tr
 from core.group import Group, copy_group, world_mesh
 from core.mesh import Edge, Face
 from core.history import EraseSelectionCommand, History
+from core.layers import DEFAULT_LAYER
 from core.scene import Scene
 from core.style import DEFAULT_BACK_COLOR, effective_back_color
 from core.materials import material_sig as _material_sig
@@ -4775,10 +4776,25 @@ class Viewport(QOpenGLWidget):
             return memo[1]
         data = array("f")
         if not hide_rest:
+            # Edge visibility only depends on its tag for a plain Scene.
+            # Resolve each tag once instead of walking scene.layers for every
+            # edge. Keep the public predicate for customized Scene instances.
+            plain_scene = (type(scene) is Scene and
+                           not any(name in scene.__dict__ for name in
+                                   ("entity_hidden", "_layer_state", "layer")) and
+                           getattr(scene.entity_visible, "__func__", None)
+                           is Scene.entity_visible)
+            if plain_scene:
+                layer_visible = {}
+                for layer in scene.layers:
+                    layer_visible.setdefault(layer.name, layer.visible)
             for edge in loose.edges:
-                if (not scene.entity_visible(edge)
-                        or getattr(edge, "soft", False)
-                        or getattr(edge, "hidden", False)):
+                if edge.soft or edge.hidden:
+                    continue
+                if plain_scene:
+                    if not layer_visible.get(edge.layer or DEFAULT_LAYER, True):
+                        continue
+                elif not scene.entity_visible(edge):
                     continue
                 data.extend([edge.a.x(), edge.a.y(), edge.a.z(),
                              edge.b.x(), edge.b.y(), edge.b.z()])
