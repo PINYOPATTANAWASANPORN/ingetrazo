@@ -145,3 +145,14 @@ was installed from `3815ef8` on 2026-10-06. At a fixed 340 px width, Export
 review occupies its own row and suggestion labels use full-width rows. The
 46 Assistant UI tests passed. The installed binaries passed hash comparison,
 `--check`, and MCP `tools/list` (22 tools); the GUI was not visually relaunched.
+
+## Move frame timing (2026-10-08)
+
+The open Move performance stack now reaches
+[draft PR #74](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/74)
+on #73. A native Windows benchmark measures a queued planar Move through
+Qt's `frameSwapped` signal: median 157.5 ms over seven trials on the bundled
+7,633-face sample, with 135.4 ms in paint. Opt-in live performance telemetry
+also records pointer-event-to-frame-submission time. This is diagnostic work,
+not an input-to-visible-pixel measurement or an installed build. See
+[`MOVE_QT_FRAME_LATENCY.md`](MOVE_QT_FRAME_LATENCY.md) for scope and evidence.
