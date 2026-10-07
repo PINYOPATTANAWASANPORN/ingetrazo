@@ -16,8 +16,10 @@ def _view(scene):
 
     view = Stub()
     view.scene = scene
-    for name in ("_newell_of", "_normal_of", "_tris_of"):
+    for name in ("_newell_of", "_normal_of", "_tris_of",
+                 "_shade_factor", "_shaded_color", "_vcol_face_block"):
         setattr(view, name, getattr(Viewport, name).__get__(view))
+    view._LIGHT = Viewport._LIGHT
     return view
 
 
@@ -122,6 +124,51 @@ def test_move_undo_redo_refreshes_face_geometry():
     assert heights() == [0, 0, 0]
     assert history.redo()
     assert heights() == [0, 0, 1]
+
+
+def test_packed_face_colour_reuses_only_matching_geometry_and_paint():
+    mesh = Mesh()
+    edited = _triangle(mesh, 0)
+    untouched = _triangle(mesh, 10)
+    scene = Scene(mesh=mesh)
+    view = _view(scene)
+    history = History(scene)
+    base = (0.8, 0.5, 0.2)
+    before = view._vcol_face_block(untouched, base)
+    edited_before = view._vcol_face_block(edited, base)
+
+    history.execute(MoveVerticesCommand([QVector3D(0, 0, 0)],
+                                        QVector3D(0, 0, 1)))
+    assert view._vcol_face_block(untouched, base) is before
+    assert view._vcol_face_block(edited, base) != edited_before
+    recoloured = view._vcol_face_block(untouched, (0.2, 0.5, 0.8))
+    assert recoloured != before
+    assert view._vcol_face_block(untouched, base) == before
+    assert history.undo()
+    assert view._vcol_face_block(edited, base) == edited_before
+    assert history.redo()
+    assert view._vcol_face_block(edited, base) != edited_before
+
+
+def test_packed_face_colour_cache_respects_cap_and_mesh_switch(monkeypatch):
+    mesh = Mesh()
+    old_face = _triangle(mesh, 0)
+    scene = Scene(mesh=mesh)
+    view = _view(scene)
+    view._vcol_face_block(old_face, (1, 1, 1))
+    assert old_face._render_vcol_cache is not None
+
+    second = Mesh()
+    next_face = _triangle(second, 10)
+    scene.mesh = second
+    scene.version += 1
+    view._vcol_face_block(next_face, (1, 1, 1))
+    assert old_face._render_vcol_cache is None
+
+    monkeypatch.setattr(viewport_module, "_PERSISTENT_FACE_LIMIT", 0)
+    scene.version += 1
+    view._vcol_face_block(next_face, (1, 1, 1))
+    assert next_face._render_vcol_cache is None
 
 
 def test_large_active_mesh_does_not_keep_persistent_face_cache(monkeypatch):

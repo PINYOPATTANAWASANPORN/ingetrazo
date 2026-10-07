@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-07",
-    "pull_requests_total": 65,
-    "open": 65,
+    "pull_requests_total": 66,
+    "open": 66,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -365,6 +365,22 @@
       "run": 37611689496,
       "result": "success",
       "commit": "d8d6984f48f71b5776182e29ee6ea3bb9a61b6a5",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
+  },
+  "move_face_color_buffer_delivery": {
+    "branch": "perf/move-face-color-buffer",
+    "base_branch": "perf/move-loose-edge-render",
+    "base_pull_request": 67,
+    "pull_request": 68,
+    "status": "draft",
+    "validation": "113 face/material/texture/render tests passed, 2 platform skips; compileall and diff check passed",
+    "benchmark": "native direct 640x480 paintGL after local Move on 7633-face example: uncached 518ms vs packed cache 424ms, median of 5 trials each in one process; command 15-16ms; excludes scheduling, swap and scanout",
+    "remaining": "face visibility and GPU draw profiling; real GUI input-to-visible-pixel check; installed build unchanged",
+    "latest_verified_ci": {
+      "run": 37614332399,
+      "result": "success",
+      "commit": "29ebfeac7f6d4859c5f08ffab9d541dfa267ef91",
       "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
     }
   }

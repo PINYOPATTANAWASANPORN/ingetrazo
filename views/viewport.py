@@ -353,6 +353,7 @@ def _face_geometry_signature_of(vp, face):
 
 
 _PERSISTENT_FACE_LIMIT = 20_000
+_PERSISTENT_VCOL_MAX_BYTES = 512
 
 
 def _retain_face_geometry(vp, face):
@@ -371,6 +372,7 @@ def _retain_face_geometry(vp, face):
         if memo[2] is not None:
             for old in memo[0].faces:
                 old._render_geom_cache = None
+                old._render_vcol_cache = None
         memo = None
     if len(mesh.faces) > _PERSISTENT_FACE_LIMIT:
         if memo is None or memo[2] is not None:
@@ -378,6 +380,7 @@ def _retain_face_geometry(vp, face):
             # the mesh was smaller, not only refuse future entries.
             for old in mesh.faces:
                 old._render_geom_cache = None
+                old._render_vcol_cache = None
             vp._persistent_face_ids = (mesh, mesh._mut_serial, None)
         return False
     if memo is None or memo[2] is None or memo[1] != mesh._mut_serial:
@@ -4700,6 +4703,32 @@ class Viewport(QOpenGLWidget):
             hit = memo[1][id(face)] = (face, tris)
         return hit[1]
 
+    def _vcol_face_block(self, face, base) -> bytes:
+        """Packed front-colour triangles, reused across unrelated edits.
+
+        The geometry key includes every vertex in the outer and hole loops;
+        the effective front colour covers both direct and container paint.
+        Only small faces of the active edit mesh persist, keeping retained
+        bytes bounded even when an imported face has many triangles.
+        """
+        retain = isinstance(face, Face) and _retain_face_geometry(self, face)
+        sig = _face_geometry_signature_of(self, face) if retain else None
+        cached = face._render_vcol_cache if retain else None
+        if cached is not None and cached[0] == sig and cached[1] == base:
+            return cached[2]
+        r, g, b = self._shaded_color(base, self._normal_of(face))
+        buf = array("f")
+        for t0, t1, t2 in self._tris_of(face):
+            buf.extend([t0.x(), t0.y(), t0.z(), r, g, b,
+                        t1.x(), t1.y(), t1.z(), r, g, b,
+                        t2.x(), t2.y(), t2.z(), r, g, b])
+        raw = buf.tobytes()
+        if retain:
+            face._render_vcol_cache = ((sig, base, raw)
+                                       if len(raw) <= _PERSISTENT_VCOL_MAX_BYTES
+                                       else None)
+        return raw
+
     def _normal_of(self, face):
         """``face.normal()`` memoised per scene version (see _tris_of):
         the shading of every loose face recomputes the Newell normal 3-4
@@ -5099,21 +5128,14 @@ class Viewport(QOpenGLWidget):
             # world light — the matte-model look. World-fixed, so
             # it doesn't change as you orbit. The shaded colour rides per
             # vertex, so the whole pass is ONE draw call.
-            r, g, b = self._shaded_color(base, self._normal_of(face))
-            buf = array("f")
-            for t0, t1, t2 in self._tris_of(face):
-                buf.extend([
-                    t0.x(), t0.y(), t0.z(), r, g, b,
-                    t1.x(), t1.y(), t1.z(), r, g, b,
-                    t2.x(), t2.y(), t2.z(), r, g, b,
-                ])
+            raw = self._vcol_face_block(face, base)
             if op < 0.999:
                 tcol_runs.setdefault((round(op, 3), fcull),
-                                     []).append(buf.tobytes())
+                                     []).append(raw)
             elif fcull:
-                fcull_vcol_parts.append(buf.tobytes())
+                fcull_vcol_parts.append(raw)
             else:
-                sink["vcol"].extend(buf)
+                sink["vcol"].frombytes(raw)
 
         if not hide_rest:
             for face in self.scene.loose_mesh.faces:
