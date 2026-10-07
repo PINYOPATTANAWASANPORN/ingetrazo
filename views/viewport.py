@@ -354,6 +354,26 @@ def _face_geometry_signature_of(vp, face):
 
 _PERSISTENT_FACE_LIMIT = 20_000
 _PERSISTENT_VCOL_MAX_BYTES = 512
+_PERSISTENT_DBACK_MAX_BYTES = 512
+
+
+def _render_visible_layers(scene):
+    """Snapshot plain-Scene Tag visibility for one renderer rebuild.
+
+    Preserve custom visibility predicates by falling back to the public
+    method. ``setdefault`` matches ``Scene.layer`` when names are duplicated.
+    """
+    if (type(scene) is not Scene
+            or any(name in scene.__dict__ for name in
+                   ("entity_visible", "entity_hidden", "_object_hidden",
+                    "_face_hidden", "_layer_state", "layer"))
+            or getattr(scene.entity_visible, "__func__", None)
+            is not Scene.entity_visible):
+        return None
+    visible = {}
+    for layer in scene.layers:
+        visible.setdefault(layer.name, layer.visible)
+    return visible
 
 
 def _retain_face_geometry(vp, face):
@@ -373,6 +393,7 @@ def _retain_face_geometry(vp, face):
             for old in memo[0].faces:
                 old._render_geom_cache = None
                 old._render_vcol_cache = None
+                old._render_dback_cache = None
         memo = None
     if len(mesh.faces) > _PERSISTENT_FACE_LIMIT:
         if memo is None or memo[2] is not None:
@@ -381,6 +402,7 @@ def _retain_face_geometry(vp, face):
             for old in mesh.faces:
                 old._render_geom_cache = None
                 old._render_vcol_cache = None
+                old._render_dback_cache = None
             vp._persistent_face_ids = (mesh, mesh._mut_serial, None)
         return False
     if memo is None or memo[2] is None or memo[1] != mesh._mut_serial:
@@ -4729,6 +4751,41 @@ class Viewport(QOpenGLWidget):
                                        else None)
         return raw
 
+    def _dback_face_block(self, face) -> bytes:
+        """Packed default-back positions for an unchanged active-mesh face."""
+        retain = isinstance(face, Face) and _retain_face_geometry(self, face)
+        sig = _face_geometry_signature_of(self, face) if retain else None
+        cached = face._render_dback_cache if retain else None
+        if cached is not None and cached[0] == sig:
+            return cached[1]
+        buf = array("f")
+        for t0, t1, t2 in self._tris_of(face):
+            buf.extend([t0.x(), t0.y(), t0.z(),
+                        t1.x(), t1.y(), t1.z(),
+                        t2.x(), t2.y(), t2.z()])
+        raw = buf.tobytes()
+        if retain:
+            face._render_dback_cache = ((sig, raw)
+                                         if len(raw) <= _PERSISTENT_DBACK_MAX_BYTES
+                                         else None)
+        return raw
+
+    def _visible_loose_faces(self):
+        """Yield faces visible in this rebuild, batching plain-Scene Tags."""
+        scene = self.scene
+        layer_visible = _render_visible_layers(scene)
+        if layer_visible is None:
+            for face in scene.loose_mesh.faces:
+                if scene.entity_visible(face):
+                    yield face
+        else:
+            for face in scene.loose_mesh.faces:
+                attrs = face.attrs
+                if (not attrs.get("hidden") and
+                        layer_visible.get(attrs.get("layer") or DEFAULT_LAYER,
+                                          True)):
+                    yield face
+
     def _normal_of(self, face):
         """``face.normal()`` memoised per scene version (see _tris_of):
         the shading of every loose face recomputes the Newell normal 3-4
@@ -4805,22 +4862,11 @@ class Viewport(QOpenGLWidget):
             return memo[1]
         data = array("f")
         if not hide_rest:
-            # Edge visibility only depends on its tag for a plain Scene.
-            # Resolve each tag once instead of walking scene.layers for every
-            # edge. Keep the public predicate for customized Scene instances.
-            plain_scene = (type(scene) is Scene and
-                           not any(name in scene.__dict__ for name in
-                                   ("entity_hidden", "_layer_state", "layer")) and
-                           getattr(scene.entity_visible, "__func__", None)
-                           is Scene.entity_visible)
-            if plain_scene:
-                layer_visible = {}
-                for layer in scene.layers:
-                    layer_visible.setdefault(layer.name, layer.visible)
+            layer_visible = _render_visible_layers(scene)
             for edge in loose.edges:
                 if edge.soft or edge.hidden:
                     continue
-                if plain_scene:
+                if layer_visible is not None:
                     if not layer_visible.get(edge.layer or DEFAULT_LAYER, True):
                         continue
                 elif not scene.entity_visible(edge):
@@ -5102,11 +5148,7 @@ class Viewport(QOpenGLWidget):
             attrs = _eff_attrs(face.attrs, ctx_paint)
             fcull = bucket_back(face)
             if back_is_default(attrs):
-                db = sink["dback"]
-                for t0, t1, t2 in self._tris_of(face):
-                    db.extend([t0.x(), t0.y(), t0.z(),
-                               t1.x(), t1.y(), t1.z(),
-                               t2.x(), t2.y(), t2.z()])
+                sink["dback"].frombytes(self._dback_face_block(face))
             tex = attrs.get("texture")
             op = float(attrs.get("opacity", 1.0))
             if tex is not None and tex.get("path"):
@@ -5138,9 +5180,8 @@ class Viewport(QOpenGLWidget):
                 sink["vcol"].frombytes(raw)
 
         if not hide_rest:
-            for face in self.scene.loose_mesh.faces:
-                if self.scene.entity_visible(face):
-                    bucket_face(face)
+            for face in self._visible_loose_faces():
+                bucket_face(face)
         group_face_spans: list = []   # (bbox, start-within-groups, count)
         gface_start = 0
         dback_parts: list = []        # default-back tint, per group chunk
