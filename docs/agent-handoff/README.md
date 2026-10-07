@@ -5,10 +5,10 @@ work performed on the `PINYOPATTANAWASANPORN/ingetrazo` fork. It records what
 exists in the stacked branches, what has actually been validated, what remains,
 and the engineering knowledge extracted from the work.
 
-- Snapshot date: **2026-10-07**
+- Snapshot date: **2026-10-08**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **69 open PRs in the 2026-10-07 snapshot**; check GitHub
+- PR inventory: **70 open PRs in the 2026-10-08 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -38,6 +38,8 @@ and the engineering knowledge extracted from the work.
     measured coordinate-key scan improvement and its frame-time limits.
 13. [`MOVE_SILHOUETTE_REBUILD.md`](MOVE_SILHOUETTE_REBUILD.md) —
     batched loose soft-edge visibility and direct profile-plane preparation.
+14. [`MOVE_FACE_BUCKET_KEY.md`](MOVE_FACE_BUCKET_KEY.md) — shared geometry key
+    for front and default-back face buffers during Move paints.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
@@ -284,3 +286,9 @@ on `perf/move-silhouette-rebuild` batches soft-edge Tag visibility and reads
 profile planes directly from shared vertices. See
 [MOVE_SILHOUETTE_REBUILD.md](MOVE_SILHOUETTE_REBUILD.md) for validation,
 benchmark scope and the next measured renderer bottleneck.
+
+Face bucketing follow-up in [draft PR #72](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/72)
+on `perf/move-face-bucket-key` shares the geometry retention and signature
+lookup between front and default-back packing. See
+[MOVE_FACE_BUCKET_KEY.md](MOVE_FACE_BUCKET_KEY.md) for the focused benchmark,
+test scope, CI result, and remaining real-interaction measurement.

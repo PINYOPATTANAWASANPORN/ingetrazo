@@ -18,7 +18,8 @@ def _view(scene):
     view = Stub()
     view.scene = scene
     for name in ("_newell_of", "_normal_of", "_tris_of",
-                 "_shade_factor", "_shaded_color", "_vcol_face_block",
+                 "_shade_factor", "_shaded_color", "_face_block_key",
+                 "_vcol_face_block",
                  "_dback_face_block", "_visible_loose_faces"):
         setattr(view, name, getattr(Viewport, name).__get__(view))
     view._LIGHT = Viewport._LIGHT
@@ -170,6 +171,33 @@ def test_packed_face_colour_reuses_only_matching_geometry_and_paint():
     assert history.redo()
     assert view._vcol_face_block(edited, base) != edited_before
     assert view._dback_face_block(edited) != edited_back_before
+
+
+def test_front_and_default_back_share_one_geometry_key(monkeypatch):
+    mesh = Mesh()
+    face = _triangle(mesh, 0)
+    scene = Scene(mesh=mesh)
+    view = _view(scene)
+    base = (0.8, 0.5, 0.2)
+    view._dback_face_block(face)
+    view._vcol_face_block(face, base)
+    scene.version += 1
+
+    original = viewport_module._face_geometry_signature_of
+    calls = 0
+
+    def counted(vp, current):
+        nonlocal calls
+        calls += 1
+        return original(vp, current)
+
+    monkeypatch.setattr(viewport_module, "_face_geometry_signature_of", counted)
+    key = view._face_block_key(face)
+    back = view._dback_face_block(face, key)
+    front = view._vcol_face_block(face, base, key)
+    assert calls == 1
+    assert back is face._render_dback_cache[1]
+    assert front is face._render_vcol_cache[2]
 
 
 def test_packed_face_colour_cache_respects_cap_and_mesh_switch(monkeypatch):
