@@ -1,4 +1,6 @@
 """Loose profile candidates and planes keep the public visibility contract."""
+from types import SimpleNamespace
+
 import numpy as np
 from PySide6.QtGui import QVector3D as V
 
@@ -91,3 +93,41 @@ def test_soft_edge_planes_match_original_geometry_for_one_two_many_faces():
     mesh.add_face([V(0, 0, 0), V(1, 0, 0), V(0, -1, 0)])
     assert len(shared.faces) == 3
     check([shared])
+
+
+def test_soft_edge_plane_snapshot_reuses_faces_only_within_one_rebuild():
+    class Point:
+        def __init__(self, xyz):
+            self.xyz = xyz
+            self.reads = 0
+
+        def toTuple(self):
+            self.reads += 1
+            return self.xyz
+
+    class FaceLike:
+        def __init__(self):
+            self.loop = [SimpleNamespace(position=Point(xyz))
+                         for xyz in ((0, 0, 0), (1, 0, 0), (0, 1, 0))]
+
+    face = FaceLike()
+    edges = [SimpleNamespace(v0=SimpleNamespace(position=Point((0, 0, 0))),
+                             v1=SimpleNamespace(position=Point((1, 0, 0))),
+                             faces=[face]) for _ in range(3)]
+    first = _loose_soft_edge_arrays(edges)
+    assert [v.position.reads for v in face.loop] == [1, 1, 1]
+    assert all(np.array_equal(first[1][0], normal) for normal in first[1])
+
+    face.loop[2].position.xyz = (0, 1, 1)
+    second = _loose_soft_edge_arrays(edges)
+    assert [v.position.reads for v in face.loop] == [2, 2, 2]
+    assert not np.array_equal(first[1], second[1])
+
+
+def test_soft_edge_arrays_are_empty_without_candidates():
+    pts, n0, c0, n1, c1, single = _loose_soft_edge_arrays([])
+    assert pts.shape == (0, 6) and pts.dtype == np.float32
+    assert n0.shape == (0, 3) and n0.dtype == np.float64
+    assert c0.shape == (0, 3) and c1.shape == (0, 3)
+    assert n1.shape == (0, 3)
+    assert single.shape == (0,) and single.dtype == bool
