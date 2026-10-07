@@ -729,6 +729,17 @@
       "draft": true,
       "updated_at": "2026-10-07T17:02:27Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/72"
+    },
+    {
+      "number": 73,
+      "state": "open",
+      "title": "perf: batch shared face planes for loose soft-edge profiles",
+      "base": "perf/move-face-bucket-key",
+      "head": "perf/move-silhouette-face-plane",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-07T17:51:50Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/73"
     }
   ]
 }

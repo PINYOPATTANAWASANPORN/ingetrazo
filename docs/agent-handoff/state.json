@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-08",
-    "pull_requests_total": 70,
-    "open": 70,
+    "pull_requests_total": 71,
+    "open": 71,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -445,6 +445,22 @@
       "run_id": 37655909003,
       "result": "success",
       "commit": "f3cd4474eb25a70a610b29c50505f4adcd6bbc6c",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
+  },
+  "move_silhouette_face_planes_delivery": {
+    "branch": "perf/move-silhouette-face-plane",
+    "base_branch": "perf/move-face-bucket-key",
+    "base_pull_request": 72,
+    "pull_request": 73,
+    "status": "draft",
+    "validation": "105 focused geometry/Tag/Hide/material/texture/render tests passed, 3 platform skips; compileall and diff check passed; exact NumPy arrays matched prior implementation on bundled example",
+    "benchmark": "15312 soft edges: plane arrays 74.9ms old vs 48.2ms new; native direct 640x480 paintGL after Move 145.8ms old vs 123.6ms new, alternating same-process medians of nine warmed trials per mode; excludes scheduling, swap and scanout",
+    "remaining": "measure GUI input-to-visible-pixel latency; profile residual Face/signature cost on representative models; installed build unchanged",
+    "latest_verified_ci": {
+      "run_id": 37662372329,
+      "result": "success",
+      "commit": "3ba6d9c241ed2d615ded38354036853de740c18b",
       "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
     }
   }

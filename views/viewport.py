@@ -398,30 +398,42 @@ def _visible_loose_soft_edges(scene):
 def _loose_soft_edge_arrays(softs):
     """Build view-independent profile planes without temporary Face lists."""
     import numpy as np
-    pts = np.empty((len(softs), 6))
-    single = np.empty(len(softs), dtype=bool)
-    tri0 = np.empty((len(softs), 3, 3))
-    tri1 = np.empty((len(softs), 3, 3))
-    for i, edge in enumerate(softs):
-        pts[i] = (edge.v0.position.toTuple()
-                  + edge.v1.position.toTuple())
-        loop = edge.faces[0].loop
-        tri0[i] = (loop[0].position.toTuple(),
-                   loop[1].position.toTuple(),
-                   loop[2].position.toTuple())
+    points = []
+    singles = []
+    first_indices = []
+    second_indices = []
+    plane_indices = {}
+    planes = []
+
+    def plane_index(face):
+        index = plane_indices.get(face)
+        if index is None:
+            index = len(planes)
+            plane_indices[face] = index
+            loop = face.loop
+            planes.append((loop[0].position.toTuple(),
+                           loop[1].position.toTuple(),
+                           loop[2].position.toTuple()))
+        return index
+
+    for edge in softs:
+        points.append(edge.v0.position.toTuple()
+                      + edge.v1.position.toTuple())
+        first = plane_index(edge.faces[0])
+        first_indices.append(first)
         # A one-face edge is an open-surface boundary; for more than two
         # incident faces the previous renderer likewise uses the first.
-        single[i] = len(edge.faces) != 2
-        if single[i]:
-            tri1[i] = tri0[i]
-        else:
-            loop = edge.faces[1].loop
-            tri1[i] = (loop[0].position.toTuple(),
-                       loop[1].position.toTuple(),
-                       loop[2].position.toTuple())
+        single = len(edge.faces) != 2
+        singles.append(single)
+        second_indices.append(first if single else plane_index(edge.faces[1]))
+    pts = np.asarray(points, dtype=np.float32).reshape(-1, 6)
+    single = np.asarray(singles, dtype=bool)
+    triangles = np.asarray(planes, dtype=np.float64).reshape(-1, 3, 3)
+    tri0 = triangles[first_indices]
+    tri1 = triangles[second_indices]
     n0 = np.cross(tri0[:, 1] - tri0[:, 0], tri0[:, 2] - tri0[:, 0])
     n1 = np.cross(tri1[:, 1] - tri1[:, 0], tri1[:, 2] - tri1[:, 0])
-    return pts.astype(np.float32), n0, tri0[:, 0], n1, tri1[:, 0], single
+    return pts, n0, tri0[:, 0], n1, tri1[:, 0], single
 
 
 def _retain_face_geometry(vp, face):
