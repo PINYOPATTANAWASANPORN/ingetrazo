@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-08**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **70 open PRs in the 2026-10-08 snapshot**; check GitHub
+- PR inventory: **71 open PRs in the 2026-10-08 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -40,6 +40,8 @@ and the engineering knowledge extracted from the work.
     batched loose soft-edge visibility and direct profile-plane preparation.
 14. [`MOVE_FACE_BUCKET_KEY.md`](MOVE_FACE_BUCKET_KEY.md) — shared geometry key
     for front and default-back face buffers during Move paints.
+15. [`MOVE_SILHOUETTE_FACE_PLANES.md`](MOVE_SILHOUETTE_FACE_PLANES.md) —
+    batched Face-plane gathering for loose soft-edge silhouettes.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
@@ -292,3 +294,9 @@ on `perf/move-face-bucket-key` shares the geometry retention and signature
 lookup between front and default-back packing. See
 [MOVE_FACE_BUCKET_KEY.md](MOVE_FACE_BUCKET_KEY.md) for the focused benchmark,
 test scope, CI result, and remaining real-interaction measurement.
+
+Silhouette plane follow-up in [draft PR #73](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/73)
+on `perf/move-silhouette-face-plane` gathers shared Face planes through
+NumPy indices once per renderer rebuild. See
+[MOVE_SILHOUETTE_FACE_PLANES.md](MOVE_SILHOUETTE_FACE_PLANES.md) for exact
+array comparison, local performance evidence, CI, and the next validation.
