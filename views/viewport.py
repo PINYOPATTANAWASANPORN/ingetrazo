@@ -363,11 +363,23 @@ def _retain_face_geometry(vp, face):
     The id set is rebuilt only when active-mesh topology/positions mutate.
     """
     mesh = vp.scene.mesh
-    if len(mesh.faces) > _PERSISTENT_FACE_LIMIT:
-        return False
     memo = getattr(vp, "_persistent_face_ids", None)
-    if (memo is None or memo[0] is not mesh
-            or memo[1] != mesh._mut_serial):
+    if memo is not None and memo[0] is not mesh:
+        # A former edit mesh can remain as a group in the same document.
+        # Release its face-owned entries once the editing context changes.
+        if memo[2] is not None:
+            for old in memo[0].faces:
+                old._render_geom_cache = None
+        memo = None
+    if len(mesh.faces) > _PERSISTENT_FACE_LIMIT:
+        if memo is None or memo[2] is not None:
+            # Crossing the cap must release entries already populated while
+            # the mesh was smaller, not only refuse future entries.
+            for old in mesh.faces:
+                old._render_geom_cache = None
+            vp._persistent_face_ids = (mesh, mesh._mut_serial, None)
+        return False
+    if memo is None or memo[2] is None or memo[1] != mesh._mut_serial:
         memo = vp._persistent_face_ids = (
             mesh, mesh._mut_serial, {id(f) for f in mesh.faces})
     return id(face) in memo[2]

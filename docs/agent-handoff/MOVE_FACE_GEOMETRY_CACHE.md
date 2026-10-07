@@ -18,13 +18,17 @@ loops twice in a cold frame.
 The persistent cache applies only to faces in the active edit mesh when that
 mesh has at most 20,000 faces. Group/reference geometry retains its existing
 chunk cache, while larger active meshes use only the per-version memo to bound
-retained triangle data. A document switch clears viewport references to old
-faces. The face-owned entry itself is released when its face is discarded.
+retained triangle data. Crossing the cap releases entries populated while the
+mesh was smaller; changing the active edit mesh also releases the former
+mesh's entries. A document switch clears viewport references to old faces.
+The face-owned entry itself is released when its face is discarded.
 
 Validation on Windows with `QT_QPA_PLATFORM=offscreen` and `PYTHONUTF8=1`:
-the 202-test CI selection passed. Focused tests cover unchanged-face reuse,
+the 203-test CI selection passed before the active-mesh switch test; the
+subsequent 15-test cache/Move selection passed. Focused tests cover unchanged-face reuse,
 changed vertex/loop/hole invalidation, Move/Undo/Redo, cache size cap and
-document switch. `compileall` and `git diff --check` passed. Hosted
+cap transition cleanup, active-mesh switch cleanup and document switch.
+`compileall` and `git diff --check` passed. Hosted
 [CI run 37544278293](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37544278293)
 on `f65795d` passed Windows Qt offscreen smoke and Ubuntu `not slow` before
 the follow-up signature memo; hosted revalidation of that refinement is pending.

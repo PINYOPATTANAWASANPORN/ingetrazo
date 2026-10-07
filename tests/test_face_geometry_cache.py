@@ -132,3 +132,33 @@ def test_large_active_mesh_does_not_keep_persistent_face_cache(monkeypatch):
     monkeypatch.setattr(viewport_module, "_PERSISTENT_FACE_LIMIT", 1)
     view._tris_of(face)
     assert face._render_geom_cache is None
+
+
+def test_crossing_limit_releases_existing_face_entries(monkeypatch):
+    mesh = Mesh()
+    face = _triangle(mesh, 0)
+    scene = Scene(mesh=mesh)
+    view = _view(scene)
+    monkeypatch.setattr(viewport_module, "_PERSISTENT_FACE_LIMIT", 1)
+    view._tris_of(face)
+    assert face._render_geom_cache is not None
+    _triangle(mesh, 10)
+    scene.version += 1
+    view._tris_of(face)
+    assert face._render_geom_cache is None
+
+
+def test_switching_active_mesh_releases_former_face_entries():
+    first = Mesh()
+    old_face = _triangle(first, 0)
+    scene = Scene(mesh=first)
+    view = _view(scene)
+    view._tris_of(old_face)
+    assert old_face._render_geom_cache is not None
+    second = Mesh()
+    new_face = _triangle(second, 10)
+    scene.mesh = second
+    scene.version += 1
+    view._tris_of(new_face)
+    assert old_face._render_geom_cache is None
+    assert new_face._render_geom_cache is not None
