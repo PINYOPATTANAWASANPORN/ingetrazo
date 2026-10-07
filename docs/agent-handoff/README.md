@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-07**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **68 open PRs in the 2026-10-07 snapshot**; check GitHub
+- PR inventory: **69 open PRs in the 2026-10-07 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -36,6 +36,8 @@ and the engineering knowledge extracted from the work.
     batched face Tag visibility and default-back geometry reuse.
 12. [`MOVE_FACE_SIGNATURE_TUPLES.md`](MOVE_FACE_SIGNATURE_TUPLES.md) —
     measured coordinate-key scan improvement and its frame-time limits.
+13. [`MOVE_SILHOUETTE_REBUILD.md`](MOVE_SILHOUETTE_REBUILD.md) —
+    batched loose soft-edge visibility and direct profile-plane preparation.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
@@ -276,3 +278,9 @@ Face geometry-key follow-up in [draft PR #70](https://github.com/PINYOPATTANAWAS
 on `perf/move-face-signature-tuples` reads each Qt vertex position as a tuple
 in one call. See [MOVE_FACE_SIGNATURE_TUPLES.md](MOVE_FACE_SIGNATURE_TUPLES.md)
 for the measured scan reduction and frame-time limits.
+
+Loose silhouette follow-up in [draft PR #71](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/71)
+on `perf/move-silhouette-rebuild` batches soft-edge Tag visibility and reads
+profile planes directly from shared vertices. See
+[MOVE_SILHOUETTE_REBUILD.md](MOVE_SILHOUETTE_REBUILD.md) for validation,
+benchmark scope and the next measured renderer bottleneck.

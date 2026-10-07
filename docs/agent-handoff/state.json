@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-07",
-    "pull_requests_total": 68,
-    "open": 68,
+    "pull_requests_total": 69,
+    "open": 69,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -413,6 +413,22 @@
       "run_id": 37648590045,
       "result": "success",
       "commit": "e979740714e22ddd596bb841af4bc881b2401bd3",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
+  },
+  "move_silhouette_rebuild_delivery": {
+    "branch": "perf/move-silhouette-rebuild",
+    "base_branch": "perf/move-face-signature-tuples",
+    "base_pull_request": 70,
+    "pull_request": 71,
+    "status": "draft",
+    "validation": "105 relevant geometry/Tag/Hide/render tests passed, 4 platform skips; compileall and diff check passed",
+    "benchmark": "native direct 640x480 paintGL after Move on 7633-face/15312-soft-edge example: 306.5ms before vs 159.5ms after; silhouette substep 214.9ms vs 83.5ms, medians of 7 trials in separate processes; excludes scheduling, swap and scanout",
+    "remaining": "face bucketing and sync-edge profiling; real GUI input-to-visible-pixel check; installed build unchanged",
+    "latest_verified_ci": {
+      "run_id": 37651695134,
+      "result": "success",
+      "commit": "67ac1f9c6b4265deb974a237b7c4a430ed0ab8e2",
       "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
     }
   }
