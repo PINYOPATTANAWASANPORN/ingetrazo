@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "snapshot_date": "2026-10-07",
+  "snapshot_date": "2026-10-08",
   "source": "https://api.github.com/repos/PINYOPATTANAWASANPORN/ingetrazo/pulls?state=all&per_page=100",
   "pull_requests": [
     {
@@ -718,6 +718,17 @@
       "draft": true,
       "updated_at": "2026-10-07T16:26:03Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/71"
+    },
+    {
+      "number": 72,
+      "state": "open",
+      "title": "perf: reuse face geometry key across front and back buffers",
+      "base": "perf/move-silhouette-rebuild",
+      "head": "perf/move-face-bucket-key",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-07T17:02:27Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/72"
     }
   ]
 }

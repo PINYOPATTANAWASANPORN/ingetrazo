@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "snapshot_date": "2026-10-07",
+  "snapshot_date": "2026-10-08",
   "repository": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo",
   "upstream_main_commit": "6be29fe437a7cd992d4e079f71720821b25216b9",
   "handoff_base": {
@@ -13,9 +13,9 @@
     "pull_request": 33
   },
   "delivery": {
-    "github_snapshot_date": "2026-10-07",
-    "pull_requests_total": 69,
-    "open": 69,
+    "github_snapshot_date": "2026-10-08",
+    "pull_requests_total": 70,
+    "open": 70,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -429,6 +429,22 @@
       "run_id": 37651695134,
       "result": "success",
       "commit": "67ac1f9c6b4265deb974a237b7c4a430ed0ab8e2",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
+  },
+  "move_face_bucket_key_delivery": {
+    "branch": "perf/move-face-bucket-key",
+    "base_branch": "perf/move-silhouette-rebuild",
+    "base_pull_request": 71,
+    "pull_request": 72,
+    "status": "draft",
+    "validation": "101 focused face/material/texture/render tests passed, 3 platform skips; the first broad Windows run hit an unrelated cp874 AUTHORS decode; UTF-8 rerun was stopped early in favour of hosted CI",
+    "benchmark": "7632-face alternating same-process packed front/default-back benchmark: 60.8ms separate vs 49.2ms shared, medians of 20 warmed samples per mode; native direct 640x480 paintGL after Move 153.0ms over 7 samples; excludes scheduling, swap and scanout",
+    "remaining": "measure input-to-visible-pixel in a real GUI interaction; continue profiling face bucket and GL upload costs; installed build unchanged",
+    "latest_verified_ci": {
+      "run_id": 37655909003,
+      "result": "success",
+      "commit": "f3cd4474eb25a70a610b29c50505f4adcd6bbc6c",
       "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
     }
   }
