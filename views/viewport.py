@@ -376,6 +376,54 @@ def _render_visible_layers(scene):
     return visible
 
 
+def _visible_loose_soft_edges(scene):
+    """Yield profile candidates with one plain-Scene Tag snapshot.
+
+    Edge.hidden is distinct from Scene.entity_visible; keep the explicit
+    topology/render filters and preserve custom visibility predicates.
+    """
+    layer_visible = _render_visible_layers(scene)
+    for edge in scene.loose_mesh.edges:
+        if not edge.soft or edge.hidden:
+            continue
+        if layer_visible is None:
+            # The former short-circuit called custom predicates before
+            # testing incidence, including on an isolated soft edge.
+            if scene.entity_visible(edge) and edge.faces:
+                yield edge
+        elif edge.faces and layer_visible.get(edge.layer or DEFAULT_LAYER, True):
+            yield edge
+
+
+def _loose_soft_edge_arrays(softs):
+    """Build view-independent profile planes without temporary Face lists."""
+    import numpy as np
+    pts = np.empty((len(softs), 6))
+    single = np.empty(len(softs), dtype=bool)
+    tri0 = np.empty((len(softs), 3, 3))
+    tri1 = np.empty((len(softs), 3, 3))
+    for i, edge in enumerate(softs):
+        pts[i] = (edge.v0.position.toTuple()
+                  + edge.v1.position.toTuple())
+        loop = edge.faces[0].loop
+        tri0[i] = (loop[0].position.toTuple(),
+                   loop[1].position.toTuple(),
+                   loop[2].position.toTuple())
+        # A one-face edge is an open-surface boundary; for more than two
+        # incident faces the previous renderer likewise uses the first.
+        single[i] = len(edge.faces) != 2
+        if single[i]:
+            tri1[i] = tri0[i]
+        else:
+            loop = edge.faces[1].loop
+            tri1[i] = (loop[0].position.toTuple(),
+                       loop[1].position.toTuple(),
+                       loop[2].position.toTuple())
+    n0 = np.cross(tri0[:, 1] - tri0[:, 0], tri0[:, 2] - tri0[:, 0])
+    n1 = np.cross(tri1[:, 1] - tri1[:, 0], tri1[:, 2] - tri1[:, 0])
+    return pts.astype(np.float32), n0, tri0[:, 0], n1, tri1[:, 0], single
+
+
 def _retain_face_geometry(vp, face):
     """Retain cross-version geometry only for a modest active edit mesh.
 
@@ -5828,40 +5876,15 @@ class Viewport(QOpenGLWidget):
         import numpy as np
         cached = getattr(self, "_soft_edges_cache", None)
         if cached is None or cached[0] != key:
-            softs = [e for e in self.scene.loose_mesh.edges
-                     if getattr(e, "soft", False)
-                     and not getattr(e, "hidden", False)
-                     and self.scene.entity_visible(e) and e.faces]
+            softs = list(_visible_loose_soft_edges(self.scene))
             if softs:
-                pts = np.empty((len(softs), 6))
-                single = np.empty(len(softs), dtype=bool)
                 # Face planes via one vectorized cross product instead of
                 # per-face Python normal()/centroid() (_newell dominated the
                 # edit frame at 25k+ faces). For the view-side sign test any
                 # point ON the plane works, so the first loop vertex serves
                 # as the anchor; the plane normal comes from the first two
                 # loop edges (faces are planar).
-                tri0 = np.empty((len(softs), 3, 3))
-                tri1 = np.empty((len(softs), 3, 3))
-                for i, e in enumerate(softs):
-                    pts[i] = (e.a.x(), e.a.y(), e.a.z(),
-                              e.b.x(), e.b.y(), e.b.z())
-                    v = e.faces[0].vertices
-                    tri0[i] = ((v[0].x(), v[0].y(), v[0].z()),
-                               (v[1].x(), v[1].y(), v[1].z()),
-                               (v[2].x(), v[2].y(), v[2].z()))
-                    # A 1-face soft edge is an open-surface boundary (always
-                    # a profile); a 2-face one straddles the view or hides.
-                    single[i] = len(e.faces) != 2
-                    v = (e.faces[1] if len(e.faces) == 2 else e.faces[0]).vertices
-                    tri1[i] = ((v[0].x(), v[0].y(), v[0].z()),
-                               (v[1].x(), v[1].y(), v[1].z()),
-                               (v[2].x(), v[2].y(), v[2].z()))
-                n0 = np.cross(tri0[:, 1] - tri0[:, 0], tri0[:, 2] - tri0[:, 0])
-                n1 = np.cross(tri1[:, 1] - tri1[:, 0], tri1[:, 2] - tri1[:, 0])
-                c0 = tri0[:, 0]
-                c1 = tri1[:, 0]
-                arrays = (pts.astype(np.float32), n0, c0, n1, c1, single)
+                arrays = _loose_soft_edge_arrays(softs)
             else:
                 arrays = None
             cached = (key, arrays)

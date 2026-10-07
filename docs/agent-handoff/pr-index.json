@@ -707,6 +707,17 @@
       "draft": true,
       "updated_at": "2026-10-07T16:00:20Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/70"
+    },
+    {
+      "number": 71,
+      "state": "open",
+      "title": "Speed up loose soft-edge silhouettes after Move",
+      "base": "perf/move-face-signature-tuples",
+      "head": "perf/move-silhouette-rebuild",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-07T16:26:03Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/71"
     }
   ]
 }
