@@ -652,6 +652,17 @@
       "draft": true,
       "updated_at": "2026-10-06T22:39:43Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/65"
+    },
+    {
+      "number": 66,
+      "state": "open",
+      "title": "Cache unchanged face geometry after local Move",
+      "base": "perf/move-history-transaction",
+      "head": "perf/move-face-geometry-cache",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-06T23:01:52Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/66"
     }
   ]
 }

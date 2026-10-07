@@ -319,6 +319,72 @@ def _proto_wrapper(vp, mesh, paint=None):
     return w
 
 
+def _face_geometry_signature(face):
+    """Geometry-only key; catches vertex edits and loop/hole replacements.
+
+    It deliberately excludes paint, tags and visibility: those still get
+    evaluated during VBO bucketing, while Newell and triangulation depend
+    only on the ordered vertex coordinates. Tuples also avoid retaining old
+    QVector3D objects after a Move replaces a vertex position.
+    """
+    def positions(loop):
+        return tuple((v.position.x(), v.position.y(), v.position.z())
+                     for v in loop)
+
+    return (positions(face.loop), tuple(positions(h) for h in face.hole_loops))
+
+
+def _face_geometry_signature_of(vp, face):
+    """Read each face's coordinate key once per scene version.
+
+    Both Newell and triangulation consult the persistent cache on a cold
+    frame. Holding the key in this bounded per-version memo avoids walking
+    the same loops twice while preserving the cross-version check.
+    """
+    version = _cache_ver(vp)
+    memo = getattr(vp, "_face_sig_memo", None)
+    if memo is None or memo[0] != version:
+        memo = vp._face_sig_memo = (version, {})
+    hit = memo[1].get(id(face))
+    if hit is None or hit[0] is not face:
+        hit = memo[1][id(face)] = (face, _face_geometry_signature(face))
+    return hit[1]
+
+
+_PERSISTENT_FACE_LIMIT = 20_000
+
+
+def _retain_face_geometry(vp, face):
+    """Retain cross-version geometry only for a modest active edit mesh.
+
+    Group chunks already cache their own bytes. Holding triangle lists and
+    coordinate keys on every face of a huge imported reference group would
+    grow model memory for little benefit, so the active mesh has a fixed cap.
+    The id set is rebuilt only when active-mesh topology/positions mutate.
+    """
+    mesh = vp.scene.mesh
+    memo = getattr(vp, "_persistent_face_ids", None)
+    if memo is not None and memo[0] is not mesh:
+        # A former edit mesh can remain as a group in the same document.
+        # Release its face-owned entries once the editing context changes.
+        if memo[2] is not None:
+            for old in memo[0].faces:
+                old._render_geom_cache = None
+        memo = None
+    if len(mesh.faces) > _PERSISTENT_FACE_LIMIT:
+        if memo is None or memo[2] is not None:
+            # Crossing the cap must release entries already populated while
+            # the mesh was smaller, not only refuse future entries.
+            for old in mesh.faces:
+                old._render_geom_cache = None
+            vp._persistent_face_ids = (mesh, mesh._mut_serial, None)
+        return False
+    if memo is None or memo[2] is None or memo[1] != mesh._mut_serial:
+        memo = vp._persistent_face_ids = (
+            mesh, mesh._mut_serial, {id(f) for f in mesh.faces})
+    return id(face) in memo[2]
+
+
 def _cache_ver(vp):
     """The scene version the per-version caches key on — frozen during a
     groups-only transform preview (see Viewport.begin_groups_preview).
@@ -3483,6 +3549,12 @@ class Viewport(QOpenGLWidget):
             cache = getattr(self, name, None)
             if isinstance(cache, dict):
                 cache.clear()
+        # These per-frame dictionaries hold Face objects as well. Release
+        # them at the document boundary instead of waiting for another paint.
+        self._tri_memo = None
+        self._newell_memo = None
+        self._face_sig_memo = None
+        self._persistent_face_ids = None
         self._edges_version = -1          # rebuild the VBOs from nothing
         self._frozen_cache_version = None
         self._sil_table = None            # holds the old document's bakes
@@ -4571,15 +4643,30 @@ class Viewport(QOpenGLWidget):
         self._program.setUniformValue(self._loc_stipple, 0)
 
     def _newell_of(self, face):
-        """The face's raw Newell vector, memoised per scene version — ONE
-        computation feeds normal, area and triangulation (each used to pay
-        its own on an exploded import's edit frame)."""
+        """The raw Newell vector, retained while this face's geometry agrees.
+
+        A local Move bumps the scene version but leaves almost every face
+        unchanged. Checking its loop coordinates is much cheaper than
+        recalculating normals and triangulation across the whole loose mesh.
+        The per-version memo still avoids checking the signature twice in one
+        paint. Face-owned cross-version data dies with the face.
+        """
         memo = getattr(self, "_newell_memo", None)
         if memo is None or memo[0] != _cache_ver(self):
             memo = self._newell_memo = (_cache_ver(self), {})
         hit = memo[1].get(id(face))
         if hit is None or hit[0] is not face:
-            hit = memo[1][id(face)] = (face, face._newell())
+            if isinstance(face, Face) and _retain_face_geometry(self, face):
+                sig = _face_geometry_signature_of(self, face)
+                cached = face._render_geom_cache
+                if cached is not None and cached[0] == sig:
+                    newell = cached[1]
+                else:
+                    newell = face._newell()
+                    face._render_geom_cache = (sig, newell, None)
+            else:
+                newell = face._newell()
+            hit = memo[1][id(face)] = (face, newell)
         return hit[1]
 
     def _area_of(self, face) -> float:
@@ -4590,11 +4677,7 @@ class Viewport(QOpenGLWidget):
         return 0.5 * self._newell_of(face).length()
 
     def _tris_of(self, face):
-        """``face.triangulate()`` memoised per scene version: one edit frame
-        triangulates every loose face for the colour VBOs, the textured
-        VBOs AND the pick index — 3x the earcut/_newell cost on an exploded
-        import. The memo holds the face itself so a recycled id() can never
-        alias, and drops wholesale on the next version bump."""
+        """Triangulation memoised per frame and across unchanged edits."""
         if not hasattr(face, "loop"):
             return face.triangulate()   # preview face: own earcut, no memo
         memo = getattr(self, "_tri_memo", None)
@@ -4602,8 +4685,18 @@ class Viewport(QOpenGLWidget):
             memo = self._tri_memo = (_cache_ver(self), {})
         hit = memo[1].get(id(face))
         if hit is None or hit[0] is not face:
-            hit = memo[1][id(face)] = (
-                face, face.triangulate(self._normal_of(face)))
+            if isinstance(face, Face) and _retain_face_geometry(self, face):
+                sig = _face_geometry_signature_of(self, face)
+                cached = face._render_geom_cache
+                if cached is not None and cached[0] == sig and cached[2] is not None:
+                    tris = cached[2]
+                else:
+                    normal = self._normal_of(face)
+                    tris = face.triangulate(normal)
+                    face._render_geom_cache = (sig, self._newell_of(face), tris)
+            else:
+                tris = face.triangulate(self._normal_of(face))
+            hit = memo[1][id(face)] = (face, tris)
         return hit[1]
 
     def _normal_of(self, face):

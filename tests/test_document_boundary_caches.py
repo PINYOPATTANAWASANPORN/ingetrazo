@@ -30,10 +30,18 @@ def test_open_forgets_every_id_keyed_cache(tmp_path):
     try:
         for name in vp._DOCUMENT_CACHES:
             setattr(vp, name, {12345: "stale"})
+        vp._tri_memo = (vp.scene.version, {12345: "old face"})
+        vp._newell_memo = (vp.scene.version, {12345: "old face"})
+        vp._face_sig_memo = (vp.scene.version, {12345: "old face"})
+        vp._persistent_face_ids = (vp.scene.mesh, 0, {12345})
         win._saved_version = vp.scene.version
         assert win.open_path(path)
         for name in vp._DOCUMENT_CACHES:
             assert not getattr(vp, name), name
+        assert vp._tri_memo is None
+        assert vp._newell_memo is None
+        assert vp._face_sig_memo is None
+        assert vp._persistent_face_ids is None
     finally:
         win._saved_version = vp.scene.version
         win.close()

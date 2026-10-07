@@ -26,6 +26,8 @@ and the engineering knowledge extracted from the work.
 6. [`INSTALLATION.md`](INSTALLATION.md) — verified local build and rollback record.
 7. [`WINDOWS_QT_INTEGRATION_GATE.md`](WINDOWS_QT_INTEGRATION_GATE.md) —
    latest Windows test and staged-bundle evidence.
+8. [`MOVE_FACE_GEOMETRY_CACHE.md`](MOVE_FACE_GEOMETRY_CACHE.md) —
+   local-Move viewport geometry cache, validation and remaining paint cost.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on

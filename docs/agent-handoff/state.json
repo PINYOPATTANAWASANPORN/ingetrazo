@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-07",
-    "pull_requests_total": 63,
-    "open": 63,
+    "pull_requests_total": 64,
+    "open": 64,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -334,6 +334,22 @@
     "status": "draft",
     "validation": "195 Windows offscreen CI-selection tests passed, including transactional Move failure injection; full offscreen suite stopped on an unrelated Composer font-pixel test, which passes under native Windows Qt; full native suite pending",
     "benchmark": "7633-face example: median History.execute old extra guard 47.285ms vs self-guarded 16.852ms; native direct paintGL about 810ms, primarily edge cache sync",
-    "remaining": "hosted CI; renderer edge-cache optimization; real user-input-to-visible-pixel check; installed build unchanged"
+    "remaining": "renderer edge-cache optimization; real user-input-to-visible-pixel check; installed build unchanged; hosted CI succeeded on PR #65"
+  },
+  "move_face_geometry_cache_delivery": {
+    "branch": "perf/move-face-geometry-cache",
+    "base_branch": "perf/move-history-transaction",
+    "base_pull_request": 65,
+    "pull_request": 66,
+    "status": "draft",
+    "validation": "203 Windows offscreen CI-selection tests passed, then 15 focused tests after active-mesh switch case; unchanged face reuse, changed vertex/loop/hole, Move/Undo/Redo, signature checked once per version, cap transition, active-mesh switch and document boundary covered",
+    "benchmark": "direct native 640x480 paintGL on 7633-face example: about 810ms parent, 584-629ms across two five-trial cache runs; command near 17ms; excludes Qt scheduling, swap and scanout",
+    "remaining": "hosted CI for final cache refinement; edge bucketing/drawing optimization and real GUI input-to-visible-pixel check; installed build unchanged",
+    "latest_verified_ci": {
+      "run": 37544278293,
+      "result": "success",
+      "commit": "f65795d03b715616f4296ccec56a99cbaf4de863",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
   }
 }
