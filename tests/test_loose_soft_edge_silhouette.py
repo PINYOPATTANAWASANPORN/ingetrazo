@@ -55,7 +55,8 @@ def test_soft_edge_candidates_match_scene_visibility_and_custom_predicate():
     seen.clear()
     assert list(_visible_loose_soft_edges(scene)) == expected
     assert seen == [edge for edge in mesh.edges
-                    if edge.soft and not edge.hidden and edge.faces]
+                    if edge.soft and not edge.hidden]
+    assert isolated in seen
 
 
 def test_soft_edge_planes_match_original_geometry_for_one_two_many_faces():

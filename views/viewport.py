@@ -384,12 +384,14 @@ def _visible_loose_soft_edges(scene):
     """
     layer_visible = _render_visible_layers(scene)
     for edge in scene.loose_mesh.edges:
-        if not edge.soft or edge.hidden or not edge.faces:
+        if not edge.soft or edge.hidden:
             continue
         if layer_visible is None:
-            if scene.entity_visible(edge):
+            # The former short-circuit called custom predicates before
+            # testing incidence, including on an isolated soft edge.
+            if scene.entity_visible(edge) and edge.faces:
                 yield edge
-        elif layer_visible.get(edge.layer or DEFAULT_LAYER, True):
+        elif edge.faces and layer_visible.get(edge.layer or DEFAULT_LAYER, True):
             yield edge
 
 
