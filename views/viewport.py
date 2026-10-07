@@ -1036,6 +1036,11 @@ class Viewport(QOpenGLWidget):
         self.setMinimumSize(640, 480)
         self.setFocusPolicy(Qt.StrongFocus)
         self.setMouseTracking(True)
+        if _PERF:
+            # paintGL ends before Qt composites the widget. Keep the latest
+            # input timestamp until frameSwapped so real-session telemetry
+            # includes that final stage (but still not monitor scanout).
+            self.frameSwapped.connect(self._on_frame_swapped_perf)
 
         self.camera = OrbitCamera()
         self.scene = Scene()
@@ -2322,6 +2327,11 @@ class Viewport(QOpenGLWidget):
                 _plog("frame", _dt,
                       extra=f"{segs} cull={cf//1000}k/{tf//1000}k"
                             f" tris +{ce//1000}k edges{lat}", floor=0.0)
+            input_t = getattr(self, "_input_t", None)
+            self._perf_submit_pending = (
+                (input_t, _time_mod.monotonic())
+                if input_t is not None else None
+            )
             self._input_t = None
             st = getattr(self, "_perf_stat", None) or \
                 [_time_mod.perf_counter(), 0, 0.0]
@@ -2334,6 +2344,18 @@ class Viewport(QOpenGLWidget):
                       floor=0.0)
                 st = [now, 0, 0.0]
             self._perf_stat = st
+
+    def _on_frame_swapped_perf(self) -> None:
+        """Log the last pointer event through Qt's completed widget frame."""
+        pending = getattr(self, "_perf_submit_pending", None)
+        if pending is None:
+            return
+        self._perf_submit_pending = None
+        input_t, paint_done_t = pending
+        now = _time_mod.monotonic()
+        _plog("frame.submitted", (now - input_t) * 1000.0,
+              extra=f"paint_to_swap={(now - paint_done_t) * 1000.0:.0f}ms",
+              floor=25.0)
 
     # ---- Setup helpers ------------------------------------------------------
     def _compile_program(self) -> QOpenGLShaderProgram:

@@ -331,3 +331,15 @@ Neither that test nor its painter implementation changed in this PR stack.
 Do not describe the entire stack as fully tested or install a fresh binary
 based only on the selected 178 AI tests. First isolate or fix the renderer
 regression and complete the broad suite, then verify the frozen bundle.
+
+## Direct paint and Qt submission answer different latency questions
+
+Calling `paintGL` directly isolates renderer cost but omits Qt's event queue
+and composition. A native `QOpenGLWidget.frameSwapped` benchmark closes those
+two gaps, provided the window is visible: an off-screen-positioned viewport
+did not emit that signal on local Windows. Even this boundary is not monitor
+scanout or physical pointer latency. Keep command, scheduling, paint and
+paint-to-swap components separate; in the 7,633-face Move sample, paint took
+about 135 ms of a 158 ms queued-command-to-swap frame. Use the opt-in
+`frame.submitted` log for real-pointer sessions before attributing their
+latency to the same stage.

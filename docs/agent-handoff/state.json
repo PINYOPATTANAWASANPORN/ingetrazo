@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-08",
-    "pull_requests_total": 71,
-    "open": 71,
+    "pull_requests_total": 72,
+    "open": 72,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -461,6 +461,23 @@
       "run_id": 37662372329,
       "result": "success",
       "commit": "3ba6d9c241ed2d615ded38354036853de740c18b",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
+  },
+  "move_qt_frame_latency_delivery": {
+    "branch": "perf/move-qt-frame-benchmark",
+    "base_branch": "perf/move-silhouette-face-plane",
+    "base_pull_request": 73,
+    "pull_request": 74,
+    "status": "draft",
+    "validation": "25 native Windows Move/viewport tests passed; seven queued Move/Undo trials restored vertex identity; compileall and diff check passed",
+    "benchmark": "visible native Windows 640x480 QOpenGLWidget on 7633-face example: seven-trial medians queue 0.062ms, command 17.471ms, schedule 0.223ms, paint 135.435ms, composition 3.860ms, queued command to frameSwapped 157.547ms",
+    "measurement_limit": "excludes physical pointer delivery, Move-tool picking/hover and monitor scanout; real pointer frame.submitted log available only with INGETRAZO_PERF=1",
+    "remaining": "profile residual renderer sync and silhouette cost, then measure physical pointer-to-visible-pixel latency; installed build unchanged",
+    "latest_verified_ci": {
+      "run_id": 37700724495,
+      "result": "success",
+      "commit": "174f957000928dcc97c4e1a85e056e1be7e0fe80",
       "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
     }
   }

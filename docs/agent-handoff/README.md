@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-08**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **71 open PRs in the 2026-10-08 snapshot**; check GitHub
+- PR inventory: **72 open PRs in the 2026-10-08 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -42,6 +42,8 @@ and the engineering knowledge extracted from the work.
     for front and default-back face buffers during Move paints.
 15. [`MOVE_SILHOUETTE_FACE_PLANES.md`](MOVE_SILHOUETTE_FACE_PLANES.md) —
     batched Face-plane gathering for loose soft-edge silhouettes.
+16. [`MOVE_QT_FRAME_LATENCY.md`](MOVE_QT_FRAME_LATENCY.md) — queued Move through
+    Qt frame submission, live pointer telemetry, and measurement limits.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
@@ -300,3 +302,9 @@ on `perf/move-silhouette-face-plane` gathers shared Face planes through
 NumPy indices once per renderer rebuild. See
 [MOVE_SILHOUETTE_FACE_PLANES.md](MOVE_SILHOUETTE_FACE_PLANES.md) for exact
 array comparison, local performance evidence, CI, and the next validation.
+
+Qt frame-latency follow-up in [draft PR #74](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/74)
+on `perf/move-qt-frame-benchmark` measures a queued Move through
+`QOpenGLWidget.frameSwapped` and adds opt-in real-pointer submission telemetry.
+See [MOVE_QT_FRAME_LATENCY.md](MOVE_QT_FRAME_LATENCY.md) for the native result,
+boundary, validation and next renderer target.

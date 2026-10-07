@@ -740,6 +740,17 @@
       "draft": true,
       "updated_at": "2026-10-07T17:51:50Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/73"
+    },
+    {
+      "number": 74,
+      "state": "open",
+      "title": "Measure Move latency through Qt frame submission",
+      "base": "perf/move-silhouette-face-plane",
+      "head": "perf/move-qt-frame-benchmark",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-07T23:10:32Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/74"
     }
   ]
 }
