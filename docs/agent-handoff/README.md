@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-07**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **66 open PRs in the 2026-10-07 snapshot**; check GitHub
+- PR inventory: **67 open PRs in the 2026-10-07 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -32,6 +32,8 @@ and the engineering knowledge extracted from the work.
    loose-edge visibility optimization and native Windows paint evidence.
 10. [`MOVE_FACE_COLOR_BUFFER.md`](MOVE_FACE_COLOR_BUFFER.md) —
     packed face-colour reuse, correctness checks and paint measurements.
+11. [`MOVE_FACE_VISIBILITY_BACK_BUFFER.md`](MOVE_FACE_VISIBILITY_BACK_BUFFER.md) —
+    batched face Tag visibility and default-back geometry reuse.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
@@ -261,3 +263,9 @@ on `perf/move-face-color-buffer` reuses packed shaded triangles when both the
 geometry and effective front colour agree. See
 [MOVE_FACE_COLOR_BUFFER.md](MOVE_FACE_COLOR_BUFFER.md) for the measured scope
 and remaining rendering work.
+
+Face visibility and back-buffer follow-up in [draft PR #69](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/69)
+on `perf/move-face-visibility-back-buffer` batches Tag lookup for the plain
+scene and retains unchanged back-side positions. See
+[MOVE_FACE_VISIBILITY_BACK_BUFFER.md](MOVE_FACE_VISIBILITY_BACK_BUFFER.md) for
+validation, benchmark boundaries and the next renderer target.

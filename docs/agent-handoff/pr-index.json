@@ -685,6 +685,17 @@
       "draft": true,
       "updated_at": "2026-10-07T11:20:55Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/68"
+    },
+    {
+      "number": 69,
+      "state": "open",
+      "title": "Speed up face visibility and back buffers after Move",
+      "base": "perf/move-face-color-buffer",
+      "head": "perf/move-face-visibility-back-buffer",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-07T11:48:12Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/69"
     }
   ]
 }

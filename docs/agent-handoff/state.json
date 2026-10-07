@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-07",
-    "pull_requests_total": 66,
-    "open": 66,
+    "pull_requests_total": 67,
+    "open": 67,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -381,6 +381,22 @@
       "run": 37614332399,
       "result": "success",
       "commit": "29ebfeac7f6d4859c5f08ffab9d541dfa267ef91",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
+  },
+  "move_face_visibility_back_buffer_delivery": {
+    "branch": "perf/move-face-visibility-back-buffer",
+    "base_branch": "perf/move-face-color-buffer",
+    "base_pull_request": 68,
+    "pull_request": 69,
+    "status": "draft",
+    "validation": "145 relevant face/Tag/Hide/material/texture/render tests passed, 3 platform skips; compileall and diff check passed",
+    "benchmark": "native direct 640x480 paintGL after Move on 7633-face example: old visibility/back paths 370ms vs new 270ms, reversed-order comparison 408ms vs 298ms, medians of 5 trials; command near 16ms; excludes scheduling, swap and scanout",
+    "remaining": "GPU draw profiling; real GUI input-to-visible-pixel check; installed build unchanged",
+    "latest_verified_ci": {
+      "run_id": 37616572439,
+      "result": "success",
+      "commit": "56b7468b4fd0032532df09a711aac33ac4fd4e54",
       "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
     }
   }
