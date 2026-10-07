@@ -27,7 +27,10 @@ unsuitable as an absolute wall-clock baseline.
 Targeted face, material, texture and render tests passed 113 with two platform
 skips. New tests cover unrelated Move reuse, changed geometry and colour,
 Undo/Redo, active mesh switches and the face-count cap. `compileall` and
-`git diff --check` passed. Hosted CI run 37613474489 is in progress.
+`git diff --check` passed. CI run 37613474489 was cancelled when the
+documentation commit triggered a newer run. Hosted
+[run 37614332399](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37614332399)
+passed Windows Qt offscreen smoke and Ubuntu `pytest (not slow)` at `29ebfea`.
 
 Next measure remaining face visibility and GPU draw costs, then capture real
 input-to-visible-pixel latency on a representative model. The installed

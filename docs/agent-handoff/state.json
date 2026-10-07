@@ -376,6 +376,12 @@
     "status": "draft",
     "validation": "113 face/material/texture/render tests passed, 2 platform skips; compileall and diff check passed",
     "benchmark": "native direct 640x480 paintGL after local Move on 7633-face example: uncached 518ms vs packed cache 424ms, median of 5 trials each in one process; command 15-16ms; excludes scheduling, swap and scanout",
-    "remaining": "hosted CI; face visibility and GPU draw profiling; real GUI input-to-visible-pixel check; installed build unchanged"
+    "remaining": "face visibility and GPU draw profiling; real GUI input-to-visible-pixel check; installed build unchanged",
+    "latest_verified_ci": {
+      "run": 37614332399,
+      "result": "success",
+      "commit": "29ebfeac7f6d4859c5f08ffab9d541dfa267ef91",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
   }
 }
