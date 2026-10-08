@@ -5925,11 +5925,17 @@ class Viewport(QOpenGLWidget):
         cached = getattr(self, "_soft_edges_cache", None)
         if cached is None or cached[0] != key:
             transition = getattr(self.scene, "_soft_edge_arrays_preserved", None)
-            reuse = (cached is not None and len(cached) == 3
+            origin = transition[:2] if transition is not None else None
+            standard_visibility = _render_visible_layers(self.scene) is not None
+            current_chain = (transition is not None
+                             and transition[2:] == (
+                                 key[0], self.scene.mesh._mut_serial)
+                             and standard_visibility)
+            reuse = (cached is not None and len(cached) >= 3
                      and cached[0][1] == id(self.scene.mesh)
-                     and transition == (cached[0][0], cached[2], key[0],
-                                        self.scene.mesh._mut_serial)
-                     and _render_visible_layers(self.scene) is not None)
+                     and current_chain
+                     and (origin == (cached[0][0], cached[2])
+                          or (len(cached) >= 4 and cached[3] == origin)))
             if reuse:
                 arrays = cached[1]
             else:
@@ -5941,7 +5947,12 @@ class Viewport(QOpenGLWidget):
                     arrays = _loose_soft_edge_arrays(softs)
                 else:
                     arrays = None
-            cached = (key, arrays, self.scene.mesh._mut_serial)
+            # Keep the chain origin with standard-visibility arrays after a
+            # paint, whether reused or freshly built. A later safe Move may
+            # start at this painted version while the marker traces back
+            # through earlier coalesced drag steps.
+            cached = (key, arrays, self.scene.mesh._mut_serial,
+                      origin if current_chain else None)
             self._soft_edges_cache = cached
         eye = self.camera.eye()
         chunks: list = []

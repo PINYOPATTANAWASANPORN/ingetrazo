@@ -182,9 +182,18 @@ def test_unrelated_move_and_undo_reuse_soft_arrays_but_face_move_rebuilds(monkey
     remote = MoveVerticesCommand([V(10, 2, 0)], V(0, 0, 1))
     history.execute(remote)
     assert remote._soft_arrays_unchanged
+    # Two safe drag steps may be coalesced into one Qt paint. The marker must
+    # still bridge the original arrays rather than only the last step.
+    second = MoveVerticesCommand([V(10, 2, 1)], V(0, 0, 1))
+    history.execute(second)
+    assert scene._soft_edge_arrays_preserved[:2] == (
+        viewport._soft_edges_cache[0][0], viewport._soft_edges_cache[2])
     assert render() is first
     history.undo()
     assert render() is first
+    history.undo()
+    assert render() is first
+    history.redo()
     history.redo()
     assert render() is first
     assert calls == [1]
@@ -196,7 +205,7 @@ def test_unrelated_move_and_undo_reuse_soft_arrays_but_face_move_rebuilds(monkey
     scene.version += 1
     first = render()
     assert calls == [1, 1]
-    custom_move = MoveVerticesCommand([V(10, 2, 1)], V(0, 0, 1))
+    custom_move = MoveVerticesCommand([V(10, 2, 2)], V(0, 0, 1))
     history.execute(custom_move)
     assert custom_move._soft_arrays_unchanged
     assert render() is not first
@@ -215,3 +224,20 @@ def test_unrelated_move_and_undo_reuse_soft_arrays_but_face_move_rebuilds(monkey
     changed = render()
     assert changed is not first and calls == [1, 1, 1, 1, 1]
     assert not np.array_equal(changed[1], first[1])
+
+
+def test_safe_move_chain_does_not_bridge_an_intervening_scene_edit():
+    mesh = Mesh()
+    _face(mesh, 0)
+    scene = Scene(mesh=mesh)
+    history = History(scene)
+    first = MoveVerticesCommand([V(0, 1, 0)], V(0, 0, 1))
+    history.execute(first)
+    original_start = scene._soft_edge_arrays_preserved[:2]
+
+    scene.version += 1  # A non-Move edit invalidates the previous transition.
+    second_start = (scene.version, mesh._mut_serial)
+    second = MoveVerticesCommand([V(0, 1, 1)], V(0, 0, 1))
+    history.execute(second)
+    assert scene._soft_edge_arrays_preserved[:2] == second_start
+    assert scene._soft_edge_arrays_preserved[:2] != original_start

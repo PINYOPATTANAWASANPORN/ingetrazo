@@ -377,3 +377,15 @@ under the standard visibility path. Undo, redo, an intervening edit, custom
 visibility, and group editing need separate regression coverage. Measure
 both array-build counts and Qt frame submission; an isolated CPU gain does
 not by itself establish a display improvement.
+
+## Coalesced edits need a cache lineage across paints
+
+An exact one-step transition works when Qt paints after every Move, but a
+drag can issue several safe edits before a frame. Compose only transitions
+whose previous end exactly matches the next starting scene version and mesh
+serial. When the renderer paints, retain that chain origin with the cached
+arrays; otherwise an Undo or later Move after the paint needlessly rebuilds.
+Do not carry the origin across a non-Move scene edit, a different mesh or a
+custom visibility path. A paired native Qt benchmark should perform several
+commands within one queued frame; a one-command-per-paint benchmark cannot
+exercise this failure mode.

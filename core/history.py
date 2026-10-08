@@ -2118,10 +2118,18 @@ class MoveVerticesCommand(Command):
 
     def _mark_soft_arrays(self, scene, old_version: int, old_serial: int) -> None:
         # The renderer may reuse the view-independent arrays only across this
-        # exact scene/mesh transition. Any intervening edit breaks the match.
+        # exact scene/mesh transition. Compose adjacent safe Moves so an
+        # event-loop-coalesced drag can reuse the arrays from its last paint.
+        # Any intervening edit breaks the chain and starts at this Move.
+        if not self._soft_arrays_unchanged:
+            scene._soft_edge_arrays_preserved = None
+            return
+        previous = getattr(scene, "_soft_edge_arrays_preserved", None)
+        origin = (previous[:2] if previous is not None
+                  and previous[2:] == (old_version, old_serial)
+                  else (old_version, old_serial))
         scene._soft_edge_arrays_preserved = (
-            (old_version, old_serial, scene.version, scene.mesh._mut_serial)
-            if self._soft_arrays_unchanged else None)
+            *origin, scene.version, scene.mesh._mut_serial)
 
     def _restore(self, mesh: Mesh, snap: dict) -> None:
         if self._position_only:

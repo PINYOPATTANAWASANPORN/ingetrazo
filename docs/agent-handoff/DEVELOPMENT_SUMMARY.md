@@ -177,3 +177,12 @@ model, the local paired native Qt benchmark reduced median queued
 Move-to-`frameSwapped` time from 167.246 to 106.532 ms. The 52 focused tests
 passed; hosted final-head CI and physical pointer-to-pixel timing remain to
 be verified. See [`MOVE_SOFT_EDGE_CACHE.md`](MOVE_SOFT_EDGE_CACHE.md).
+
+PR #77's final-head hosted Ubuntu and Windows smoke CI passed. The next
+[draft PR #78](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/78)
+keeps that cache valid through several safe Moves before a Qt paint and
+across subsequent paints. On three coalesced Moves per frame, the local
+Yanque comparison changed queued Move-to-`frameSwapped` median from 189.640
+to 127.799 ms; 53 focused tests passed. This is Qt frame submission, not
+physical pointer-to-pixel latency. See
+[`MOVE_SOFT_EDGE_CHAIN.md`](MOVE_SOFT_EDGE_CHAIN.md).
