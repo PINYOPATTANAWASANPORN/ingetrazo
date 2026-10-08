@@ -87,3 +87,11 @@ the exact bundle path are in the workspace-root `build-staged-7ebc770.json`.
 The installed main executable still matches the recorded `3815ef8` hash.
 This staged build has **not** replaced the installation or received a visible
 interactive GUI check.
+
+On 2026-10-08, a cumulative bundle from draft PR #82 at `31ae5b7c` was
+staged separately at `C:\Users\Lenovo\Desktop\IngeTrazoTest\dist-pr82\ingetrazo`.
+The frozen app passed `--check`, its MCP executable listed 22 tools, and an
+offscreen GUI process stayed alive for ten seconds. Hashes and file count are
+recorded in the workspace-root `build-staged-pr82.json` and
+`INTEGRATION_CHECKPOINT_2026-10-08.md`. This remains a **staged test build**;
+the installed application is still the verified `3815ef8` build.

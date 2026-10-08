@@ -26,6 +26,10 @@ every change for correctness, duplicate scope, or release suitability.
   [run 37727270338](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37727270338).
   New Ubuntu runs stop after 30 minutes and request thread traces after an
   individual test takes 180 seconds.
+- The #82 cumulative head `31ae5b7c` passed Ubuntu `pytest (not slow)` and
+  Windows Qt offscreen smoke in
+  [run 37728913441](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37728913441).
+  Ubuntu passed the former 26% stall point and completed in about ten minutes.
 - Earlier Ubuntu jobs on [#76](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/76)
   ([run 37715521408](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37715521408))
   and [#78](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/78)
@@ -67,12 +71,34 @@ deliver that queued slot while it was waiting. On
 `_load_igz_threaded` requests `thread.quit()` synchronously after the nested
 loop returns and before the join. Focused document-cache/camera tests passed
 offscreen (7) and with native Windows Qt alongside Composer Items (14). Full
-CI and full native Windows testing for #82 are in progress; this is not yet
-proof that the entire suite passes.
+Hosted CI passed on the cumulative `31ae5b7c` head. The complete local
+one-process native Windows suite (`QT_QPA_PLATFORM=windows`, `pytest -q tests
+--disable-warnings`) also completed with exit 0: **4,633 passed, 11 skipped,
+1 xfailed, 238 warnings** in 1,317.53 seconds (21m57s). Its log is outside
+the repository at `C:\Users\Lenovo\Desktop\IngeTrazoTest\native-pr82-full.txt`.
+The sampled process private memory near the end was 2.67 GiB; this is not a
+measured peak. This native run began before the documentation-only `31ae5b7c`
+commit, with the same application and test code (`cfaacc8`).
+
+## Staged Windows bundle
+
+The cumulative `31ae5b7c` head was built with the Windows PyInstaller spec
+into `C:\Users\Lenovo\Desktop\IngeTrazoTest\dist-pr82\ingetrazo`. The frozen
+`ingetrazo.exe --check` exited 0, the frozen MCP server returned 22 tools,
+and an offscreen GUI process stayed alive for ten seconds. The bundle has
+825 files. SHA-256: main
+`7971B36538E552F96CD60AFA4EDF886159F783EA7D42236D76C17CD0DFD29B53`,
+MCP `B0F7B61C1CE48E0300747530B2D18DEDEE0C585F807889C5452CEF2426E81EA4`.
+The complete manifest is outside the repository at
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\build-staged-pr82.json`. The bundle
+has **not** been installed or visually exercised with a real document.
 
 ## Remaining release evidence
 
-Finish the one-process native Windows suite at #82's final SHA, verify #82
-hosted CI, build the frozen Windows app/MCP from that SHA, and perform the
-representative GUI and document/MCP smoke in Gate 0. Preserve the older
+The automated suite, hosted CI, frozen self-check, MCP tool listing and
+offscreen startup are verified for the current code. Gate 0 still needs
+representative frozen GUI document workflows (open/save/reopen, Undo/Redo,
+Outliner, Move/Autofold, Tags, AI read-only review and typed preview/commit),
+review of the PR code and license/branding notices, and a tested rollback
+before promoting this bundle to the installed preview. Preserve the older
 installed build and its rollback until those checks are complete.
