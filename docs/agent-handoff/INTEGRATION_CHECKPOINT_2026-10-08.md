@@ -205,3 +205,29 @@ hardcoded elevated installer or Inno Setup uninstall/rollback. The actual
 Program Files bundle was not upgraded. Gate 0 still needs a review of the
 real installer/update and rollback path, frozen GUI document editing, and
 remaining Qt/framework notices and branding/version decisions.
+
+## Follow-up: reusable preview update transaction
+
+Stacked [draft PR #87](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/87)
+adds `packaging/update_windows_preview.ps1`, replacing the earlier hardcoded,
+machine-specific Program Files update script with a parameterized transaction.
+It checks both build manifests and hashes, refuses reparse points and running
+target processes, takes a complete backup snapshot, stages the new runtime
+and executables, updates `BUILD-INFO.json`, runs frozen `--check`, and restores
+the old target on failure. `packaging/WINDOWS_PREVIEW_UPDATE.md` describes
+the fixture and production gates.
+
+The exact installed `3815ef8c` bundle was copied into a workspace fixture
+and updated with the staged `7f586984` bundle. Injected failures after
+`_internal`, app exe, MCP exe, metadata, successful self-check, and the first
+post-check cleanup move each
+returned `rolled_back` with a complete manifest match to the old snapshot.
+The no-failure run returned `updated` and self-check exit 0. A second run
+returned `already_current` without creating a backup. Calling the updater
+against Program Files without `-AllowProgramFiles` was rejected before any
+write. Reports and retained fixture are under
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\updater-fixture-2026-10-08`.
+
+The updater has **not** been run on Program Files. This validates the shared
+filesystem transaction in a fixture, not administrator access, in-use MCP
+handling, Inno Setup, or frozen GUI editing. Those remain Gate 0 work.
