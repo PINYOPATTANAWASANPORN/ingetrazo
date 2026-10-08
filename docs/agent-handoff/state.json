@@ -603,6 +603,8 @@
   "frozen_license_notice_delivery": {
     "branch": "fix/frozen-license-notice",
     "base_pull_request": 82,
+    "pull_request": 83,
+    "status": "draft",
     "implementation_commit": "19b62c47b4f2e6b6f065d28ed6dad0eee7f5e4eb",
     "scope": "bundle repository LICENSE in PyInstaller distributions and verify byte equality in Windows build workflow",
     "local_build": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-license-gate\\ingetrazo",

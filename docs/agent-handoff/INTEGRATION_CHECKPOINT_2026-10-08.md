@@ -119,7 +119,8 @@ because native capture timed out on its OpenGL window and file-dialog fields
 could not be targeted reliably. The live sample copy was not changed.
 
 A packaging audit found that the #82 frozen bundle omitted the repository's
-`LICENSE`. The follow-up branch `fix/frozen-license-notice`, based on #82,
+`LICENSE`. The follow-up [draft PR #83](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/83)
+(`fix/frozen-license-notice`), based on #82,
 adds it to PyInstaller data and checks its presence and byte equality in the
 Windows build workflow. Local build from code commit `19b62c47` placed it at
 `_internal/LICENSE`; its SHA-256 matched the repository source
