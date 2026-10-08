@@ -27,6 +27,9 @@ ROOT = Path(SPECPATH).resolve()
 
 # ── Bundled assets — destinations MIRROR the repo layout ─────────────────────
 datas = [
+    # Keep the project's license text with every frozen distribution. In
+    # PyInstaller 6 one-dir builds this lands at _internal/LICENSE.
+    ('LICENSE',                    '.'),
     ('resources/shaders/*.vert',   'resources/shaders'),
     ('resources/shaders/*.frag',   'resources/shaders'),
     # Render with Blender (#181): the script Blender runs on the job.

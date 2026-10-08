@@ -102,3 +102,30 @@ Outliner, Move/Autofold, Tags, AI read-only review and typed preview/commit),
 review of the PR code and license/branding notices, and a tested rollback
 before promoting this bundle to the installed preview. Preserve the older
 installed build and its rollback until those checks are complete.
+
+## Follow-up: final #82 bundle and packaged license
+
+The final #82 head `4c34cbbf` passed hosted Ubuntu and Windows smoke in
+[run 37730658123](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37730658123).
+An exact-head staged bundle is recorded outside the repository in
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\build-staged-pr82-final.json`.
+It passed `--check`, returned 22 MCP tools and opened a copied starter
+`sofa.igz` as a native GUI window titled `IngeTrazo — sofa-copy.igz`.
+Process path and command line confirmed the staged executable; the installed
+build was not changed. The complete observation and limitation record is at
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\smoke-pr82\FROZEN_GUI_SMOKE.md`.
+Open/save/reopen and editing workflows remain unverified in the frozen GUI
+because native capture timed out on its OpenGL window and file-dialog fields
+could not be targeted reliably. The live sample copy was not changed.
+
+A packaging audit found that the #82 frozen bundle omitted the repository's
+`LICENSE`. The follow-up [draft PR #83](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/83)
+(`fix/frozen-license-notice`), based on #82,
+adds it to PyInstaller data and checks its presence and byte equality in the
+Windows build workflow. Local build from code commit `19b62c47` placed it at
+`_internal/LICENSE`; its SHA-256 matched the repository source
+(`3972DC9744F6499F0F9B2DBF76696F2AE7AD8AF9B23DDE66D6AF86C9DFB36986`),
+and frozen `ingetrazo.exe --check` exited 0. The Windows portable LEEME now
+uses the repository's `GPL-3.0-or-later` designation and names that path.
+This verifies only the project's license text, not the completeness of all
+third-party notices or fork branding. Do not treat it as distribution approval.
