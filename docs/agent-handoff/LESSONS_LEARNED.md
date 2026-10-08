@@ -353,3 +353,14 @@ reduces peak temporary memory. Preserve the full join after a reallocation,
 when the GPU has no prefix to keep. An isolated 64 MiB test can show this
 cost clearly, but a small real model may spend under 1 ms there; measure the
 full viewport separately before claiming a user-visible speedup.
+
+## Share Face planes across adjacent silhouette edges
+
+An edge-indexed NumPy gather can reuse a normal computed once per unique
+Face. On the Yanque mesh, 15,312 soft edges reference 7,632 faces; replacing
+two edge-sized triangle copies and crosses with one Face-sized cross preserved
+all six output arrays and reduced peak traced allocation by about 2.94 MiB.
+The CPU median moved only from 55.05 to 54.686 ms in an alternating run, and
+four small frame samples varied widely. Treat this as a memory improvement,
+and profile the Python edge/Face collection separately before claiming a
+frame-rate improvement.

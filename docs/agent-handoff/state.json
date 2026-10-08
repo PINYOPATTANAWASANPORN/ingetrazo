@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-08",
-    "pull_requests_total": 73,
-    "open": 73,
+    "pull_requests_total": 74,
+    "open": 74,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -490,6 +490,23 @@
     "validation": "74 focused native Windows group-edit and Move tests passed; three native Qt Move benchmark trials completed; compileall and diff check passed",
     "benchmark": "64 MiB unchanged cached prefix plus 32-byte changed tail: 21.368ms former whole join vs 0.009ms changed-tail join, 20 alternating isolated CPU trials with no-op VBO",
     "measurement_limit": "synthetic CPU result excludes GPU and viewport paint; 1.2MB buffer in bundled group-rich example had under 1ms upload cost, with no proven whole-frame gain",
-    "remaining": "profile large loose-mesh face bucketing and silhouette work; installed build unchanged"
+    "remaining": "profile large loose-mesh face bucketing and silhouette work; installed build unchanged",
+    "latest_verified_ci": {
+      "run_id": 37711369473,
+      "result": "success",
+      "commit": "00b1996064e12860d2448c419aa155cb32199f2e",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
+  },
+  "move_soft_edge_unique_planes_delivery": {
+    "branch": "perf/soft-edge-unique-planes",
+    "base_branch": "perf/vbo-changed-tail",
+    "base_pull_request": 75,
+    "pull_request": 76,
+    "status": "draft",
+    "validation": "50 focused native Windows tests passed, 3 platform skips; six arrays exactly matched previous implementation on bundled example; compileall and diff check passed",
+    "benchmark": "15312 loose soft edges and 7632 faces: 55.05ms old vs 54.686ms new for isolated CPU preparation across 20 alternating trials; peak traced allocation 13.47MiB old vs 10.53MiB new",
+    "measurement_limit": "four small Qt frame runs were noisy; no established frame-latency gain",
+    "remaining": "profile Python edge/Face collection and loose-face bucketing; installed build unchanged"
   }
 }

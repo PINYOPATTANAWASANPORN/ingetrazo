@@ -762,6 +762,17 @@
       "draft": true,
       "updated_at": "2026-10-08T01:04:02Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/75"
+    },
+    {
+      "number": 76,
+      "state": "open",
+      "title": "Build loose soft-edge planes once per face",
+      "base": "perf/vbo-changed-tail",
+      "head": "perf/soft-edge-unique-planes",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T01:56:58Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/76"
     }
   ]
 }

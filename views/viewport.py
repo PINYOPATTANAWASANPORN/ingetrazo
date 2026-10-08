@@ -429,11 +429,14 @@ def _loose_soft_edge_arrays(softs):
     pts = np.asarray(points, dtype=np.float32).reshape(-1, 6)
     single = np.asarray(singles, dtype=bool)
     triangles = np.asarray(planes, dtype=np.float64).reshape(-1, 3, 3)
-    tri0 = triangles[first_indices]
-    tri1 = triangles[second_indices]
-    n0 = np.cross(tri0[:, 1] - tri0[:, 0], tri0[:, 2] - tri0[:, 0])
-    n1 = np.cross(tri1[:, 1] - tri1[:, 0], tri1[:, 2] - tri1[:, 0])
-    return pts, n0, tri0[:, 0], n1, tri1[:, 0], single
+    # Adjacent soft edges commonly share a face. Compute its plane once,
+    # then gather the normal and anchor for each edge side. This also avoids
+    # materializing two (edge_count, 3, 3) copies of the triangles.
+    normals = np.cross(triangles[:, 1] - triangles[:, 0],
+                       triangles[:, 2] - triangles[:, 0])
+    anchors = triangles[:, 0]
+    return (pts, normals[first_indices], anchors[first_indices],
+            normals[second_indices], anchors[second_indices], single)
 
 
 def _retain_face_geometry(vp, face):
