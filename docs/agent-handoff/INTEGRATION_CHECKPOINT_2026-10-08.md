@@ -234,7 +234,7 @@ handling, Inno Setup, or frozen GUI editing. Those remain Gate 0 work.
 
 ## Follow-up: #87 final-head integration audit
 
-On 2026-10-08, the GitHub pull API returned **85 open draft PRs, zero merged**,
+On 2026-10-08, the GitHub pull API returned **85 open PRs, zero merged**,
 ending at [#87](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/87)
 (`47fddb9d06f6e3ea9f364e3ba2abe83bea353bff`). PR numbers 18 and 27 are
 absent. After `git fetch origin --prune`, all 85 adjacent base/head pairs
@@ -295,3 +295,29 @@ left the existing backup's full SHA-256 manifest unchanged. An older target
 with that same occupied backup path was still rejected before writing; its
 app executable hash remained unchanged. The fixture and reports are under
 `C:\Users\Lenovo\Desktop\IngeTrazoTest\updater-pr87-fixture-2026-10-09`.
+
+## Follow-up: PR #88 CI and native frozen open
+
+The cumulative [draft PR #88](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/88)
+at `51e0331` passed both Ubuntu `pytest (not slow)` and Windows Qt offscreen
+smoke in [run 37825889920](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37825889920).
+The GitHub open-PR list now contains 86 entries: 43 draft and 43 ready for
+review. This corrects the earlier blanket use of "draft" for the entire
+stack; it does not change the fact that none has been merged into the fork.
+The branch has no local uncommitted changes and GitHub reports no conflict
+with its #87 base.
+
+On 2026-10-09 a native Windows launch of the staged #87 executable with a
+workspace copy of `resources/components/sofa.igz` opened a responding window
+titled `IngeTrazo — sofa-copy.igz`. The process ran from the staged bundle,
+not Program Files. The source and copy SHA-256 matched before launch and
+after the test (`2593D09D691BF9F85445C9031BA596EE20D3673D15CF820D9DEE344148382CCB`).
+The trial process was stopped after checking that it remained responsive.
+Native window controls were unavailable to this agent's computer-use session,
+so no save, reopen, Undo/Redo, Outliner, Move, Tag, or AI action is claimed.
+This is a stronger native open signal than the earlier offscreen process
+survival, but it still does not close the interactive frozen-workflow gate.
+
+The staged bundle's remaining notice and branding gaps are inventoried in
+[`FROZEN_NOTICE_AND_BRANDING_AUDIT_2026-10-09.md`](FROZEN_NOTICE_AND_BRANDING_AUDIT_2026-10-09.md).
+The installed application remains unchanged.

@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-08**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **85 open PRs in the 2026-10-08 snapshot**; check GitHub
+- PR inventory: **86 open PRs in the 2026-10-09 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -56,6 +56,8 @@ and the engineering knowledge extracted from the work.
     prioritized integration, preview-release and remaining product gates.
 22. [`INTEGRATION_CHECKPOINT_2026-10-08.md`](INTEGRATION_CHECKPOINT_2026-10-08.md) —
     branch-chain audit, hosted CI, native Windows regression and open gates.
+23. [`FROZEN_NOTICE_AND_BRANDING_AUDIT_2026-10-09.md`](FROZEN_NOTICE_AND_BRANDING_AUDIT_2026-10-09.md) —
+    staged Windows Qt notice and version-identifier inventory.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on

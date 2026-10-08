@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "snapshot_date": "2026-10-08",
+  "snapshot_date": "2026-10-09",
   "source": "https://api.github.com/repos/PINYOPATTANAWASANPORN/ingetrazo/pulls?state=all&per_page=100",
   "pull_requests": [
     {
@@ -894,6 +894,17 @@
       "draft": true,
       "updated_at": "2026-10-08T14:42:47Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/87"
+    },
+    {
+      "number": 88,
+      "state": "open",
+      "title": "Verify #87 integration and harden preview updater repeat runs",
+      "base": "fix/windows-preview-updater",
+      "head": "docs/gate0-pr87-checkpoint",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T18:39:22Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/88"
     }
   ]
 }

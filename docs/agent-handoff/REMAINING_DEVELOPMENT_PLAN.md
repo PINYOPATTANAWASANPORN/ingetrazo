@@ -1,7 +1,7 @@
 # Remaining development and release plan
 
-Snapshot: 2026-10-08. This plan follows draft PR #87 on the fork's stacked
-branch. GitHub showed 85 open PRs and zero merged PRs. The last verified
+Snapshot: 2026-10-09. This plan follows draft PR #88 on the fork's stacked
+branch. GitHub showed 86 open PRs and zero merged PRs. The last verified
 installed Windows build was made from `3815ef8`, not the current stack.
 Percentages in `DEVELOPMENT_SUMMARY.md` estimate implementation in the stack;
 they are neither test coverage nor release readiness. Recheck GitHub and the
@@ -140,13 +140,17 @@ quantities/schedules agree with the model after edits.
 
 ## Immediate next work order
 
-1. PR #87 final-head CI passed both Ubuntu and Windows offscreen jobs; the
-   complete native Windows suite on the same application/test code passed
-   4,633 tests. Keep the exact run and local log in the integration checkpoint.
+1. PR #87 final-head CI and PR #88 cumulative-head CI passed both Ubuntu and
+   Windows offscreen jobs; the complete native Windows suite on the #87
+   application/test code passed 4,633 tests. Keep both runs and the local log
+   in the integration checkpoint.
 2. The staged #87 bundle passed notices, hashes, `--check`, MCP `tools/list`
    and an offscreen sample-file open. Review it, then exercise frozen GUI
-   save/reopen and editing workflows on representative project copies. Test
-   the real update path and rollback only after those checks; the installed
+   save/reopen and editing workflows on representative project copies. A
+   native staged app opened a copied sofa document, but interactive actions
+   could not be driven in this session. Complete the Qt notice and
+   fork-branding review documented in the frozen-package audit. Test the
+   real update path and rollback only after those checks; the installed
    application remains at `3815ef8`.
 3. Establish the real-model performance corpus and capture baseline numbers;
    use it to choose the next renderer or progressive-paint slice.

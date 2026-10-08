@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "snapshot_date": "2026-10-08",
+  "snapshot_date": "2026-10-09",
   "repository": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo",
   "upstream_main_commit": "6be29fe437a7cd992d4e079f71720821b25216b9",
   "handoff_base": {
@@ -13,9 +13,9 @@
     "pull_request": 33
   },
   "delivery": {
-    "github_snapshot_date": "2026-10-08",
-    "pull_requests_total": 85,
-    "open": 85,
+    "github_snapshot_date": "2026-10-09",
+    "pull_requests_total": 86,
+    "open": 86,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -658,7 +658,7 @@
     "checked_at_local_date": "2026-10-09",
     "head_pull_request": 87,
     "head_commit": "47fddb9d06f6e3ea9f364e3ba2abe83bea353bff",
-    "stack_audit": "85 open draft PRs, zero merged; all adjacent bases match preceding heads; all base refs are ancestors of heads; no empty diffs",
+    "stack_audit": "85 open PRs, zero merged in the 2026-10-08 snapshot; all adjacent bases match preceding heads; all base refs are ancestors of heads; no empty diffs",
     "hosted_ci": "run 37794667260: Ubuntu non-slow suite and Windows Qt offscreen smoke passed",
     "native_windows_suite": "QT_QPA_PLATFORM=windows, PYTHONUTF8=1: 4633 passed, 11 skipped, 1 xfailed, 238 warnings in 1249.56 seconds",
     "native_log": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\native-pr87-full-utf8.txt",
@@ -667,5 +667,15 @@
     "preview_updater_fixture": "new #87 bundle: cleanup failure rolled back; success activated 47fddb9; same-command already-current no-op preserved backup manifest; occupied backup path still rejected for an actual update",
     "installed": false,
     "remaining": "Frozen interactive document editing, Qt/framework notice and branding review, and production updater/installer rollback remain open"
+  },
+  "gate0_pr88_followup": {
+    "head_pull_request": 88,
+    "tested_commit": "51e0331bec739f95d6655276bcec846505a0255b",
+    "github_open_prs": "86 open: 43 draft, 43 ready for review",
+    "hosted_ci": "run 37825889920: Ubuntu non-slow and Windows Qt offscreen smoke passed",
+    "native_frozen_open": "staged #87 executable opened a responding window titled IngeTrazo — sofa-copy.igz; source and copied file SHA-256 matched after trial",
+    "notice_and_branding_audit": "PySide6/Qt wheel 6.11.2 metadata has commercial-license reference files but no complete community-license texts; staged exe has no Windows version resource; see FROZEN_NOTICE_AND_BRANDING_AUDIT_2026-10-09.md",
+    "installed": false,
+    "remaining": "Interactive frozen save/reopen and edit workflows, exact Qt/binary notice obligations, fork identity/version decision and real Program Files rollback remain open"
   }
 }
