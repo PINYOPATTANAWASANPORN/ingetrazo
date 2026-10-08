@@ -2,13 +2,17 @@
 
 ## Delivery topology
 
-The fork uses one long stacked chain. GitHub reported **80 open PRs and zero
+The fork uses one long stacked chain. GitHub reported **85 open PRs and zero
 merged PRs** on 2026-10-08. PR numbers 18 and 27 are absent from the pull list;
 do not invent them. The chain begins at fork `main` (`6be29fe`) and currently
-ends at `fix/igz-worker-quit-order` (`cfaacc8`). Merging or rebasing a lower PR
+ends at `fix/windows-preview-updater` (`47fddb9`). Merging or rebasing a lower PR
 changes every PR above it, so preserve order and revalidate the affected stack.
 The latest stack layer is
-[#82](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/82).
+[#87](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/87).
+PRs #83–#87 add frozen-bundle notices and an update/rollback transaction;
+they do not change the eight product-workstream percentages below. The
+2026-10-08 integration evidence and open release checks are in
+[`INTEGRATION_CHECKPOINT_2026-10-08.md`](INTEGRATION_CHECKPOINT_2026-10-08.md).
 
 ## Product workstreams
 

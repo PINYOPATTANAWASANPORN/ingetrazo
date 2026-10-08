@@ -37,7 +37,7 @@ def test_every_contributor_in_authors_is_in_the_credits():
     # added to one and not the other is caught here.
     import re
     from pathlib import Path
-    authors = (Path(__file__).resolve().parents[1] / "AUTHORS").read_text()
+    authors = (Path(__file__).resolve().parents[1] / "AUTHORS").read_text(encoding="utf-8")
     handles = set(re.findall(r"github\.com/([\w.-]+)\)", authors))
     links = {link.rsplit("/", 1)[-1] for _n, _r, link in CONTRIBUTORS if link}
     missing = handles - links - {"tuxiasumari"}

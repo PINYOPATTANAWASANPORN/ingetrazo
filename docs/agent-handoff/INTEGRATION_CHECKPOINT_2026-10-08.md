@@ -231,3 +231,93 @@ write. Reports and retained fixture are under
 The updater has **not** been run on Program Files. This validates the shared
 filesystem transaction in a fixture, not administrator access, in-use MCP
 handling, Inno Setup, or frozen GUI editing. Those remain Gate 0 work.
+
+## Follow-up: #87 final-head integration audit
+
+On 2026-10-08, the GitHub pull API returned **85 open PRs, zero merged**,
+ending at [#87](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/87)
+(`47fddb9d06f6e3ea9f364e3ba2abe83bea353bff`). PR numbers 18 and 27 are
+absent. After `git fetch origin --prune`, all 85 adjacent base/head pairs
+matched in sequence; each base ref existed and was an ancestor of its head;
+every PR had a nonempty diff. This is a mechanical topology audit, not a code
+review or a merge decision. `pr-index.json` and the handoff counts now include
+#83–#87.
+
+The #87 [hosted CI run](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37794667260)
+completed successfully on both Ubuntu `pytest (not slow)` and Windows Qt
+offscreen smoke. On 2026-10-09 the full one-process native Windows suite ran
+against the #87 application and test code with `QT_QPA_PLATFORM=windows` and
+`PYTHONUTF8=1`: **4,633 passed, 11 skipped, 1 xfailed, 238 warnings** in
+1,249.56 seconds (exit 0). The local log is outside the repository at
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\native-pr87-full-utf8.txt`. A first
+run without `PYTHONUTF8=1` stopped on a test reading the UTF-8 `AUTHORS` file
+with Windows Thai cp874; that locale setup failure is not an application
+regression. The test now names UTF-8 explicitly, and all four About carousel
+tests pass with `PYTHONUTF8=0` and native Windows Qt. Both CI and native suite
+passed, but they do not prove frozen GUI
+document editing, full license/branding review, or production installer
+rollback. The installed
+`C:\Program Files\IngeTrazo\BUILD-INFO.json` still records source commit
+`3815ef8c672ada7f086eee1bcf1bba1e96d75449`.
+
+## Follow-up: staged #87 Windows bundle (2026-10-09)
+
+The Windows PyInstaller spec produced a staged bundle at
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\dist-pr87\ingetrazo` from the #87
+application and packaging sources. The working tree also had changes to
+handoff documents and one test's UTF-8 decoding; no application or packaging
+source differed from `47fddb9`. The bundle has **874 files**. SHA-256: app
+`BD40B38C808056FAA15C2C8EDFA3F90942078912788300CAD6A5CED0A18D230B`,
+MCP
+`71463B8258C845978BEA4CE0B7D6EF5A5AED2EED6A8FF3C2E542CC60136CB59E`.
+Its executable `--check` exited 0; frozen MCP `tools/list` returned 22 tools;
+`packaging/verify_frozen_notices.py` matched 43 wheel metadata/license files
+and the project/OpenSKP notices. The offscreen frozen GUI process opened a
+copy of `resources/components/sofa.igz`, survived 12 seconds and left that
+copy unchanged. The build log and manifest are outside the repository at
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\build-pr87.log` and
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\build-pr87-gate.json`.
+
+This verifies package creation, self-check, MCP listing and a bounded file-open
+smoke. It does **not** establish viewport correctness, save/reopen, editing,
+AI preview/commit, Qt/framework notice completeness, branding, or elevated
+Program Files update/rollback. The staged bundle has not been installed.
+
+The #87 updater was then exercised against this newly built bundle in a fresh
+workspace fixture. It copied the 832-file installed bundle, injected a failure
+after the first cleanup move, and reported `rolled_back` with the complete
+old target restored. A subsequent run returned `updated`, set source commit
+`47fddb9`, and passed frozen `--check`. One preflight usability gap emerged:
+repeating the same command with its now-existing backup path failed before
+the `already_current` check. The guard now runs after that verified no-op
+case. A same-command rerun returned `already_current`, created no backup, and
+left the existing backup's full SHA-256 manifest unchanged. An older target
+with that same occupied backup path was still rejected before writing; its
+app executable hash remained unchanged. The fixture and reports are under
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\updater-pr87-fixture-2026-10-09`.
+
+## Follow-up: PR #88 CI and native frozen open
+
+The cumulative [draft PR #88](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/88)
+at `51e0331` passed both Ubuntu `pytest (not slow)` and Windows Qt offscreen
+smoke in [run 37825889920](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37825889920).
+The GitHub open-PR list now contains 86 entries: 43 draft and 43 ready for
+review. This corrects the earlier blanket use of "draft" for the entire
+stack; it does not change the fact that none has been merged into the fork.
+The branch has no local uncommitted changes and GitHub reports no conflict
+with its #87 base.
+
+On 2026-10-09 a native Windows launch of the staged #87 executable with a
+workspace copy of `resources/components/sofa.igz` opened a responding window
+titled `IngeTrazo — sofa-copy.igz`. The process ran from the staged bundle,
+not Program Files. The source and copy SHA-256 matched before launch and
+after the test (`2593D09D691BF9F85445C9031BA596EE20D3673D15CF820D9DEE344148382CCB`).
+The trial process was stopped after checking that it remained responsive.
+Native window controls were unavailable to this agent's computer-use session,
+so no save, reopen, Undo/Redo, Outliner, Move, Tag, or AI action is claimed.
+This is a stronger native open signal than the earlier offscreen process
+survival, but it still does not close the interactive frozen-workflow gate.
+
+The staged bundle's remaining notice and branding gaps are inventoried in
+[`FROZEN_NOTICE_AND_BRANDING_AUDIT_2026-10-09.md`](FROZEN_NOTICE_AND_BRANDING_AUDIT_2026-10-09.md).
+The installed application remains unchanged.
