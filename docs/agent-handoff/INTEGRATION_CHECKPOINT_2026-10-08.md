@@ -148,3 +148,29 @@ repository at `C:\Users\Lenovo\Desktop\IngeTrazoTest\build-asset-gate.json`.
 This closes the observed asset-provenance packaging omission only. Dependency
 license texts, branding/version review, frozen editing workflows, and tested
 rollback are still open Gate 0 work. The installed build remains unchanged.
+
+## Follow-up: wheel notice files and OpenSKP
+
+The final heads of [#83](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/83)
+and [#84](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/84)
+passed both hosted Ubuntu and Windows Qt offscreen jobs in
+[runs 37786204798](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37786204798)
+and [37786871404](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37786871404),
+respectively. Those runs do not execute the Windows release-packaging workflow.
+
+The next stacked branch `fix/frozen-dependency-license-files` collects
+`METADATA` and wheel-provided `licenses/` files for selected bundled runtime
+distributions. The OpenSKP wheel has no license file in its `.dist-info`;
+the branch includes the MIT license from the exact OpenSKP source revision
+pinned in `requirements.txt`, with its source URL recorded in
+`vendor/openskp/SOURCES.md`. A build verifier compares the frozen files byte
+for byte with the build environment and repository sources.
+
+The local Windows bundle built from package code `7f586984` passed that
+verifier (**43 wheel metadata/license files**) and `ingetrazo.exe --check`
+(exit 0). The exact file hashes and count are recorded outside the repository
+at `C:\Users\Lenovo\Desktop\IngeTrazoTest\build-dependency-notices-final.json`.
+This is a notice-file packaging result, not a full redistribution review:
+the PySide6 wheel metadata in this build contains only a commercial-license
+reference file, and Qt/framework notices still need a separate audit. Frozen
+GUI editing and rollback remain unverified; the installed build was not changed.

@@ -115,6 +115,7 @@
     }
   ],
   "next_recommended_work": [
+    "audit Qt/PySide6 and other bundled framework notices, plus fork branding/version identifiers, before any preview distribution; wheel metadata alone is incomplete",
     "follow docs/agent-handoff/REMAINING_DEVELOPMENT_PLAN.md: first verify final-head CI and integration build, then a real-model benchmark corpus and bounded core modelling/AI reliability slices",
     "implement deterministic checking of specialist field claims against the snapshot; prompt-only clarification did not prevent unsupported claims in local runs",
     "collect independent human judgments on public specialist findings and reference-fact coverage; current developer-agent labels are preliminary and overall quality remains unscored",
@@ -620,5 +621,13 @@
     "scope": "bundle colour and texture SOURCES.md provenance files alongside the already bundled component SOURCES.md",
     "validation": "local frozen build contains all three asset SOURCES.md files byte-identical to repository sources; app --check exit 0; build manifest at C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-asset-gate.json",
     "remaining": "dependency license texts, branding/version review, frozen GUI editing workflows and rollback test; installed build unchanged"
+  },
+  "frozen_dependency_notice_delivery": {
+    "branch": "fix/frozen-dependency-license-files",
+    "base_pull_request": 84,
+    "implementation_commit": "7f58698467090c53eb42b36b35c41656d6450851",
+    "scope": "retain selected runtime wheels' METADATA and supplied license files plus MIT license from pinned OpenSKP source revision",
+    "validation": "local frozen build verified 43 wheel metadata/license files byte-for-byte; OpenSKP and project notices matched source; app --check exit 0; manifest at C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-dependency-notices-final.json",
+    "remaining": "Qt/framework notice and fork branding review, frozen GUI editing workflows, tested rollback and full release decision; installed build unchanged"
   }
 }
