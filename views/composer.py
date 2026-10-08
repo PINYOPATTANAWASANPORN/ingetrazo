@@ -11114,6 +11114,26 @@ class ComposerWindow(QMainWindow):
                 yield row
             it += 1
 
+    def _refresh_item_row_label(self, target: int) -> None:
+        """Resolve one edited name without deleting the tree's live items.
+
+        Clearing the QTreeWidget from a queued rename refresh can destroy an
+        item that Qt is still processing after itemChanged. On native Windows
+        that caused an access violation during the next event-loop pass.
+        """
+        model = next((m for m in self.comp.all_items() if id(m) == target), None)
+        if model is None:
+            return
+        tree = self.items_list
+        was_blocked = tree.blockSignals(True)
+        try:
+            for row in self._item_rows():
+                if row.data(0, Qt.UserRole) == target:
+                    row.setText(2, self._list_text(model))
+                    break
+        finally:
+            tree.blockSignals(was_blocked)
+
     def _sync_items_list(self, item) -> None:
         self.items_list.blockSignals(True)
         self.items_list.clearSelection()
@@ -11178,8 +11198,10 @@ class ComposerWindow(QMainWindow):
                         EditItemCommand(it.model, {"list_name": name}))
                     self._mark_dirty()
                 break
-        # Show the resolved text (the automatic name, the lock) again.
-        QTimer.singleShot(0, self, self._refresh_items_list)
+        # Resolve the edited text after itemChanged returns. Rebuilding the
+        # entire tree here can delete a row still owned by Qt's edit event.
+        QTimer.singleShot(0, self,
+                          lambda target=target: self._refresh_item_row_label(target))
 
     def _open_item_properties(self) -> None:
         """The Properties tab for the item picked in the list."""
