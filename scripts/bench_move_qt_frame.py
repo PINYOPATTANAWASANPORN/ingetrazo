@@ -43,7 +43,10 @@ def _groups(groups):
         yield from _groups(group.children)
 
 
-def measure(path: Path, repeats: int = 7, timeout_ms: int = 10000) -> dict:
+def measure(path: Path, repeats: int = 7, timeout_ms: int = 10000,
+            steps_per_frame: int = 1) -> dict:
+    if steps_per_frame < 1:
+        raise ValueError("steps_per_frame must be positive")
     app = QApplication.instance() or QApplication([])
     loaded = load_scene(path)
     mesh = max((loaded.mesh, *(g.mesh for g in _groups(loaded.groups))),
@@ -112,11 +115,19 @@ def measure(path: Path, repeats: int = 7, timeout_ms: int = 10000) -> dict:
         samples = []
         delta = QVector3D(0, 0, 0.1)
         for _ in range(repeats):
-            command = MoveVerticesCommand([source], delta)
-            samples.append(frame(lambda: history.execute(command)))
-            if history.last_error or not command._position_only:
+            commands = []
+
+            def move_steps():
+                for _ in range(steps_per_frame):
+                    command = MoveVerticesCommand([QVector3D(vertex.position)],
+                                                  delta)
+                    history.execute(command)
+                    commands.append(command)
+
+            samples.append(frame(move_steps))
+            if history.last_error or not all(c._position_only for c in commands):
                 raise AssertionError("unexpected Move failure or Autofold")
-            frame(history.undo)
+            frame(lambda: [history.undo() for _ in commands])
             history.clear()
             if vertex.position != source or mesh.vertex_at(source) is not vertex:
                 raise AssertionError("Undo failed to restore the sampled vertex")
@@ -124,6 +135,7 @@ def measure(path: Path, repeats: int = 7, timeout_ms: int = 10000) -> dict:
             "document": str(path),
             "mesh_faces_with_synthetic_triangle": len(mesh.faces),
             "repeats": repeats,
+            "steps_per_frame": steps_per_frame,
             "viewport": "640x480 visible native Qt OpenGL",
             "boundary": "queued Move command to QOpenGLWidget.frameSwapped",
             "median_ms": {key: round(statistics.median(s[key] for s in samples), 3)
@@ -140,7 +152,9 @@ if __name__ == "__main__":
     parser.add_argument("document", type=Path)
     parser.add_argument("--repeats", type=int, default=7)
     parser.add_argument("--timeout-ms", type=int, default=10000)
+    parser.add_argument("--steps-per-frame", type=int, default=1)
     args = parser.parse_args()
-    if args.repeats < 1 or args.timeout_ms < 1:
-        parser.error("--repeats and --timeout-ms must be positive")
-    print(json.dumps(measure(args.document, args.repeats, args.timeout_ms), indent=2))
+    if args.repeats < 1 or args.timeout_ms < 1 or args.steps_per_frame < 1:
+        parser.error("--repeats, --timeout-ms and --steps-per-frame must be positive")
+    print(json.dumps(measure(args.document, args.repeats, args.timeout_ms,
+                             args.steps_per_frame), indent=2))
