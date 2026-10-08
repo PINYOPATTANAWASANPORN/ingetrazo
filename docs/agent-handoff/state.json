@@ -599,5 +599,14 @@
       "jobs": "Ubuntu pytest (not slow) and Windows Qt offscreen smoke succeeded"
     },
     "remaining": "representative frozen GUI document workflows, PR code and license/branding review, rollback test; installed build unchanged"
+  },
+  "frozen_license_notice_delivery": {
+    "branch": "fix/frozen-license-notice",
+    "base_pull_request": 82,
+    "implementation_commit": "19b62c47b4f2e6b6f065d28ed6dad0eee7f5e4eb",
+    "scope": "bundle repository LICENSE in PyInstaller distributions and verify byte equality in Windows build workflow",
+    "local_build": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-license-gate\\ingetrazo",
+    "validation": "_internal/LICENSE SHA-256 matches source; frozen --check exit 0; GUI sample IGZ file-open verified on prior exact-head #82 bundle",
+    "remaining": "frozen GUI save/reopen and editing workflows, all third-party license notices, fork branding/version review, and rollback test; installed build unchanged"
   }
 }
