@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-08",
-    "pull_requests_total": 77,
-    "open": 77,
+    "pull_requests_total": 80,
+    "open": 80,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -136,6 +136,7 @@
     "docs/agent-handoff/MOVE_SOFT_EDGE_CACHE.md",
     "docs/agent-handoff/MOVE_SOFT_EDGE_CHAIN.md",
     "docs/agent-handoff/REMAINING_DEVELOPMENT_PLAN.md",
+    "docs/agent-handoff/INTEGRATION_CHECKPOINT_2026-10-08.md",
     "benchmarks/ai/README.md",
     "benchmarks/ai/review-corpus-v1.json",
     "benchmarks/ai/review-coverage-v1.json",
@@ -551,5 +552,45 @@
     "status": "draft",
     "planning_commit": "25e2028de0b3d2ddadf30e3027e19cfe537f47fc",
     "scope": "integration and release gates, core modelling, large-model performance, AI reliability, file interchange, extensions and architectural tools"
+  },
+  "ci_hang_diagnostics_delivery": {
+    "branch": "ci/pytest-hang-diagnostics",
+    "base_branch": "docs/remaining-development-plan",
+    "base_pull_request": 79,
+    "pull_request": 80,
+    "status": "draft",
+    "implementation_commit": "dd1785f471f342e03f9d7fb24603c514e047fceb",
+    "validation": "workflow YAML parsed; pytest accepted faulthandler_timeout option; focused local test passed (3 passed)",
+    "motivation": "PR 76 and 78 Ubuntu jobs remained in the Tests step for hours while the later PR 79 stack head passed both jobs; new Ubuntu runs have a 30-minute job limit and a 180-second per-test traceback dump",
+    "latest_verified_ci": {
+      "run_id": 37727270338,
+      "result": "success",
+      "commit": "dd1785f471f342e03f9d7fb24603c514e047fceb",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    },
+    "historical_runs": "PR 76 run 37715521408 and PR 78 run 37722385356 each stalled at 26 percent in Ubuntu Tests; both were canceled after the later PR 79 head passed; no Python stack was available from those old runs",
+    "remaining": "#81 trace identified a blocked IGZ worker join at 26 percent; verify #82 fix in hosted CI and complete the full native Windows suite"
+  },
+  "composer_item_rename_delivery": {
+    "branch": "fix/composer-item-rename-native-crash",
+    "base_branch": "ci/pytest-hang-diagnostics",
+    "base_pull_request": 80,
+    "pull_request": 81,
+    "status": "draft",
+    "implementation_commit": "d60cc525df2b9b0875f7c9e547c6795ab8765e15",
+    "failure_before": "native Windows access violation 0xC0000005 in Composer Items QTreeWidget.clear after an edited row; isolated existing test reproduced it",
+    "validation": "7 Composer Items tests passed with QT_QPA_PLATFORM=windows; 18 Composer Items and Outliner tests passed offscreen",
+    "remaining": "complete full native Windows suite and frozen GUI/MCP integration smoke; installed build unchanged"
+  },
+  "igz_worker_quit_order_delivery": {
+    "branch": "fix/igz-worker-quit-order",
+    "base_branch": "fix/composer-item-rename-native-crash",
+    "base_pull_request": 81,
+    "pull_request": 82,
+    "status": "draft",
+    "implementation_commit": "cfaacc88edf675e0f0d63f1858f46da9b491398b",
+    "failure_before": "#81 Ubuntu CI run 37728026477 stalled at 26 percent; faulthandler showed UI thread in _load_igz_threaded thread.wait during document reopen. A queued worker.finished -> thread.quit could not run after the nested UI loop returned.",
+    "validation": "7 document-cache/camera tests passed offscreen; 14 document-cache/camera/Composer Items tests passed with QT_QPA_PLATFORM=windows",
+    "remaining": "verify hosted CI and finish one-process native Windows suite, then stage frozen GUI/MCP build; installed build unchanged"
   }
 }
