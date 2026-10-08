@@ -329,6 +329,32 @@ def test_upload_vbo_shrinking_keeps_the_prefix_and_the_count():
     assert vbo.calls == [("write", 40, 8)]           # capacity still fits
 
 
+def test_upload_vbo_changed_middle_rewrites_following_parts_in_order():
+    vp, vbo = _UploadStub(), _FakeVBO()
+    prefix = b"a" * 64
+    vp._upload_vbo(vbo, "e", [prefix, b"bbbb", b"cccc"])
+    vbo.calls.clear()
+
+    total = vp._upload_vbo(vbo, "e", [prefix, b"dddd", b"cccc"])
+
+    assert total == 72
+    assert vbo.calls == [("write", 64, 8)]
+    assert bytes(vbo.data[:total]) == prefix + b"ddddcccc"
+
+
+def test_upload_vbo_accepts_one_pass_parts_and_skips_an_unchanged_upload():
+    vp, vbo = _UploadStub(), _FakeVBO()
+    parts = [b"a" * 64, b"bbbb"]
+    vp._upload_vbo(vbo, "e", iter(parts))
+    vbo.calls.clear()
+
+    total = vp._upload_vbo(vbo, "e", iter(parts))
+
+    assert total == 68
+    assert vbo.calls == []
+    assert bytes(vbo.data[:total]) == b"".join(parts)
+
+
 # ---- oriented selection box -------------------------------------------------
 #
 # A group's box is drawn in the group's OWN axes, so it hugs the object.
