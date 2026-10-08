@@ -180,7 +180,8 @@ GUI editing and rollback remain unverified; the installed build was not changed.
 
 The final #85 head `159d499f` passed hosted Ubuntu and Windows Qt offscreen
 jobs in [run 37788462080](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37788462080).
-The `packaging/rehearse_windows_rollback.ps1` script exercises the bundle
+Stacked [draft PR #86](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/86)
+adds `packaging/rehearse_windows_rollback.ps1`. The script exercises the bundle
 replacement sequence in a new directory inside a nominated workspace. It
 hashes every installed and staged source file, copies the installed bundle
 into active and backup fixtures, activates staged `_internal` and the two

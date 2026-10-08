@@ -635,7 +635,8 @@
   "windows_bundle_rollback_rehearsal": {
     "branch": "test/windows-bundle-rollback-rehearsal",
     "base_pull_request": 85,
-    "status": "local_validation_passed",
+    "pull_request": 86,
+    "status": "draft",
     "script": "packaging/rehearse_windows_rollback.ps1",
     "evidence": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\rollback-rehearsal-final-2026-10-08\\report.json",
     "installed_source_commit": "3815ef8c672ada7f086eee1bcf1bba1e96d75449",
