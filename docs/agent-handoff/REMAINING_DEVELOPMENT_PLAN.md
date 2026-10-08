@@ -1,7 +1,7 @@
 # Remaining development and release plan
 
-Snapshot: 2026-10-08. This plan follows draft PR #78 on the fork's stacked
-branch. GitHub showed 76 open PRs and zero merged PRs. The last verified
+Snapshot: 2026-10-08. This plan follows draft PR #87 on the fork's stacked
+branch. GitHub showed 85 open PRs and zero merged PRs. The last verified
 installed Windows build was made from `3815ef8`, not the current stack.
 Percentages in `DEVELOPMENT_SUMMARY.md` estimate implementation in the stack;
 they are neither test coverage nor release readiness. Recheck GitHub and the
@@ -31,8 +31,9 @@ work. The gates describe evidence, not dates or promises.
    recoverable tag and build manifest for every integration checkpoint.
 2. Run the complete native Windows suite in one process and the Ubuntu
    non-slow suite on the same final head. Keep the Windows offscreen smoke
-   gate as an early signal, not a substitute for native testing. Resolve the
-   long-running Ubuntu job seen on PR #76 and confirm PR #78 final-head CI.
+   gate as an early signal, not a substitute for native testing. The #76/#78
+   Ubuntu stalls led to a diagnosed IGZ worker deadlock fixed in #82. Confirm
+   #87 final-head CI and investigate any new timeout before promotion.
 3. Build the frozen Windows application and MCP bridge from that SHA. Check
    executable hashes, `--check`, MCP `tools/list`, GUI startup, document
    open/save/reopen, Undo/Redo, Outliner, Move/Autofold, Tags, AI read-only
@@ -139,11 +140,14 @@ quantities/schedules agree with the model after edits.
 
 ## Immediate next work order
 
-1. Finish PR #78 final-head CI; investigate PR #76's long-running Ubuntu job
-   rather than inferring success from a stacked successor.
-2. Freeze an integration candidate at the latest reviewed head and run the
-   full native Windows suite plus frozen GUI/MCP smoke on representative
-   project files. Record exact SHA, commands, counts and failures.
+1. PR #87 final-head CI passed both Ubuntu and Windows offscreen jobs; the
+   complete native Windows suite on the same application/test code passed
+   4,633 tests. Keep the exact run and local log in the integration checkpoint.
+2. The staged #87 bundle passed notices, hashes, `--check`, MCP `tools/list`
+   and an offscreen sample-file open. Review it, then exercise frozen GUI
+   save/reopen and editing workflows on representative project copies. Test
+   the real update path and rollback only after those checks; the installed
+   application remains at `3815ef8`.
 3. Establish the real-model performance corpus and capture baseline numbers;
    use it to choose the next renderer or progressive-paint slice.
 4. In parallel with performance measurement, start one bounded Outliner

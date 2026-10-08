@@ -839,6 +839,61 @@
       "draft": true,
       "updated_at": "2026-10-08T04:42:40Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/82"
+    },
+    {
+      "number": 83,
+      "state": "open",
+      "title": "Bundle project license in frozen builds",
+      "base": "fix/igz-worker-quit-order",
+      "head": "fix/frozen-license-notice",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T13:40:19Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/83"
+    },
+    {
+      "number": 84,
+      "state": "open",
+      "title": "Bundle asset provenance with frozen distributions",
+      "base": "fix/frozen-license-notice",
+      "head": "fix/bundled-asset-attributions",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T13:45:16Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/84"
+    },
+    {
+      "number": 85,
+      "state": "open",
+      "title": "Bundle wheel notices and pinned OpenSKP license",
+      "base": "fix/bundled-asset-attributions",
+      "head": "fix/frozen-dependency-license-files",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T13:57:02Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/85"
+    },
+    {
+      "number": 86,
+      "state": "open",
+      "title": "Rehearse Windows bundle rollback without touching the installation",
+      "base": "fix/frozen-dependency-license-files",
+      "head": "test/windows-bundle-rollback-rehearsal",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T14:12:40Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/86"
+    },
+    {
+      "number": 87,
+      "state": "open",
+      "title": "Add a verified transaction for Windows preview updates",
+      "base": "test/windows-bundle-rollback-rehearsal",
+      "head": "fix/windows-preview-updater",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T14:42:47Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/87"
     }
   ]
 }

@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-08**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **80 open PRs in the 2026-10-08 snapshot**; check GitHub
+- PR inventory: **85 open PRs in the 2026-10-08 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
