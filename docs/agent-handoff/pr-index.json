@@ -795,6 +795,17 @@
       "draft": true,
       "updated_at": "2026-10-08T03:19:51Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/78"
+    },
+    {
+      "number": 79,
+      "state": "open",
+      "title": "Plan remaining development and release gates",
+      "base": "perf/move-soft-edge-chain",
+      "head": "docs/remaining-development-plan",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T03:44:49Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/79"
     }
   ]
 }
