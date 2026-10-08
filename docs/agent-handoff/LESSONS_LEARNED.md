@@ -343,3 +343,13 @@ paint-to-swap components separate; in the 7,633-face Move sample, paint took
 about 135 ms of a 158 ms queued-command-to-swap frame. Use the opt-in
 `frame.submitted` log for real-pointer sessions before attributing their
 latency to the same stage.
+
+## A partial GPU write can still pay for a whole CPU buffer
+
+Compare cached byte parts before joining them. The old VBO helper kept a
+large unchanged prefix on the GPU yet copied the entire prefix in Python on
+every local edit. Joining only the changed suffix removes that copy and
+reduces peak temporary memory. Preserve the full join after a reallocation,
+when the GPU has no prefix to keep. An isolated 64 MiB test can show this
+cost clearly, but a small real model may spend under 1 ms there; measure the
+full viewport separately before claiming a user-visible speedup.

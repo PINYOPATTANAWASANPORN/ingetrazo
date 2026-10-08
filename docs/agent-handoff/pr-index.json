@@ -751,6 +751,17 @@
       "draft": true,
       "updated_at": "2026-10-07T23:10:32Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/74"
+    },
+    {
+      "number": 75,
+      "state": "open",
+      "title": "Avoid copying unchanged VBO prefixes during local edits",
+      "base": "perf/move-qt-frame-benchmark",
+      "head": "perf/vbo-changed-tail",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T01:04:02Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/75"
     }
   ]
 }
