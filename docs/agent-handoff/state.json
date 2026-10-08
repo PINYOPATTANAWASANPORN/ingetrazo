@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-08",
-    "pull_requests_total": 72,
-    "open": 72,
+    "pull_requests_total": 73,
+    "open": 73,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -480,5 +480,16 @@
       "commit": "174f957000928dcc97c4e1a85e056e1be7e0fe80",
       "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
     }
+  },
+  "move_vbo_changed_tail_delivery": {
+    "branch": "perf/vbo-changed-tail",
+    "base_branch": "perf/move-qt-frame-benchmark",
+    "base_pull_request": 74,
+    "pull_request": 75,
+    "status": "draft",
+    "validation": "74 focused native Windows group-edit and Move tests passed; three native Qt Move benchmark trials completed; compileall and diff check passed",
+    "benchmark": "64 MiB unchanged cached prefix plus 32-byte changed tail: 21.368ms former whole join vs 0.009ms changed-tail join, 20 alternating isolated CPU trials with no-op VBO",
+    "measurement_limit": "synthetic CPU result excludes GPU and viewport paint; 1.2MB buffer in bundled group-rich example had under 1ms upload cost, with no proven whole-frame gain",
+    "remaining": "profile large loose-mesh face bucketing and silhouette work; installed build unchanged"
   }
 }

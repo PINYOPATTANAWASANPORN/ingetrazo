@@ -156,3 +156,9 @@ Qt's `frameSwapped` signal: median 157.5 ms over seven trials on the bundled
 also records pointer-event-to-frame-submission time. This is diagnostic work,
 not an input-to-visible-pixel measurement or an installed build. See
 [`MOVE_QT_FRAME_LATENCY.md`](MOVE_QT_FRAME_LATENCY.md) for scope and evidence.
+
+The follow-up [draft PR #75](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/75)
+avoids whole-buffer CPU copies when a local edit only changes the end of a
+large VBO. Its 64 MiB isolated benchmark improved, while the bundled smaller
+model showed no established full-frame improvement. See
+[`MOVE_VBO_CHANGED_TAIL.md`](MOVE_VBO_CHANGED_TAIL.md).

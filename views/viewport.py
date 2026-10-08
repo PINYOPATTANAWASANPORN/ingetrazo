@@ -4887,8 +4887,9 @@ class Viewport(QOpenGLWidget):
                 else QVector3D(0.0, 0.0, 1.0))
 
     def _upload_vbo(self, vbo, slot: str, parts, empty: int = 24) -> int:
-        """Put ``b"".join(parts)`` in ``vbo``, re-sending only the tail that
-        actually changed. Returns the total byte length.
+        """Keep the equal prefix on the GPU and send only the changed tail.
+
+        Returns the total byte length.
 
         Every scene-version bump re-uploaded each buffer whole, so an edit
         inside one group re-sent the entire model each drag frame — on
@@ -4902,28 +4903,33 @@ class Viewport(QOpenGLWidget):
         back to a bytes compare, which is memcmp and still an order of
         magnitude under the transfer it saves. The buffer is over-allocated so
         a growing tail usually fits without a reallocation (which would
-        discard the prefix along with everything else)."""
-        raw = b"".join(parts)
-        total = len(raw)
+        discard the prefix along with everything else). Assemble bytes only
+        after finding the prefix: joining every part first copied the entire
+        model even when the GPU write was just a small tail."""
+        parts = list(parts)
+        total = sum(map(len, parts))
         prev = self._vbo_parts.get(slot)
         keep = 0
+        matched = 0
         cap = prev[1] if prev is not None else 0
         if prev is not None and total <= cap:
             for a, b in zip(parts, prev[0]):
                 if a is b or a == b:
                     keep += len(a)
+                    matched += 1
                 else:
                     break
-            keep = min(keep, total)
         vbo.bind()
         if total > cap:
             cap = max(int(total * 1.25) + 4096, empty)
             vbo.allocate(cap)      # reserve; a realloc keeps no contents
             keep = 0
+            matched = 0
         if total > keep:
-            vbo.write(keep, raw[keep:], total - keep)
+            tail = b"".join(parts[matched:])
+            vbo.write(keep, tail, total - keep)
         vbo.release()
-        self._vbo_parts[slot] = (list(parts), cap)
+        self._vbo_parts[slot] = (parts, cap)
         return total
 
     def _loose_hard_edge_block(self, hide_rest: bool) -> bytes:
