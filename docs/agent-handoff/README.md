@@ -52,6 +52,8 @@ and the engineering knowledge extracted from the work.
     guard for reusing loose silhouette arrays after unrelated Moves.
 20. [`MOVE_SOFT_EDGE_CHAIN.md`](MOVE_SOFT_EDGE_CHAIN.md) — safe cache reuse
     through multiple Moves before and between Qt paints.
+21. [`REMAINING_DEVELOPMENT_PLAN.md`](REMAINING_DEVELOPMENT_PLAN.md) —
+    prioritized integration, preview-release and remaining product gates.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
