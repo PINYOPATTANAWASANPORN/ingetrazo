@@ -806,6 +806,39 @@
       "draft": true,
       "updated_at": "2026-10-08T03:44:49Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/79"
+    },
+    {
+      "number": 80,
+      "state": "open",
+      "title": "ci: bound Ubuntu test runs and capture stalled stacks",
+      "base": "docs/remaining-development-plan",
+      "head": "ci/pytest-hang-diagnostics",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T04:23:38Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/80"
+    },
+    {
+      "number": 81,
+      "state": "open",
+      "title": "fix: refresh renamed Composer row without clearing live tree",
+      "base": "ci/pytest-hang-diagnostics",
+      "head": "fix/composer-item-rename-native-crash",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T04:33:03Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/81"
+    },
+    {
+      "number": 82,
+      "state": "open",
+      "title": "Fix IGZ loader deadlock on document reopen",
+      "base": "fix/composer-item-rename-native-crash",
+      "head": "fix/igz-worker-quit-order",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T04:42:40Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/82"
     }
   ]
 }

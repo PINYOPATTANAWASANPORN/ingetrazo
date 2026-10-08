@@ -2,13 +2,13 @@
 
 ## Delivery topology
 
-The fork uses one long stacked chain. GitHub reported **76 open PRs and zero
+The fork uses one long stacked chain. GitHub reported **80 open PRs and zero
 merged PRs** on 2026-10-08. PR numbers 18 and 27 are absent from the pull list;
 do not invent them. The chain begins at fork `main` (`6be29fe`) and currently
-ends at `perf/move-soft-edge-chain` (`b93b3fb`). Merging or rebasing a lower PR
+ends at `fix/igz-worker-quit-order` (`cfaacc8`). Merging or rebasing a lower PR
 changes every PR above it, so preserve order and revalidate the affected stack.
 The latest stack layer is
-[#78](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/78).
+[#82](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/82).
 
 ## Product workstreams
 
