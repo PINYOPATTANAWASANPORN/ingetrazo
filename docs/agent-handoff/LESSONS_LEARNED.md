@@ -364,3 +364,16 @@ The CPU median moved only from 55.05 to 54.686 ms in an alternating run, and
 four small frame samples varied widely. Treat this as a memory improvement,
 and profile the Python edge/Face collection separately before claiming a
 frame-rate improvement.
+
+## Tie position-only cache reuse to exact scene transitions
+
+A vertex Move does not always invalidate every derived mesh array. Loose
+soft-edge silhouette arrays stay valid when the moved vertices are not soft
+edge endpoints and no touched Face supplies a plane to a soft edge. Checking
+only edge endpoints is insufficient: another vertex on an adjacent Face can
+change its plane. Record an exact old/new scene-version and loose-mesh-serial
+pair on the command, and let the renderer reuse only a matching cached mesh
+under the standard visibility path. Undo, redo, an intervening edit, custom
+visibility, and group editing need separate regression coverage. Measure
+both array-build counts and Qt frame submission; an isolated CPU gain does
+not by itself establish a display improvement.

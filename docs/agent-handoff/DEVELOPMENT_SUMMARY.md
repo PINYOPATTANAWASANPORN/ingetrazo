@@ -169,3 +169,11 @@ edges. On the bundled model, the arrays matched exactly and peak traced
 allocation fell from 13.47 to 10.53 MiB; the measured CPU and full-frame
 time differences are too small or variable to claim a visible speedup. See
 [`MOVE_SOFT_EDGE_UNIQUE_PLANES.md`](MOVE_SOFT_EDGE_UNIQUE_PLANES.md).
+
+The follow-up [draft PR #77](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/77)
+reuses loose silhouette arrays after a Move that provably changes neither
+soft-edge endpoints nor adjacent Face planes. On a 15,312-soft-edge bundled
+model, the local paired native Qt benchmark reduced median queued
+Move-to-`frameSwapped` time from 167.246 to 106.532 ms. The 52 focused tests
+passed; hosted final-head CI and physical pointer-to-pixel timing remain to
+be verified. See [`MOVE_SOFT_EDGE_CACHE.md`](MOVE_SOFT_EDGE_CACHE.md).

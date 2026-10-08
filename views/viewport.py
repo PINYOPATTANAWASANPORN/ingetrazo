@@ -5924,18 +5924,24 @@ class Viewport(QOpenGLWidget):
         import numpy as np
         cached = getattr(self, "_soft_edges_cache", None)
         if cached is None or cached[0] != key:
-            softs = list(_visible_loose_soft_edges(self.scene))
-            if softs:
-                # Face planes via one vectorized cross product instead of
-                # per-face Python normal()/centroid() (_newell dominated the
-                # edit frame at 25k+ faces). For the view-side sign test any
-                # point ON the plane works, so the first loop vertex serves
-                # as the anchor; the plane normal comes from the first two
-                # loop edges (faces are planar).
-                arrays = _loose_soft_edge_arrays(softs)
+            transition = getattr(self.scene, "_soft_edge_arrays_preserved", None)
+            reuse = (cached is not None and len(cached) == 3
+                     and cached[0][1] == id(self.scene.mesh)
+                     and transition == (cached[0][0], cached[2], key[0],
+                                        self.scene.mesh._mut_serial)
+                     and _render_visible_layers(self.scene) is not None)
+            if reuse:
+                arrays = cached[1]
             else:
-                arrays = None
-            cached = (key, arrays)
+                softs = list(_visible_loose_soft_edges(self.scene))
+                if softs:
+                    # Face planes via one vectorized cross product instead of
+                    # per-face Python normal()/centroid() (_newell dominated
+                    # the edit frame at 25k+ faces).
+                    arrays = _loose_soft_edge_arrays(softs)
+                else:
+                    arrays = None
+            cached = (key, arrays, self.scene.mesh._mut_serial)
             self._soft_edges_cache = cached
         eye = self.camera.eye()
         chunks: list = []

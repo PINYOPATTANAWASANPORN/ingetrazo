@@ -2074,6 +2074,24 @@ def translate_points(scene, keys: set, delta: QVector3D,
     return touched
 
 
+def _move_preserves_soft_edge_arrays(mesh, moving, touched) -> bool:
+    """Whether a position-only Move leaves every loose profile input alone.
+
+    A face plane changes when *any* of its vertices moves, even if the moved
+    vertex is not an endpoint of that face's soft edge. Inspect only touched
+    faces and their boundary edges; a local Move must not walk the full mesh.
+    """
+    if any(edge.soft for vertex in moving for edge in vertex.edges):
+        return False
+    for face in touched:
+        for loop in (face.loop, *face.hole_loops):
+            for index, vertex in enumerate(loop):
+                edge = mesh.find_edge(vertex, loop[(index + 1) % len(loop)])
+                if edge is not None and edge.soft:
+                    return False
+    return True
+
+
 class MoveVerticesCommand(Command):
     """Translate every shared vertex at a set of positions by ``delta``, then
     **autofold**: any face the move warped out of its plane is split into
@@ -2096,6 +2114,14 @@ class MoveVerticesCommand(Command):
         self._before: Optional[dict] = None
         self._after: Optional[dict] = None
         self._position_only = False
+        self._soft_arrays_unchanged = False
+
+    def _mark_soft_arrays(self, scene, old_version: int, old_serial: int) -> None:
+        # The renderer may reuse the view-independent arrays only across this
+        # exact scene/mesh transition. Any intervening edit breaks the match.
+        scene._soft_edge_arrays_preserved = (
+            (old_version, old_serial, scene.version, scene.mesh._mut_serial)
+            if self._soft_arrays_unchanged else None)
 
     def _restore(self, mesh: Mesh, snap: dict) -> None:
         if self._position_only:
@@ -2115,8 +2141,10 @@ class MoveVerticesCommand(Command):
 
     def do(self, scene) -> None:
         if self._after is not None:  # redo
+            old_version, old_serial = scene.version, scene.mesh._mut_serial
             self._restore(scene.mesh, self._after)
             scene.version += 1
+            self._mark_soft_arrays(scene, old_version, old_serial)
             return
         mesh = scene.mesh
         keys = {_key(p) for p in self.src}
@@ -2140,20 +2168,27 @@ class MoveVerticesCommand(Command):
             if len(face.loop) + sum(map(len, face.hole_loops)) > 3
         )
         self._position_only = not requires_full_snapshot
+        self._soft_arrays_unchanged = (
+            self._position_only
+            and _move_preserves_soft_edge_arrays(mesh, moving, touched))
         capture = (mesh.capture_position_state if self._position_only
                    else mesh.capture_state)
         self._before = capture(moving) if self._position_only else capture()
+        old_version, old_serial = scene.version, mesh._mut_serial
         for v in moving:
             mesh.move_vertex(v, self.delta)
         scene.version += 1
         if requires_full_snapshot:
             fold_nonplanar_faces(mesh, faces=touched)
         self._after = capture(moving) if self._position_only else capture()
+        self._mark_soft_arrays(scene, old_version, old_serial)
 
     def undo(self, scene) -> None:
         if self._before is not None:
+            old_version, old_serial = scene.version, scene.mesh._mut_serial
             self._restore(scene.mesh, self._before)
             scene.version += 1
+            self._mark_soft_arrays(scene, old_version, old_serial)
 
 
 def rotation_matrix(center: QVector3D, axis: QVector3D, degrees: float):
