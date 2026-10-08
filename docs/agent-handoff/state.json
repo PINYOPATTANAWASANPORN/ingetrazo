@@ -610,5 +610,15 @@
     "local_build": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-license-gate\\ingetrazo",
     "validation": "_internal/LICENSE SHA-256 matches source; frozen --check exit 0; GUI sample IGZ file-open verified on prior exact-head #82 bundle",
     "remaining": "frozen GUI save/reopen and editing workflows, all third-party license notices, fork branding/version review, and rollback test; installed build unchanged"
+  },
+  "asset_attribution_bundle_delivery": {
+    "branch": "fix/bundled-asset-attributions",
+    "base_pull_request": 83,
+    "pull_request": 84,
+    "status": "draft",
+    "implementation_commit": "8882e68d5292313f4918b0b073410e752fcb090c",
+    "scope": "bundle colour and texture SOURCES.md provenance files alongside the already bundled component SOURCES.md",
+    "validation": "local frozen build contains all three asset SOURCES.md files byte-identical to repository sources; app --check exit 0; build manifest at C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-asset-gate.json",
+    "remaining": "dependency license texts, branding/version review, frozen GUI editing workflows and rollback test; installed build unchanged"
   }
 }

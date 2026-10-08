@@ -99,6 +99,9 @@ jobs:
           test -f dist/ingetrazo/_internal/resources/shaders/basic.vert
           test -f dist/ingetrazo/_internal/i18n/es.json
           test -f dist/ingetrazo/_internal/resources/components/components.json
+          for asset in colors textures components; do
+            cmp "resources/$asset/SOURCES.md" "dist/ingetrazo/_internal/resources/$asset/SOURCES.md"
+          done
           # La plantilla .skp en blanco de openskp la generó una herramienta
           # propietaria: desde el 2026-09-28 NO se distribuye (ingetrazo.spec
           # la excluye y no hay exportación a .skp). Si
@@ -144,6 +147,8 @@ jobs:
 
           IngeTrazo es software libre (GPL-3.0-or-later).
           Texto de la licencia: _internal\LICENSE
+          Fuentes y atribuciones de recursos: _internal\resources\colors\SOURCES.md,
+            _internal\resources\textures\SOURCES.md y _internal\resources\components\SOURCES.md
           Codigo fuente original: https://github.com/ingelibre/ingetrazo
           EOF
 

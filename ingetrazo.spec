@@ -39,8 +39,10 @@ datas = [
     ('resources/icons/mimetypes/*.ico', 'resources/icons/mimetypes'),
     ('resources/mime/*.xml',       'resources/mime'),
     ('resources/colors/*.json',    'resources/colors'),
+    ('resources/colors/SOURCES.md', 'resources/colors'),
     ('resources/textures/*.png',   'resources/textures'),
     ('resources/textures/library.json', 'resources/textures'),
+    ('resources/textures/SOURCES.md', 'resources/textures'),
     # Factory window layout (Marco's toolbar arrangement, harvested
     # 2026-08-31): fresh profiles restore it; user changes override it.
     ('resources/ui/*.state',       'resources/ui'),
