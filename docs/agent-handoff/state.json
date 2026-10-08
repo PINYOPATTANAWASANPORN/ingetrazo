@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-08",
-    "pull_requests_total": 75,
-    "open": 75,
+    "pull_requests_total": 76,
+    "open": 76,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -133,6 +133,7 @@
     "docs/agent-handoff/LESSONS_LEARNED.md",
     "docs/agent-handoff/pr-index.json",
     "docs/agent-handoff/MOVE_SOFT_EDGE_CACHE.md",
+    "docs/agent-handoff/MOVE_SOFT_EDGE_CHAIN.md",
     "benchmarks/ai/README.md",
     "benchmarks/ai/review-corpus-v1.json",
     "benchmarks/ai/review-coverage-v1.json",
@@ -520,6 +521,24 @@
     "validation": "52 focused native Windows Move/silhouette/group/document-cache tests passed; compileall and diff check passed",
     "benchmark": "Bundled Yanque mesh, 15312 loose soft edges, visible native Qt, 5 queued Move frames per run in two alternating rounds: old/no-reuse median paint 147.126ms and Move-to-frameSwapped 167.246ms with 11 array builds; cache path 87.764ms and 106.532ms with 1 build",
     "measurement_limit": "Qt frame submission, not physical pointer delivery or monitor scanout; paired local benchmark only, no independent CI performance result",
-    "remaining": "verify final-head hosted CI, test complex topology and actual pointer workflow, benchmark other representative meshes; installed build unchanged"
+    "remaining": "test complex topology and actual pointer workflow, benchmark other representative meshes; installed build unchanged",
+    "latest_verified_ci": {
+      "run_id": 37719319412,
+      "result": "success",
+      "commit": "f382a3b209642db483054c73d12e0a5a19a5e727",
+      "jobs": "Windows Qt offscreen smoke and Ubuntu pytest (not slow) succeeded"
+    }
+  },
+  "move_soft_edge_chain_delivery": {
+    "branch": "perf/move-soft-edge-chain",
+    "base_branch": "perf/move-soft-edge-cache",
+    "base_pull_request": 77,
+    "pull_request": 78,
+    "status": "draft",
+    "implementation_commit": "1c644432f79ac01a488a2b817e9a81f660fae50a",
+    "validation": "53 focused native Windows Move/silhouette/group/document-cache tests passed; compileall and diff check passed",
+    "benchmark": "Bundled Yanque mesh with 15312 loose soft edges; visible native Qt, three coalesced Moves per frame, three samples per run, two alternating rounds: single-transition median paint 134.738ms and Move-to-frameSwapped 189.640ms with 7 array builds per run; chained median paint 74.713ms and total 127.799ms with 1 build",
+    "measurement_limit": "synthetic queued Moves and Qt frame submission, not real pointer input or monitor scanout; small local sample",
+    "remaining": "verify final-head hosted CI, test complex topology and real drag behavior; installed build unchanged"
   }
 }

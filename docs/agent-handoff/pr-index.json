@@ -784,6 +784,17 @@
       "draft": true,
       "updated_at": "2026-10-08T02:40:26Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/77"
+    },
+    {
+      "number": 78,
+      "state": "open",
+      "title": "Reuse silhouette arrays across coalesced Moves",
+      "base": "perf/move-soft-edge-cache",
+      "head": "perf/move-soft-edge-chain",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T03:19:51Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/78"
     }
   ]
 }
