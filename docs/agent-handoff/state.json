@@ -664,6 +664,7 @@
     "native_log": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\native-pr87-full-utf8.txt",
     "staged_bundle_manifest": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-pr87-gate.json",
     "staged_bundle": "874 files; app --check exit 0; frozen MCP tools/list returned 22 tools; 43 wheel metadata/license files plus project/OpenSKP notices verified; offscreen sofa copy survived 12 seconds and remained unchanged",
+    "preview_updater_fixture": "new #87 bundle: cleanup failure rolled back; success activated 47fddb9; same-command already-current no-op preserved backup manifest; occupied backup path still rejected for an actual update",
     "installed": false,
     "remaining": "Frozen interactive document editing, Qt/framework notice and branding review, and production updater/installer rollback remain open"
   }

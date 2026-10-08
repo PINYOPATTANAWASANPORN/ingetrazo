@@ -282,3 +282,16 @@ This verifies package creation, self-check, MCP listing and a bounded file-open
 smoke. It does **not** establish viewport correctness, save/reopen, editing,
 AI preview/commit, Qt/framework notice completeness, branding, or elevated
 Program Files update/rollback. The staged bundle has not been installed.
+
+The #87 updater was then exercised against this newly built bundle in a fresh
+workspace fixture. It copied the 832-file installed bundle, injected a failure
+after the first cleanup move, and reported `rolled_back` with the complete
+old target restored. A subsequent run returned `updated`, set source commit
+`47fddb9`, and passed frozen `--check`. One preflight usability gap emerged:
+repeating the same command with its now-existing backup path failed before
+the `already_current` check. The guard now runs after that verified no-op
+case. A same-command rerun returned `already_current`, created no backup, and
+left the existing backup's full SHA-256 manifest unchanged. An older target
+with that same occupied backup path was still rejected before writing; its
+app executable hash remained unchanged. The fixture and reports are under
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\updater-pr87-fixture-2026-10-09`.

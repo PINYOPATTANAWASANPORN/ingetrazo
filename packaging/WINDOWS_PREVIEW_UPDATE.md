@@ -35,7 +35,8 @@ For a rollback drill, add `-InjectFailureAfter internal`, `app`, `mcp`,
 intentionally exits with an error even if rollback succeeds. Backups are
 never overwritten; the caller must choose a fresh backup path for each run.
 An already-current target is verified and returned without writing or
-creating a backup.
+creating a backup, even when the command reuses its existing backup path.
+An actual update still rejects an existing backup path before any write.
 
 `C:\Program Files\IngeTrazo` can be targeted only with the exact path,
 `-AllowProgramFiles`, an Administrator token, no failure injection, and a

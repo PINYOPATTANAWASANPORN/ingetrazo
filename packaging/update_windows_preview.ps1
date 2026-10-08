@@ -109,7 +109,6 @@ if ($source -eq $target -or (Is-Child $target $source) -or (Is-Child $source $ta
 if ((FullPath ([System.IO.Path]::GetDirectoryName($backup))) -ne $workspace) {
     throw 'Backup must be a new direct child of the workspace.'
 }
-if (Test-Path -LiteralPath $backup) { throw "Backup path already exists: $backup" }
 if ((Is-Child $backup $source) -or (Is-Child $backup $target)) {
     throw 'Backup cannot be inside the source or target.'
 }
@@ -161,6 +160,7 @@ if ($oldInfo.source_commit -eq $info.source_commit -and
     } | ConvertTo-Json)
     return
 }
+if (Test-Path -LiteralPath $backup) { throw "Backup path already exists: $backup" }
 Assert-NotRunning $target
 
 $before = @(FileManifest $target)
