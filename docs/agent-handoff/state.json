@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-08",
-    "pull_requests_total": 74,
-    "open": 74,
+    "pull_requests_total": 75,
+    "open": 75,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -132,6 +132,7 @@
     "docs/agent-handoff/AI_AGENT_HANDOFF.md",
     "docs/agent-handoff/LESSONS_LEARNED.md",
     "docs/agent-handoff/pr-index.json",
+    "docs/agent-handoff/MOVE_SOFT_EDGE_CACHE.md",
     "benchmarks/ai/README.md",
     "benchmarks/ai/review-corpus-v1.json",
     "benchmarks/ai/review-coverage-v1.json",
@@ -508,5 +509,17 @@
     "benchmark": "15312 loose soft edges and 7632 faces: 55.05ms old vs 54.686ms new for isolated CPU preparation across 20 alternating trials; peak traced allocation 13.47MiB old vs 10.53MiB new",
     "measurement_limit": "four small Qt frame runs were noisy; no established frame-latency gain",
     "remaining": "profile Python edge/Face collection and loose-face bucketing; installed build unchanged"
+  },
+  "move_soft_edge_cache_delivery": {
+    "branch": "perf/move-soft-edge-cache",
+    "base_branch": "perf/soft-edge-unique-planes",
+    "base_pull_request": 76,
+    "pull_request": 77,
+    "status": "draft",
+    "implementation_commit": "89532f415ce26f06bc65bad793e52126f50cb250",
+    "validation": "52 focused native Windows Move/silhouette/group/document-cache tests passed; compileall and diff check passed",
+    "benchmark": "Bundled Yanque mesh, 15312 loose soft edges, visible native Qt, 5 queued Move frames per run in two alternating rounds: old/no-reuse median paint 147.126ms and Move-to-frameSwapped 167.246ms with 11 array builds; cache path 87.764ms and 106.532ms with 1 build",
+    "measurement_limit": "Qt frame submission, not physical pointer delivery or monitor scanout; paired local benchmark only, no independent CI performance result",
+    "remaining": "verify final-head hosted CI, test complex topology and actual pointer workflow, benchmark other representative meshes; installed build unchanged"
   }
 }

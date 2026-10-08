@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-08**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **74 open PRs in the 2026-10-08 snapshot**; check GitHub
+- PR inventory: **75 open PRs in the 2026-10-08 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -48,6 +48,8 @@ and the engineering knowledge extracted from the work.
     upload assembly, synthetic large-buffer result and its frame-time limit.
 18. [`MOVE_SOFT_EDGE_UNIQUE_PLANES.md`](MOVE_SOFT_EDGE_UNIQUE_PLANES.md) —
     unique-Face silhouette plane assembly and allocation evidence.
+19. [`MOVE_SOFT_EDGE_CACHE.md`](MOVE_SOFT_EDGE_CACHE.md) — exact version/mesh
+    guard for reusing loose silhouette arrays after unrelated Moves.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on

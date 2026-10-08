@@ -773,6 +773,17 @@
       "draft": true,
       "updated_at": "2026-10-08T01:56:58Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/76"
+    },
+    {
+      "number": 77,
+      "state": "open",
+      "title": "Reuse loose silhouette arrays for unrelated vertex moves",
+      "base": "perf/soft-edge-unique-planes",
+      "head": "perf/move-soft-edge-cache",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-08T02:40:26Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/77"
     }
   ]
 }
