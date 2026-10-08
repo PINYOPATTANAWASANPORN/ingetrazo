@@ -21,6 +21,7 @@ the viewport's requirements, no forcing needed.
 """
 import site
 import sys
+from importlib import metadata as importlib_metadata
 from pathlib import Path
 
 ROOT = Path(SPECPATH).resolve()
@@ -70,7 +71,40 @@ datas = [
     # The MCP server (stdlib-only): `ingetrazo --mcp` runs it by path, and
     # the console build below makes it a program of its own on Windows.
     ('scripts/ingetrazo_mcp.py',   'scripts'),
+    ('packaging/THIRD_PARTY_LICENSES.md', 'third_party_licenses'),
+    ('vendor/openskp/LICENSE', 'third_party_licenses/openskp'),
+    ('vendor/openskp/SOURCES.md', 'third_party_licenses/openskp'),
 ]
+
+# Wheel metadata is not consistently included by PyInstaller. Preserve the
+# license files actually supplied by the distributions in the build env,
+# together with METADATA so their package name, version and declared license
+# remain identifiable in a frozen bundle. OpenSKP's wheel has no license file;
+# its pinned source license is included above.
+_notice_distributions = (
+    'ezdxf', 'fonttools', 'manifold3d', 'mapbox-earcut', 'numpy', 'openskp',
+    'PySide6', 'PySide6-Addons', 'PySide6-Essentials', 'shapely', 'shiboken6',
+    'trimesh',
+)
+for _name in _notice_distributions:
+    try:
+        _dist = importlib_metadata.distribution(_name)
+    except importlib_metadata.PackageNotFoundError:
+        continue  # Optional transitives may not be installed on every host.
+    _target = 'third_party_licenses/' + _name.lower().replace('-', '_')
+    for _file in _dist.files or ():
+        _parts = _file.parts
+        if not _parts or not _parts[0].endswith('.dist-info'):
+            continue
+        if len(_parts) == 2 and _parts[1] == 'METADATA':
+            _destination = _target
+        elif len(_parts) >= 3 and _parts[1] == 'licenses':
+            _destination = '/'.join((_target, *_parts[1:-1]))
+        else:
+            continue
+        _source = Path(_dist.locate_file(_file))
+        if _source.is_file():
+            datas.append((str(_source), _destination))
 
 # Optional trees (present today, tolerated if pruned later).
 for opt_src, opt_dst in [

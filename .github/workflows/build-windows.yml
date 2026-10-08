@@ -96,6 +96,7 @@ jobs:
           test -f dist/ingetrazo/ingetrazo.exe
           test -f dist/ingetrazo/_internal/LICENSE
           cmp LICENSE dist/ingetrazo/_internal/LICENSE
+          python packaging/verify_frozen_notices.py dist/ingetrazo
           test -f dist/ingetrazo/_internal/resources/shaders/basic.vert
           test -f dist/ingetrazo/_internal/i18n/es.json
           test -f dist/ingetrazo/_internal/resources/components/components.json
@@ -147,6 +148,7 @@ jobs:
 
           IngeTrazo es software libre (GPL-3.0-or-later).
           Texto de la licencia: _internal\LICENSE
+          Licencias de paquetes: _internal\third_party_licenses\THIRD_PARTY_LICENSES.md
           Fuentes y atribuciones de recursos: _internal\resources\colors\SOURCES.md,
             _internal\resources\textures\SOURCES.md y _internal\resources\components\SOURCES.md
           Codigo fuente original: https://github.com/ingelibre/ingetrazo

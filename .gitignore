@@ -72,6 +72,10 @@ vendor/libredwg/bin/*
 !vendor/libredwg/bin/dwg2dxf
 # (the Windows dwg2dxf.exe + DLLs and the macOS build are fetched by CI, #101)
 !vendor/libredwg/SOURCES.md
+!vendor/openskp
+vendor/openskp/*
+!vendor/openskp/LICENSE
+!vendor/openskp/SOURCES.md
 
 # Notas de trabajo locales del asistente (no se publican)
 CLAUDE.md
