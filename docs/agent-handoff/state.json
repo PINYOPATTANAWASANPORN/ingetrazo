@@ -614,6 +614,8 @@
   "asset_attribution_bundle_delivery": {
     "branch": "fix/bundled-asset-attributions",
     "base_pull_request": 83,
+    "pull_request": 84,
+    "status": "draft",
     "implementation_commit": "8882e68d5292313f4918b0b073410e752fcb090c",
     "scope": "bundle colour and texture SOURCES.md provenance files alongside the already bundled component SOURCES.md",
     "validation": "local frozen build contains all three asset SOURCES.md files byte-identical to repository sources; app --check exit 0; build manifest at C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-asset-gate.json",

@@ -135,8 +135,9 @@ third-party notices or fork branding. Do not treat it as distribution approval.
 The same package audit found that `resources/colors/SOURCES.md` and
 `resources/textures/SOURCES.md` were absent from the frozen bundle even though
 their corresponding colour catalogue and texture library were present.
-`resources/components/SOURCES.md` was already included. The next stacked
-branch, `fix/bundled-asset-attributions`, adds the first two files to the
+`resources/components/SOURCES.md` was already included. Stacked
+[draft PR #84](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/84)
+(`fix/bundled-asset-attributions`, based on #83) adds the first two files to the
 PyInstaller spec, checks exact byte equality for all three in the Windows
 build workflow, and lists their locations in the portable LEEME.
 
