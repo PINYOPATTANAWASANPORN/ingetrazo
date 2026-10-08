@@ -94,6 +94,8 @@ jobs:
         run: |
           # El exe existe y los recursos críticos quedaron dentro.
           test -f dist/ingetrazo/ingetrazo.exe
+          test -f dist/ingetrazo/_internal/LICENSE
+          cmp LICENSE dist/ingetrazo/_internal/LICENSE
           test -f dist/ingetrazo/_internal/resources/shaders/basic.vert
           test -f dist/ingetrazo/_internal/i18n/es.json
           test -f dist/ingetrazo/_internal/resources/components/components.json
@@ -140,8 +142,9 @@ jobs:
             https://aka.ms/vs/17/release/vc_redist.x64.exe
             (Visual C++ Redistributable, oficial de Microsoft).
 
-          IngeTrazo es software libre (GPL-3.0).
-          Codigo y soporte: https://github.com/tuxiasumari/ingetrazo
+          IngeTrazo es software libre (GPL-3.0-or-later).
+          Texto de la licencia: _internal\LICENSE
+          Codigo fuente original: https://github.com/ingelibre/ingetrazo
           EOF
 
       - name: Crear ZIP portable
