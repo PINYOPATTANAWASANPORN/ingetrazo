@@ -2,12 +2,15 @@
 from types import SimpleNamespace
 
 import numpy as np
-from PySide6.QtGui import QVector3D as V
+from PySide6.QtGui import QMatrix4x4, QVector3D as V
 
+from core.history import History, MoveVerticesCommand
 from core.layers import Layer, assign_layer
 from core.mesh import Mesh
 from core.scene import Scene
-from views.viewport import _loose_soft_edge_arrays, _visible_loose_soft_edges
+import views.viewport as viewport_module
+from views.viewport import (Viewport, _loose_soft_edge_arrays,
+                            _visible_loose_soft_edges)
 
 
 def _face(mesh, x):
@@ -131,3 +134,84 @@ def test_soft_edge_arrays_are_empty_without_candidates():
     assert c0.shape == (0, 3) and c1.shape == (0, 3)
     assert n1.shape == (0, 3)
     assert single.shape == (0,) and single.dtype == bool
+
+
+def test_unrelated_move_and_undo_reuse_soft_arrays_but_face_move_rebuilds(monkeypatch):
+    mesh = Mesh()
+    face = mesh.add_face([V(0, 0, 0), V(2, 0, 0), V(0, 2, 0)])
+    soft = mesh.find_edge(face.loop[0], face.loop[1])
+    soft.soft = True
+    mesh.add_face([V(10, 0, 0), V(12, 0, 0), V(10, 2, 0)])
+    scene = Scene(mesh=mesh)
+    history = History(scene)
+
+    class Buffer:
+        def bind(self):
+            pass
+
+        def allocate(self, *_args):
+            pass
+
+        def release(self):
+            pass
+
+    camera = SimpleNamespace(projection_matrix=QMatrix4x4,
+                             view_matrix=QMatrix4x4,
+                             eye=lambda: V(0, 0, 10))
+    viewport = SimpleNamespace(scene=scene, camera=camera,
+                               _silhouette_vbo=Buffer(),
+                               _placements_epoch=lambda: 0,
+                               _placements=lambda: [], _sil_last=None)
+    original = viewport_module._loose_soft_edge_arrays
+    calls = []
+
+    def counted(edges):
+        calls.append(len(edges))
+        return original(edges)
+
+    monkeypatch.setattr(viewport_module, "_loose_soft_edge_arrays", counted)
+
+    def render():
+        viewport._sil_last = None  # test the source cache, not frame throttle
+        Viewport._upload_silhouette_edges(viewport)
+        return viewport._soft_edges_cache[1]
+
+    first = render()
+    assert calls == [1]
+
+    remote = MoveVerticesCommand([V(10, 2, 0)], V(0, 0, 1))
+    history.execute(remote)
+    assert remote._soft_arrays_unchanged
+    assert render() is first
+    history.undo()
+    assert render() is first
+    history.redo()
+    assert render() is first
+    assert calls == [1]
+
+    # A custom visibility predicate may depend on more than the moved mesh;
+    # it must take the public filtering path even for a safe Move marker.
+    original_visible = scene.entity_visible
+    scene.entity_visible = lambda entity: original_visible(entity)
+    scene.version += 1
+    first = render()
+    assert calls == [1, 1]
+    custom_move = MoveVerticesCommand([V(10, 2, 1)], V(0, 0, 1))
+    history.execute(custom_move)
+    assert custom_move._soft_arrays_unchanged
+    assert render() is not first
+    assert calls == [1, 1, 1]
+    del scene.entity_visible
+
+    scene.version += 1  # another edit happened after the Move
+    first = render()
+    assert calls == [1, 1, 1, 1]
+
+    # The moved vertex is not an endpoint of the soft edge, but it changes
+    # that edge's Face plane and must invalidate the arrays.
+    plane_edit = MoveVerticesCommand([V(0, 2, 0)], V(0, 0, 1))
+    history.execute(plane_edit)
+    assert not plane_edit._soft_arrays_unchanged
+    changed = render()
+    assert changed is not first and calls == [1, 1, 1, 1, 1]
+    assert not np.array_equal(changed[1], first[1])
