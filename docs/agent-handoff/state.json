@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-08",
-    "pull_requests_total": 76,
-    "open": 76,
+    "pull_requests_total": 77,
+    "open": 77,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -114,6 +114,7 @@
     }
   ],
   "next_recommended_work": [
+    "follow docs/agent-handoff/REMAINING_DEVELOPMENT_PLAN.md: first verify final-head CI and integration build, then a real-model benchmark corpus and bounded core modelling/AI reliability slices",
     "implement deterministic checking of specialist field claims against the snapshot; prompt-only clarification did not prevent unsupported claims in local runs",
     "collect independent human judgments on public specialist findings and reference-fact coverage; current developer-agent labels are preliminary and overall quality remains unscored",
     "compare additional named local and cloud models on a larger public corpus with response mode, reported tokens, and independently judged coverage kept separate",
@@ -134,6 +135,7 @@
     "docs/agent-handoff/pr-index.json",
     "docs/agent-handoff/MOVE_SOFT_EDGE_CACHE.md",
     "docs/agent-handoff/MOVE_SOFT_EDGE_CHAIN.md",
+    "docs/agent-handoff/REMAINING_DEVELOPMENT_PLAN.md",
     "benchmarks/ai/README.md",
     "benchmarks/ai/review-corpus-v1.json",
     "benchmarks/ai/review-coverage-v1.json",
@@ -540,5 +542,14 @@
     "benchmark": "Bundled Yanque mesh with 15312 loose soft edges; visible native Qt, three coalesced Moves per frame, three samples per run, two alternating rounds: single-transition median paint 134.738ms and Move-to-frameSwapped 189.640ms with 7 array builds per run; chained median paint 74.713ms and total 127.799ms with 1 build",
     "measurement_limit": "synthetic queued Moves and Qt frame submission, not real pointer input or monitor scanout; small local sample",
     "remaining": "verify final-head hosted CI, test complex topology and real drag behavior; installed build unchanged"
+  },
+  "remaining_development_plan_delivery": {
+    "branch": "docs/remaining-development-plan",
+    "base_branch": "perf/move-soft-edge-chain",
+    "base_pull_request": 78,
+    "pull_request": 79,
+    "status": "draft",
+    "planning_commit": "25e2028de0b3d2ddadf30e3027e19cfe537f47fc",
+    "scope": "integration and release gates, core modelling, large-model performance, AI reliability, file interchange, extensions and architectural tools"
   }
 }

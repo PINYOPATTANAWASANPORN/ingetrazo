@@ -2,15 +2,19 @@
 
 ## Delivery topology
 
-The fork uses one long stacked chain. GitHub reported **39 open PRs and zero
-merged PRs** on 2026-10-05. PR numbers 18 and 27 are absent from the pull list;
+The fork uses one long stacked chain. GitHub reported **76 open PRs and zero
+merged PRs** on 2026-10-08. PR numbers 18 and 27 are absent from the pull list;
 do not invent them. The chain begins at fork `main` (`6be29fe`) and currently
-ends at `feature/ai-context-suggestions` (`09bd5ce`). Merging or rebasing a lower PR
+ends at `perf/move-soft-edge-chain` (`b93b3fb`). Merging or rebasing a lower PR
 changes every PR above it, so preserve order and revalidate the affected stack.
 The latest stack layer is
-[#37](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/37).
+[#78](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/78).
 
 ## Product workstreams
+
+The remaining implementation and release gates are prioritized in
+[`REMAINING_DEVELOPMENT_PLAN.md`](REMAINING_DEVELOPMENT_PLAN.md). The estimates
+below describe features in the open stack, not merge or release readiness.
 
 | Workstream | Estimated implementation in stack | Delivered slices | Important remaining work |
 | --- | ---: | --- | --- |
