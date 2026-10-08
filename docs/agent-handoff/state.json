@@ -625,6 +625,8 @@
   "frozen_dependency_notice_delivery": {
     "branch": "fix/frozen-dependency-license-files",
     "base_pull_request": 84,
+    "pull_request": 85,
+    "status": "draft",
     "implementation_commit": "7f58698467090c53eb42b36b35c41656d6450851",
     "scope": "retain selected runtime wheels' METADATA and supplied license files plus MIT license from pinned OpenSKP source revision",
     "validation": "local frozen build verified 43 wheel metadata/license files byte-for-byte; OpenSKP and project notices matched source; app --check exit 0; manifest at C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-dependency-notices-final.json",

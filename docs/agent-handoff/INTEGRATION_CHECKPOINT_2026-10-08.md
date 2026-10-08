@@ -158,7 +158,8 @@ passed both hosted Ubuntu and Windows Qt offscreen jobs in
 and [37786871404](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37786871404),
 respectively. Those runs do not execute the Windows release-packaging workflow.
 
-The next stacked branch `fix/frozen-dependency-license-files` collects
+Stacked [draft PR #85](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/85)
+(`fix/frozen-dependency-license-files`, based on #84) collects
 `METADATA` and wheel-provided `licenses/` files for selected bundled runtime
 distributions. The OpenSKP wheel has no license file in its `.dist-info`;
 the branch includes the MIT license from the exact OpenSKP source revision
