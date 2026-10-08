@@ -175,3 +175,30 @@ This is a notice-file packaging result, not a full redistribution review:
 the PySide6 wheel metadata in this build contains only a commercial-license
 reference file, and Qt/framework notices still need a separate audit. Frozen
 GUI editing and rollback remain unverified; the installed build was not changed.
+
+## Follow-up: disposable Windows bundle rollback rehearsal
+
+The final #85 head `159d499f` passed hosted Ubuntu and Windows Qt offscreen
+jobs in [run 37788462080](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37788462080).
+The `packaging/rehearse_windows_rollback.ps1` script exercises the bundle
+replacement sequence in a new directory inside a nominated workspace. It
+hashes every installed and staged source file, copies the installed bundle
+into active and backup fixtures, activates staged `_internal` and the two
+executables, runs the activated `ingetrazo.exe --check`, then injects a
+failure and restores the old files. It compares SHA-256 manifests for the
+restored fixture, backup, and unchanged original sources. All moves are
+restricted to the workspace fixture; the source bundles are read-only.
+
+On 2026-10-08, the rehearsal used the installed `3815ef8c` bundle (832
+files) and staged dependency-notice `7f586984` bundle (874 files). The
+activated self-check exited 0; the injected failure was observed; the full
+restored manifest matched both the installed source and backup; both source
+manifests were unchanged. The JSON report and retained fixtures are at
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\rollback-rehearsal-final-2026-10-08`.
+An out-of-workspace evidence path was rejected before any copy or move.
+
+This is a **filesystem transaction rehearsal**, not a test of the legacy
+hardcoded elevated installer or Inno Setup uninstall/rollback. The actual
+Program Files bundle was not upgraded. Gate 0 still needs a review of the
+real installer/update and rollback path, frozen GUI document editing, and
+remaining Qt/framework notices and branding/version decisions.
