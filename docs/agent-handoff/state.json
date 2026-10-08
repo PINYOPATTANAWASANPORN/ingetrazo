@@ -630,6 +630,18 @@
     "implementation_commit": "7f58698467090c53eb42b36b35c41656d6450851",
     "scope": "retain selected runtime wheels' METADATA and supplied license files plus MIT license from pinned OpenSKP source revision",
     "validation": "local frozen build verified 43 wheel metadata/license files byte-for-byte; OpenSKP and project notices matched source; app --check exit 0; manifest at C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-dependency-notices-final.json",
-    "remaining": "Qt/framework notice and fork branding review, frozen GUI editing workflows, tested rollback and full release decision; installed build unchanged"
+    "remaining": "Qt/framework notice and fork branding review, frozen GUI editing workflows, actual installer rollback and full release decision; installed build unchanged"
+  },
+  "windows_bundle_rollback_rehearsal": {
+    "branch": "test/windows-bundle-rollback-rehearsal",
+    "base_pull_request": 85,
+    "pull_request": 86,
+    "status": "draft",
+    "script": "packaging/rehearse_windows_rollback.ps1",
+    "evidence": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\rollback-rehearsal-hardened-2026-10-08\\report.json",
+    "installed_source_commit": "3815ef8c672ada7f086eee1bcf1bba1e96d75449",
+    "staged_source_commit": "7f58698467090c53eb42b36b35c41656d6450851",
+    "validation": "832 installed and 874 staged files hashed; activated staged app --check exit 0; injected failure observed; restored fixture matched installed and backup manifests; original source manifests unchanged; out-of-workspace and nested destinations rejected",
+    "remaining": "Rehearsal does not exercise the elevated legacy installer or Inno Setup; frozen GUI editing, actual installer rollback, notices and branding review remain open; installed build unchanged"
   }
 }
