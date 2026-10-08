@@ -638,10 +638,10 @@
     "pull_request": 86,
     "status": "draft",
     "script": "packaging/rehearse_windows_rollback.ps1",
-    "evidence": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\rollback-rehearsal-final-2026-10-08\\report.json",
+    "evidence": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\rollback-rehearsal-hardened-2026-10-08\\report.json",
     "installed_source_commit": "3815ef8c672ada7f086eee1bcf1bba1e96d75449",
     "staged_source_commit": "7f58698467090c53eb42b36b35c41656d6450851",
-    "validation": "832 installed and 874 staged files hashed; activated staged app --check exit 0; injected failure observed; restored fixture matched installed and backup manifests; original source manifests unchanged; out-of-workspace destination rejected",
+    "validation": "832 installed and 874 staged files hashed; activated staged app --check exit 0; injected failure observed; restored fixture matched installed and backup manifests; original source manifests unchanged; out-of-workspace and nested destinations rejected",
     "remaining": "Rehearsal does not exercise the elevated legacy installer or Inno Setup; frozen GUI editing, actual installer rollback, notices and branding review remain open; installed build unchanged"
   }
 }

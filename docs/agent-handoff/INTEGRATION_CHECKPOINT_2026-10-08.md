@@ -195,8 +195,10 @@ files) and staged dependency-notice `7f586984` bundle (874 files). The
 activated self-check exited 0; the injected failure was observed; the full
 restored manifest matched both the installed source and backup; both source
 manifests were unchanged. The JSON report and retained fixtures are at
-`C:\Users\Lenovo\Desktop\IngeTrazoTest\rollback-rehearsal-final-2026-10-08`.
-An out-of-workspace evidence path was rejected before any copy or move.
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\rollback-rehearsal-hardened-2026-10-08`.
+Out-of-workspace and nested evidence paths were rejected before any copy or
+move. The script rejects reparse points in either source bundle and requires
+the evidence directory to be a new direct child of a real workspace directory.
 
 This is a **filesystem transaction rehearsal**, not a test of the legacy
 hardcoded elevated installer or Inno Setup uninstall/rollback. The actual

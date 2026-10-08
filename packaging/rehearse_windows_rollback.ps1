@@ -61,9 +61,22 @@ $installed = FullPath $InstalledBundle
 $staged = FullPath $StagedBundle
 $manifestPath = FullPath $StagedManifest
 Assert-ChildPath $evidence $workspace
+if (-not (Test-Path -LiteralPath $workspace -PathType Container)) { throw "Missing workspace: $workspace" }
+if ((FullPath ([System.IO.Path]::GetDirectoryName($evidence))) -ne $workspace) {
+    throw 'Evidence directory must be a direct child of the workspace.'
+}
+if ((Get-Item -LiteralPath $workspace -Force).Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+    throw "Workspace cannot be a reparse point: $workspace"
+}
 if (Test-Path -LiteralPath $evidence) { throw "Evidence directory already exists: $evidence" }
 foreach ($path in @($installed, $staged)) {
     if (-not (Test-Path -LiteralPath $path -PathType Container)) { throw "Missing bundle: $path" }
+    if ((Get-Item -LiteralPath $path -Force).Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+        throw "Source bundle cannot be a reparse point: $path"
+    }
+    if (@(Get-ChildItem -LiteralPath $path -Recurse -Force -Attributes ReparsePoint).Count -ne 0) {
+        throw "Source bundle contains a reparse point: $path"
+    }
     if ($evidence.StartsWith($path + '\', [System.StringComparison]::OrdinalIgnoreCase)) {
         throw "Evidence directory cannot be inside a source bundle: $path"
     }
