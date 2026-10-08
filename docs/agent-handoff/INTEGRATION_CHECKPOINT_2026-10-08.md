@@ -219,7 +219,8 @@ the fixture and production gates.
 
 The exact installed `3815ef8c` bundle was copied into a workspace fixture
 and updated with the staged `7f586984` bundle. Injected failures after
-`_internal`, app exe, MCP exe, metadata, and successful self-check each
+`_internal`, app exe, MCP exe, metadata, successful self-check, and the first
+post-check cleanup move each
 returned `rolled_back` with a complete manifest match to the old snapshot.
 The no-failure run returned `updated` and self-check exit 0. A second run
 returned `already_current` without creating a backup. Calling the updater

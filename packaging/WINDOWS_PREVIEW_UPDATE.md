@@ -31,7 +31,7 @@ Copy-Item -LiteralPath 'C:\Program Files\IngeTrazo' -Destination (Join-Path $roo
 ```
 
 For a rollback drill, add `-InjectFailureAfter internal`, `app`, `mcp`,
-`metadata`, or `check` and inspect `backup\report.json`. An injected failure
+`metadata`, `check`, or `cleanup` and inspect `backup\report.json`. An injected failure
 intentionally exits with an error even if rollback succeeds. Backups are
 never overwritten; the caller must choose a fresh backup path for each run.
 An already-current target is verified and returned without writing or

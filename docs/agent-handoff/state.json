@@ -651,7 +651,7 @@
     "status": "draft",
     "script": "packaging/update_windows_preview.ps1",
     "evidence_directory": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\updater-fixture-2026-10-08",
-    "validation": "PR #86 CI passed; five injected failure points restored the complete old target manifest; success path passed frozen --check and installed new hashes in a fixture; repeated run was read-only and created no backup; Program Files without explicit switch rejected before write",
+    "validation": "PR #86 CI passed; six injected failure points including partial cleanup restored the complete old target manifest; success path passed frozen --check and installed new hashes in a fixture; repeated run was read-only and created no backup; Program Files without explicit switch rejected before write",
     "remaining": "Actual Program Files execution and Inno Setup behavior untested; frozen GUI editing, notices and branding review remain open; installed build unchanged"
   }
 }

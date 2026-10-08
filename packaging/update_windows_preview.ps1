@@ -9,7 +9,7 @@ param(
     [Parameter(Mandatory)][string]$WorkspaceRoot,
     [Parameter(Mandatory)][string]$BackupDirectory,
     [switch]$AllowProgramFiles,
-    [ValidateSet('none', 'internal', 'app', 'mcp', 'metadata', 'check')]
+    [ValidateSet('none', 'internal', 'app', 'mcp', 'metadata', 'check', 'cleanup')]
     [string]$InjectFailureAfter = 'none'
 )
 
@@ -228,8 +228,13 @@ try {
     $checkExit = $process.ExitCode
     if ($checkExit -ne 0) { throw "Activated app self-check failed: $checkExit" }
     if ($InjectFailureAfter -eq 'check') { throw 'INJECTED_FAILURE_AFTER_check' }
+    $movedOriginals = 0
     foreach ($component in $components) {
         Move-Checked (Join-Path $target $component.Previous) (Join-Path $replaced $component.Name)
+        $movedOriginals++
+        if ($InjectFailureAfter -eq 'cleanup' -and $movedOriginals -eq 1) {
+            throw 'INJECTED_FAILURE_AFTER_cleanup'
+        }
     }
 } catch {
     $failure = $_.Exception.Message
