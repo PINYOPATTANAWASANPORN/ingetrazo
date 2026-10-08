@@ -4577,10 +4577,14 @@ class MainWindow(QMainWindow):
         worker.progressed.connect(relay.on_progress, Qt.QueuedConnection)
         worker.finished.connect(relay.on_finished, Qt.QueuedConnection)
         worker.finished.connect(worker.deleteLater)
-        worker.finished.connect(thread.quit)
         thread.started.connect(worker.run)
         thread.start()
         loop.exec()
+        # The QThread object lives on the UI thread. A queued finished -> quit
+        # may still be waiting in that thread's event queue when loop.quit()
+        # returns; wait() would then block the very thread needed to deliver
+        # quit. Request it synchronously before joining the worker.
+        thread.quit()
         thread.wait()
         relay.deleteLater()
         thread.deleteLater()
