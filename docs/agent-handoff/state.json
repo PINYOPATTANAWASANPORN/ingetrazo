@@ -647,7 +647,8 @@
   "windows_preview_updater": {
     "branch": "fix/windows-preview-updater",
     "base_pull_request": 86,
-    "status": "local_validation_passed",
+    "pull_request": 87,
+    "status": "draft",
     "script": "packaging/update_windows_preview.ps1",
     "evidence_directory": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\updater-fixture-2026-10-08",
     "validation": "PR #86 CI passed; five injected failure points restored the complete old target manifest; success path passed frozen --check and installed new hashes in a fixture; repeated run was read-only and created no backup; Program Files without explicit switch rejected before write",

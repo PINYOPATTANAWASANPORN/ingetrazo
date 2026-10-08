@@ -208,7 +208,8 @@ remaining Qt/framework notices and branding/version decisions.
 
 ## Follow-up: reusable preview update transaction
 
-`packaging/update_windows_preview.ps1` replaces the earlier hardcoded,
+Stacked [draft PR #87](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/87)
+adds `packaging/update_windows_preview.ps1`, replacing the earlier hardcoded,
 machine-specific Program Files update script with a parameterized transaction.
 It checks both build manifests and hashes, refuses reparse points and running
 target processes, takes a complete backup snapshot, stages the new runtime
