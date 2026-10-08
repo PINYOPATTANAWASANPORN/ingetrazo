@@ -162,3 +162,10 @@ avoids whole-buffer CPU copies when a local edit only changes the end of a
 large VBO. Its 64 MiB isolated benchmark improved, while the bundled smaller
 model showed no established full-frame improvement. See
 [`MOVE_VBO_CHANGED_TAIL.md`](MOVE_VBO_CHANGED_TAIL.md).
+
+The next [draft PR #76](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/76)
+computes a loose Face's silhouette plane once for all its adjacent soft
+edges. On the bundled model, the arrays matched exactly and peak traced
+allocation fell from 13.47 to 10.53 MiB; the measured CPU and full-frame
+time differences are too small or variable to claim a visible speedup. See
+[`MOVE_SOFT_EDGE_UNIQUE_PLANES.md`](MOVE_SOFT_EDGE_UNIQUE_PLANES.md).
