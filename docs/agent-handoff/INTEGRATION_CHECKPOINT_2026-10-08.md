@@ -327,17 +327,18 @@ The installed application remains unchanged.
 The successor [draft PR #89](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/89)
 on `fix/windows-exe-version-info` gives both frozen Windows
 executables PE version resources drawn from `core/version.py`. A local
-PyInstaller build into `C:\Users\Lenovo\Desktop\IngeTrazoTest\dist-version-gate`
+PyInstaller build into `C:\Users\Lenovo\Desktop\IngeTrazoTest\dist-version-final`
 produced an 874-file bundle. `packaging/verify_windows_exe_version.ps1`
 reported `IngeTrazo 0.5.7` for both `ingetrazo.exe` and `ingetrazo-mcp.exe`;
+the verifier checks both string and fixed numeric PE versions;
 frozen `ingetrazo.exe --check` exited 0; the existing notice verifier matched
 43 wheel metadata/license files and project/OpenSKP notices. The new verifier
 correctly rejected the prior #87 bundle, whose PE fields were empty.
 
 SHA-256 of this candidate build: GUI executable
-`79E4F8FBD8C877F0383113332D95A351057A019547A47CFB928BA49FBD4C347D`;
+`4ED1B83CA591DA2B89936890161EE6A07DBDFD46C253C943DDD8D8B78C9AB3AF`;
 MCP executable
-`803038DD3FB476EC6A4C94485901104C1C75833BB4798E077016CE5F6742364C`.
+`96F58037A28138D47D6A92C532E2B2C90784C306994895A7D7CDF62955FF1F5B`.
 This changes Windows metadata only. The staged executable has not been
 installed. Fork publisher/version policy, Qt binary notices and interactive
 frozen editing remain release gates.

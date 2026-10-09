@@ -375,7 +375,7 @@ if sys.platform == 'win32':
     # source version as the app. The fixed resource needs four numeric parts;
     # any future prerelease-label policy must be handled explicitly here.
     _parts = _version.split('.')
-    if len(_parts) > 4 or not all(p.isdecimal() for p in _parts):
+    if len(_parts) > 4 or not all(p.isascii() and p.isdecimal() for p in _parts):
         raise ValueError(f'Windows file version must be numeric: {_version}')
     _version_quad = tuple(map(int, _parts)) + (0,) * (4 - len(_parts))
     if any(p > 65535 for p in _version_quad):
