@@ -58,6 +58,8 @@ and the engineering knowledge extracted from the work.
     branch-chain audit, hosted CI, native Windows regression and open gates.
 23. [`FROZEN_NOTICE_AND_BRANDING_AUDIT_2026-10-09.md`](FROZEN_NOTICE_AND_BRANDING_AUDIT_2026-10-09.md) —
     staged Windows Qt notice and version-identifier inventory.
+24. [`FROZEN_DOCUMENT_WORKFLOW_GATE.md`](FROZEN_DOCUMENT_WORKFLOW_GATE.md) —
+    disposable frozen-GUI open/edit/save/reopen and Undo/Redo validation.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
