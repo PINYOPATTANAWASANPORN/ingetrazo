@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "boundary": "formats.igz.load_scene decode/hydration only; excludes imports, GUI, first paint and interactivity",
+  "corpus": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\source\\ingelibre-ingetrazo-6be29fe\\benchmarks\\models\\corpus-v1.json",
+  "environment": {
+    "os": "Windows-10-10.0.19045-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 158 Stepping 10, GenuineIntel",
+    "python": "3.12.15",
+    "cpu_count": 8
+  },
+  "repeats": 5,
+  "cases": [
+    {
+      "id": "banca-pergola",
+      "path": "examples/banca-pergola-yanque.igz",
+      "sha256": "24b814ee07c6bc0178e2ce4c4d739d54ff98457e1ae8fcacedf595d0c3988d6c",
+      "bytes": 470177,
+      "stats": {
+        "top_groups": 9,
+        "nested_groups": 0,
+        "instances": 3,
+        "unique_meshes": 9,
+        "expanded_faces": 233,
+        "unique_faces": 227,
+        "loose_edges": 1,
+        "soft_edges": 0,
+        "textured_faces": 227
+      },
+      "load_ms": [
+        461.167,
+        276.24,
+        225.25,
+        248.88,
+        261.219
+      ],
+      "median_load_ms": 261.219,
+      "min_load_ms": 225.25,
+      "max_load_ms": 461.167,
+      "process_wall_ms": [
+        1027.485,
+        945.035,
+        769.393,
+        712.402,
+        613.944
+      ],
+      "median_process_wall_ms": 769.393
+    },
+    {
+      "id": "pileta-fuente",
+      "path": "examples/pileta-fuente-yanque.igz",
+      "sha256": "b09df79be7caa0dbfb5467588b28ddc84dd41ff5fa6843f0673ba8ead36a9bc1",
+      "bytes": 1759256,
+      "stats": {
+        "top_groups": 39,
+        "nested_groups": 0,
+        "instances": 22,
+        "unique_meshes": 37,
+        "expanded_faces": 37445,
+        "unique_faces": 27025,
+        "loose_edges": 0,
+        "soft_edges": 50024,
+        "textured_faces": 3
+      },
+      "load_ms": [
+        1359.969,
+        1332.147,
+        1292.022,
+        1543.613,
+        1339.921
+      ],
+      "median_load_ms": 1339.921,
+      "min_load_ms": 1292.022,
+      "max_load_ms": 1543.613,
+      "process_wall_ms": [
+        1875.826,
+        1741.597,
+        1726.807,
+        1986.609,
+        1991.428
+      ],
+      "median_process_wall_ms": 1875.826
+    },
+    {
+      "id": "arco",
+      "path": "examples/arco-yanque.igz",
+      "sha256": "a0b400068b1d39907bc798d30513bca6bab8d5d320a999090c3107654b59457a",
+      "bytes": 3611544,
+      "stats": {
+        "top_groups": 30,
+        "nested_groups": 0,
+        "instances": 28,
+        "unique_meshes": 31,
+        "expanded_faces": 10370,
+        "unique_faces": 10370,
+        "loose_edges": 0,
+        "soft_edges": 203,
+        "textured_faces": 263
+      },
+      "load_ms": [
+        695.211,
+        736.337,
+        691.402,
+        655.689,
+        642.731
+      ],
+      "median_load_ms": 691.402,
+      "min_load_ms": 642.731,
+      "max_load_ms": 736.337,
+      "process_wall_ms": [
+        1102.158,
+        1183.783,
+        1023.988,
+        989.787,
+        976.416
+      ],
+      "median_process_wall_ms": 1023.988
+    }
+  ]
+}

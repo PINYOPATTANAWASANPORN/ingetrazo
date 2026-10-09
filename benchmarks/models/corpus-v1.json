@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "scope": "Bundled real IGZ files, ordered by compressed file size; not a large-project claim",
+  "cases": [
+    {
+      "id": "banca-pergola",
+      "path": "examples/banca-pergola-yanque.igz",
+      "sha256": "24b814ee07c6bc0178e2ce4c4d739d54ff98457e1ae8fcacedf595d0c3988d6c"
+    },
+    {
+      "id": "pileta-fuente",
+      "path": "examples/pileta-fuente-yanque.igz",
+      "sha256": "b09df79be7caa0dbfb5467588b28ddc84dd41ff5fa6843f0673ba8ead36a9bc1"
+    },
+    {
+      "id": "arco",
+      "path": "examples/arco-yanque.igz",
+      "sha256": "a0b400068b1d39907bc798d30513bca6bab8d5d320a999090c3107654b59457a"
+    }
+  ]
+}

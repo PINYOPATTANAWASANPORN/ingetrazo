@@ -718,5 +718,16 @@
     ],
     "installed": false,
     "remaining": "Hosted Windows release workflow run, materials/UV and viewport validation, physical pointer actions, Qt notices, fork identity and production update remain open"
+  },
+  "igz_real_model_corpus_candidate": {
+    "branch": "perf/igz-real-model-corpus",
+    "base_pull_request": 91,
+    "pull_request": null,
+    "status": "candidate",
+    "manifest": "benchmarks/models/corpus-v1.json",
+    "baseline": "benchmarks/results/igz-windows-baseline-2026-10-09.json",
+    "validation": "Three bundled IGZ files pinned by SHA-256; five fresh-process load_scene samples per file on Windows 10 and Python 3.12.15; 2 runner tests passed",
+    "installed": false,
+    "remaining": "No nested or genuinely large project in corpus; GUI first paint, load responsiveness, renderer chunking and installed-build validation remain open"
   }
 }
