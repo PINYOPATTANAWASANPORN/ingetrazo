@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-09",
-    "pull_requests_total": 86,
-    "open": 86,
+    "pull_requests_total": 87,
+    "open": 87,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -680,6 +680,7 @@
   },
   "windows_exe_version_candidate": {
     "branch": "fix/windows-exe-version-info",
+    "pull_request": 89,
     "version_source": "core/version.py 0.5.7",
     "staged_bundle": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-version-gate\\ingetrazo",
     "validation": "Both frozen executables report IngeTrazo 0.5.7 PE metadata; --check exit 0; 43 wheel metadata/license files and project/OpenSKP notices match; verifier rejects older bundle without metadata",

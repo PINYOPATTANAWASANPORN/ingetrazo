@@ -324,7 +324,8 @@ The installed application remains unchanged.
 
 ## Follow-up: source-version metadata in frozen Windows executables
 
-The successor `fix/windows-exe-version-info` branch gives both frozen Windows
+The successor [draft PR #89](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/89)
+on `fix/windows-exe-version-info` gives both frozen Windows
 executables PE version resources drawn from `core/version.py`. A local
 PyInstaller build into `C:\Users\Lenovo\Desktop\IngeTrazoTest\dist-version-gate`
 produced an 874-file bundle. `packaging/verify_windows_exe_version.ps1`

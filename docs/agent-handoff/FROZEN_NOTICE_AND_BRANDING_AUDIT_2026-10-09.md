@@ -23,7 +23,8 @@ at `3815ef8`.
   build time and currently names the upstream author as publisher. A fork
   preview must choose accurate publisher/product identifiers before packaging.
 
-The successor `fix/windows-exe-version-info` branch adds source-version PE
+The successor [draft PR #89](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/89)
+on `fix/windows-exe-version-info` adds source-version PE
 resources to the GUI and MCP executables and checks them in the Windows build
 workflow. A local rebuild displays `FileVersion` and `ProductVersion` 0.5.7,
 `ProductName` IngeTrazo, the expected original filename, and a nonempty file
