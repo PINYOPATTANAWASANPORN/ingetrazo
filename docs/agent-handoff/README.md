@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-08**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **88 open PRs in the 2026-10-09 snapshot**; check GitHub
+- PR inventory: **92 open PRs through #94 in the 2026-10-09 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -355,3 +355,7 @@ The follow-up [draft PR #93](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/
 on `perf/igz-first-frame-baseline` extends that corpus to native
 `MainWindow.open_path` and the first model `frameSwapped`, including a coarse
 event-loop gap. See [IGZ_FIRST_FRAME_BASELINE.md](IGZ_FIRST_FRAME_BASELINE.md).
+The follow-up [draft PR #94](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/94)
+adds an opt-in first-paint phase profile and identifies cold group chunk preparation
+as the main measured paint cost on pileta and arco. See
+[IGZ_FIRST_PAINT_PHASES.md](IGZ_FIRST_PAINT_PHASES.md).

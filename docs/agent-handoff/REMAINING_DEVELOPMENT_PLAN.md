@@ -166,6 +166,9 @@ quantities/schedules agree with the model after edits.
    first model `frameSwapped` and a timer-based event gap; see
    `IGZ_FIRST_FRAME_BASELINE.md`. A truly large nested-project fixture and a
    measured renderer improvement remain open, so keep the estimate at 70%.
+   The opt-in first-paint phase profile (`IGZ_FIRST_PAINT_PHASES.md`) identifies
+   cold `_group_chunk` preparation on pileta and arco as the next bounded
+   renderer target; repeat the unprofiled baseline after any optimization.
 4. In parallel with performance measurement, start one bounded Outliner
    Face/Edge or nested-selection slice with a real-model UX check.
 5. Start the deterministic AI finding-grounding gate and human evaluation

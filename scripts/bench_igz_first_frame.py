@@ -11,6 +11,7 @@ import argparse
 import json
 import os
 import platform
+import re
 import statistics
 import subprocess
 import sys
@@ -27,13 +28,27 @@ from scripts.bench_igz_corpus import (DEFAULT_CORPUS, cases_from_manifest,
 RESULT_PREFIX = "INGETRAZO_FIRST_FRAME_RESULT:"
 
 
-def _worker(path: Path, timeout_ms: int) -> None:
+def _worker(path: Path, timeout_ms: int, profile_phases: bool = False) -> None:
+    if profile_phases:
+        # viewport reads this switch at import time. Capture its existing
+        # telemetry in memory so a benchmark never writes into the user profile.
+        os.environ["INGETRAZO_PERF"] = "1"
+        os.environ["INGETRAZO_PERF_ALL_FRAMES"] = "1"
+        os.environ.setdefault("INGETRAZO_PERF_LOG", os.devnull)
     from PySide6.QtCore import QEventLoop, QTimer
     from PySide6.QtGui import QSurfaceFormat
     from PySide6.QtWidgets import QApplication
 
     import views.main_window as main_window
+    import views.viewport as viewport_module
     from views.viewport import Viewport
+
+    perf_events: list[tuple[str, float, str]] = []
+    if profile_phases:
+        def capture(tag: str, ms: float, extra: str = "",
+                    floor: float = 50.0) -> None:
+            perf_events.append((tag, ms, extra))
+        viewport_module._plog = capture
 
     fmt = QSurfaceFormat()
     fmt.setVersion(3, 3)
@@ -50,10 +65,12 @@ def _worker(path: Path, timeout_ms: int) -> None:
         def paintGL(self) -> None:
             self.bench_paint_start = time.perf_counter()
             self.bench_paint_version = self.scene.version
+            perf_start = len(perf_events)
             try:
                 super().paintGL()
             finally:
                 self.bench_paint_end = time.perf_counter()
+                self.bench_paint_events = perf_events[perf_start:]
 
     main_window.Viewport = TimedViewport
     window = main_window.MainWindow()
@@ -135,6 +152,30 @@ def _worker(path: Path, timeout_ms: int) -> None:
             raise RuntimeError("invalid first-frame timestamp ordering")
         result = {key: round(value, 3) for key, value in result.items()}
         result["heartbeat_ticks_before_ready"] = marks["load_ticks"]
+        if profile_phases:
+            events = viewport.bench_paint_events
+            frames = [event for event in events if event[0] == "frame"]
+            if len(frames) != 1:
+                raise RuntimeError("matching model paint has no single phase record")
+            phases = dict(re.findall(r"(\w+)=(\d+)ms", frames[0][2]))
+            for name in ("ground", "sync", "shadowmap", "faces", "edges"):
+                if name not in phases:
+                    raise RuntimeError(f"missing {name} paint phase")
+                result[f"phase_{name}_ms"] = int(phases[name])
+            for tag in ("sync_edges", "chunk_rebuild", "chunk_from_disk"):
+                durations = [ms for event_tag, ms, _ in events
+                             if event_tag == tag]
+                result[f"{tag}_total_ms"] = round(sum(durations), 3)
+                result[f"{tag}_count"] = len(durations)
+            sync = [extra for tag, _, extra in events if tag == "sync_edges"]
+            if len(sync) != 1:
+                raise RuntimeError("matching paint has no single sync record")
+            subphases = dict(re.findall(r"(\w+)=(\d+)ms", sync[0]))
+            for name in ("edge_blocks", "selection", "face_blocks",
+                         "face_uploads"):
+                if name not in subphases:
+                    raise RuntimeError(f"missing {name} sync phase")
+                result[f"sync_{name}_ms"] = int(subphases[name])
         print(RESULT_PREFIX + json.dumps(result))
     finally:
         timer.stop()
@@ -145,7 +186,7 @@ def _worker(path: Path, timeout_ms: int) -> None:
 
 
 def measure(corpus: Path = DEFAULT_CORPUS, repeats: int = 3,
-            timeout: int = 180) -> dict:
+            timeout: int = 180, profile_phases: bool = False) -> dict:
     if repeats < 1 or timeout < 1:
         raise ValueError("repeats and timeout must be positive")
     cases = cases_from_manifest(corpus)
@@ -157,6 +198,7 @@ def measure(corpus: Path = DEFAULT_CORPUS, repeats: int = 3,
                         "python": platform.python_version(),
                         "cpu_count": os.cpu_count()},
         "repeats": repeats,
+        "profile_phases": profile_phases,
         "cases": [],
     }
     for case in cases:
@@ -169,9 +211,16 @@ def measure(corpus: Path = DEFAULT_CORPUS, repeats: int = 3,
                 env["APPDATA"] = scratch
                 env["LOCALAPPDATA"] = scratch
                 env["XDG_DATA_HOME"] = scratch
+                env["INGETRAZO_PERF"] = "1" if profile_phases else "0"
+                env["INGETRAZO_PERF_ALL_FRAMES"] = "1" if profile_phases else "0"
+                env["INGETRAZO_PERF_LOG"] = os.devnull
+                command = [sys.executable, str(Path(__file__).resolve()),
+                           "--worker", str(case["absolute_path"]),
+                           "--timeout", str(timeout)]
+                if profile_phases:
+                    command.append("--profile-phases")
                 process = subprocess.run(
-                    [sys.executable, str(Path(__file__).resolve()), "--worker",
-                     str(case["absolute_path"]), "--timeout", str(timeout)],
+                    command,
                     cwd=ROOT, env=env, capture_output=True, text=True,
                     timeout=timeout + 30, check=False,
                 )
@@ -199,12 +248,15 @@ if __name__ == "__main__":
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--profile-phases", action="store_true",
+                        help="capture first model paint phases and chunk build timing")
     parser.add_argument("--worker", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.worker is not None:
-        _worker(args.worker, args.timeout * 1000)
+        _worker(args.worker, args.timeout * 1000, args.profile_phases)
     else:
-        result = measure(args.corpus, args.repeats, args.timeout)
+        result = measure(args.corpus, args.repeats, args.timeout,
+                         args.profile_phases)
         output = json.dumps(result, indent=2) + "\n"
         if args.output is not None:
             args.output.parent.mkdir(parents=True, exist_ok=True)

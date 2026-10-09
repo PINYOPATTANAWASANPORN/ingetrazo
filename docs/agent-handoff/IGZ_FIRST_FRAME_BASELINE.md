@@ -45,3 +45,7 @@ progressive-paint or render-chunk change, then compare the same corpus and
 first-frame measurements on the same machine. The performance workstream stays
 at 70% until a real large-project and correctness gate is met. The installed
 application remains unchanged.
+
+The follow-up opt-in phase profile is in `IGZ_FIRST_PAINT_PHASES.md`; it
+identifies cold render-chunk preparation as the dominant measured paint cost
+on pileta and arco. It does not establish a performance improvement yet.
