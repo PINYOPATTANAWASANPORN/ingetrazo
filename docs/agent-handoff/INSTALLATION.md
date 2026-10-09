@@ -142,3 +142,13 @@ does not establish notice completeness. Computer Use could not capture the
 staged window: launching without `--new-window` forwarded to the installed
 application, and capture timed out twice. No staged visible-pixel or pointer
 claim follows from that attempt.
+
+A separate disposable frozen-GUI probe using `--new-window` and an isolated
+user profile captured `QOpenGLWidget.grabFramebuffer()` after opening the
+bundled arco and pileta examples on native Windows. The workspace-root
+`viewport-pr95-arco.png` and `viewport-pr95-pileta.png` show the expected
+arch/person and textured fountain respectively; their JSON reports contain
+1448x934 image dimensions, PNG SHA-256 and unchanged source hashes. This
+verifies the application's rendered framebuffer, not monitor scanout,
+physical pointer interaction or pixel-perfect agreement with a baseline.
+The temporary probe is `smoke-pr95-viewport.py` in the workspace root.

@@ -46,6 +46,7 @@
     "bundle_check": "passed",
     "mcp_tools": 22,
     "frozen_document_workflow": "offscreen sofa and nested fixture, plus native Windows arco and pileta: open/edit/save/reopen/Undo/Redo passed",
+    "native_framebuffer_review": "arco and pileta 1448x934 QOpenGLWidget captures show expected geometry and textures; physical pointer and monitor scanout remain unverified",
     "updater_fixture": "rollback injection restored installed 3815ef8 hash; normal copied-target update passed",
     "file_count": 874,
     "installed": false
