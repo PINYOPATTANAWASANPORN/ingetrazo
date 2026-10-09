@@ -95,3 +95,35 @@ offscreen GUI process stayed alive for ten seconds. Hashes and file count are
 recorded in the workspace-root `build-staged-pr82.json` and
 `INTEGRATION_CHECKPOINT_2026-10-08.md`. This remains a **staged test build**;
 the installed application is still the verified `3815ef8` build.
+
+## PR #95 staged preview and update rehearsal (2026-10-09)
+
+The clean `perf/igz-flat-pick-triangles` tree at `7e4becf` was frozen into
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\dist-pr95-gate\ingetrazo` (874 files).
+The workspace-root `build-pr95-gate.json` records the exact source commit,
+file count and executable SHA-256 values. The app hash is
+`C2A50CECD8053BB7FC8C425E28F50D02CB59A94B25426A24A726FEC2C9B60B22`;
+the MCP hash is
+`57D7B6AD96F84F23C9DFDC2A9575BE80DF924A9BAB5C2BA66A06F2C802A7E81A`.
+Frozen `--check` exited 0, MCP `tools/list` returned 22 tools, both Windows
+executables reported version 0.5.7, and the notice verifier matched 43 wheel
+metadata/license files plus project/OpenSKP notices.
+
+The frozen document probe passed offscreen open/edit/save/reopen/Undo/Redo on
+`sofa.igz` and a generated six-group nested fixture. A native Windows probe
+passed the same workflow on `examples/arco-yanque.igz`, preserving all 30
+groups and the original document hash. Reports are
+`smoke-pr95-sofa.json`, `smoke-pr95-nested.json`, and
+`smoke-pr95-arco-native.json` in the workspace root. These probes do not
+validate visible pixels, physical pointer actions or every modelling/AI flow.
+
+The updater was exercised only against a copied 832-file installation under
+`updater-pr95-fixture`. A deliberate failure after cleanup returned
+`rolled_back`, restored the original `3815ef8` commit and main executable
+hash, and reported no rollback error. A following normal run returned
+`updated` and passed its activated frozen self-check. Reports and retained
+snapshots are under that fixture. The installed Program Files bundle is
+**unchanged**. Four installed MCP processes were still running and this
+session did not have an Administrator token. The hosted Windows release build,
+visible interaction/pixel review, Qt/framework binary notice and fork identity
+review, and actual elevated installation remain open gates.

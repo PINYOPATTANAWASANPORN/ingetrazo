@@ -38,15 +38,16 @@
     ]
   },
   "staged_build": {
-    "source_commit": "31ae5b7c7aaec5dff56e1e93c4d91d9627d9cb36",
-    "path": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-pr82\\ingetrazo",
-    "manifest": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-staged-pr82.json",
-    "main_sha256": "7971B36538E552F96CD60AFA4EDF886159F783EA7D42236D76C17CD0DFD29B53",
-    "mcp_sha256": "B0F7B61C1CE48E0300747530B2D18DEDEE0C585F807889C5452CEF2426E81EA4",
+    "source_commit": "7e4becf7473e2de30f02e40d21913b40a24d3b76",
+    "path": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-pr95-gate\\ingetrazo",
+    "manifest": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\build-pr95-gate.json",
+    "main_sha256": "C2A50CECD8053BB7FC8C425E28F50D02CB59A94B25426A24A726FEC2C9B60B22",
+    "mcp_sha256": "57D7B6AD96F84F23C9DFDC2A9575BE80DF924A9BAB5C2BA66A06F2C802A7E81A",
     "bundle_check": "passed",
     "mcp_tools": 22,
-    "offscreen_gui_startup": "survived_10_seconds",
-    "file_count": 825,
+    "frozen_document_workflow": "offscreen sofa and nested fixture, plus native Windows arco: open/edit/save/reopen/Undo/Redo passed",
+    "updater_fixture": "rollback injection restored installed 3815ef8 hash; normal copied-target update passed",
+    "file_count": 874,
     "installed": false
   },
   "validation": {
@@ -121,7 +122,7 @@
     "collect independent human judgments on public specialist findings and reference-fact coverage; current developer-agent labels are preliminary and overall quality remains unscored",
     "compare additional named local and cloud models on a larger public corpus with response mode, reported tokens, and independently judged coverage kept separate",
     "reproduce the full Windows Qt suite in CI and complete physical pointer, viewport and nested-geometry checks on the frozen GUI; the local 421-file single-process gate passed at 2.55 GB peak private memory",
-    "run the new frozen document smoke in the hosted Windows build workflow before installing or merging the stacked PRs",
+    "run the hosted Windows release build at the intended SHA, complete visible pointer/viewport and Qt/framework notice review, then rehearse an elevated Program Files update only after the installed app and MCP clients are closed",
     "verify provider-reported usage and response-mode compatibility for additional local and cloud providers; current measured baseline covers one Ollama model pairing",
     "consider signed or independently anchored audit evidence; current saved history is unsigned",
     "design independently authenticated specialist identities if external agents need trust separation",
