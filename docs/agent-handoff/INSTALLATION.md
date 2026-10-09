@@ -127,3 +127,18 @@ snapshots are under that fixture. The installed Program Files bundle is
 session did not have an Administrator token. The hosted Windows release build,
 visible interaction/pixel review, Qt/framework binary notice and fork identity
 review, and actual elevated installation remain open gates.
+
+Follow-up: PR #95's documentation head `5bb2786` passed both hosted CI jobs
+([run 37892076694](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37892076694)).
+A further native Windows frozen-document probe on
+`examples/pileta-fuente-yanque.igz` passed and retained all 39 groups and the
+source hash; its report is `smoke-pr95-pileta-native.json`. The workspace-root
+`qt-pr95-binary-inventory.json` records paths, SHA-256 and PE file versions of
+44 bundled PySide6 DLLs (Qt 6.11.2). Qt's
+[6.11.2 third-party list](https://doc.qt.io/qt-6.11/licenses-used-in-qt.html)
+and [SBOM guidance](https://doc.qt.io/qt-6.11/sbom.html) are the upstream
+references for the remaining binary notice review. The inventory itself
+does not establish notice completeness. Computer Use could not capture the
+staged window: launching without `--new-window` forwarded to the installed
+application, and capture timed out twice. No staged visible-pixel or pointer
+claim follows from that attempt.

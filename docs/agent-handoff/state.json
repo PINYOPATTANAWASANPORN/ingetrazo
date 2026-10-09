@@ -45,7 +45,7 @@
     "mcp_sha256": "57D7B6AD96F84F23C9DFDC2A9575BE80DF924A9BAB5C2BA66A06F2C802A7E81A",
     "bundle_check": "passed",
     "mcp_tools": 22,
-    "frozen_document_workflow": "offscreen sofa and nested fixture, plus native Windows arco: open/edit/save/reopen/Undo/Redo passed",
+    "frozen_document_workflow": "offscreen sofa and nested fixture, plus native Windows arco and pileta: open/edit/save/reopen/Undo/Redo passed",
     "updater_fixture": "rollback injection restored installed 3815ef8 hash; normal copied-target update passed",
     "file_count": 874,
     "installed": false
