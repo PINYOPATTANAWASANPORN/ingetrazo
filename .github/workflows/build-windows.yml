@@ -132,6 +132,8 @@ jobs:
         shell: pwsh
         run: |
           python packaging/smoke_frozen_document.py dist/ingetrazo resources/components/sofa.igz "$env:RUNNER_TEMP/frozen-document-smoke" --platform offscreen
+          python packaging/make_frozen_nested_fixture.py "$env:RUNNER_TEMP/frozen-nested.igz"
+          python packaging/smoke_frozen_document.py dist/ingetrazo "$env:RUNNER_TEMP/frozen-nested.igz" "$env:RUNNER_TEMP/frozen-nested-smoke" --platform offscreen --require-nested
 
       - name: Incluir LEEME en el bundle
         shell: bash

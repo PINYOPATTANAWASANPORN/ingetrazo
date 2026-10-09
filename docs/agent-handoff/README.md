@@ -337,3 +337,8 @@ stacked on #89. A frozen-process probe now verifies open, edit, save, reopen,
 Undo and Redo on disposable document copies. See
 [FROZEN_DOCUMENT_WORKFLOW_GATE.md](FROZEN_DOCUMENT_WORKFLOW_GATE.md) for the
 local results and remaining release checks. The installed build is unchanged.
+
+The follow-up branch `test/frozen-nested-roundtrip` checks nested group
+geometry and shared component meshes after both frozen save/reopen cycles.
+See [FROZEN_NESTED_ROUNDTRIP_GATE.md](FROZEN_NESTED_ROUNDTRIP_GATE.md) for
+the generated fixture, local results and remaining limits.
