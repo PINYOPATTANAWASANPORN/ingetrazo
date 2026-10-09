@@ -704,5 +704,19 @@
     ],
     "installed": false,
     "remaining": "Hosted Windows build workflow, physical pointer and viewport checks, nested geometry fidelity, Qt notices, fork identity and production update remain open"
+  },
+  "frozen_nested_roundtrip_candidate": {
+    "branch": "test/frozen-nested-roundtrip",
+    "base_pull_request": 90,
+    "pull_request": 91,
+    "staged_bundle": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-version-final\\ingetrazo",
+    "validation": "Frozen Windows nested fixture retained 6 group nodes, 4 nested children, face geometry and shared mesh pattern [0,1,2,0,1,2] through two save/reopen cycles; native pileta 39 groups and offscreen arco 30 groups also passed; originals unchanged.",
+    "reports": [
+      "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\frozen-nested-final.json",
+      "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\frozen-nested-pileta.json",
+      "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\frozen-nested-arco-final.json"
+    ],
+    "installed": false,
+    "remaining": "Hosted Windows release workflow run, materials/UV and viewport validation, physical pointer actions, Qt notices, fork identity and production update remain open"
   }
 }

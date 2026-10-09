@@ -18,6 +18,7 @@ from pathlib import Path
 
 
 PROBE_PLUGIN = r'''
+import hashlib
 import json
 import os
 import traceback
@@ -28,6 +29,56 @@ from PySide6.QtGui import QVector3D
 from PySide6.QtWidgets import QApplication
 
 from core.history import AddFaceCommand
+
+
+def _point(p):
+    return tuple(round(float(n), 4) for n in (p.x(), p.y(), p.z()))
+
+
+def _ring(points):
+    # A save may rotate or reverse a polygon loop without changing its shape.
+    coords = [_point(p) for p in points]
+    if not coords:
+        return ()
+    turns = (tuple(coords[i:] + coords[:i]) for i in range(len(coords)))
+    reverse = list(reversed(coords))
+    back = (tuple(reverse[i:] + reverse[:i]) for i in range(len(reverse)))
+    return min(*turns, *back)
+
+
+def _mesh_signature(mesh):
+    vertices = sorted(_point(v.position) for v in mesh.vertices)
+    edges = sorted(tuple(sorted((_point(e.a), _point(e.b))))
+                   for e in mesh.edges)
+    faces = sorted((_ring(f.vertices),
+                    tuple(sorted(_ring(h) for h in f.holes)))
+                   for f in mesh.faces)
+    return vertices, edges, faces
+
+
+def _group_signature(group):
+    matrix = (tuple(round(float(n), 4) for n in group.xform.data())
+              if group.xform is not None else None)
+    return (group.uid, group.name, group.layer, bool(group.hidden),
+            bool(group.locked), matrix, _mesh_signature(group.mesh),
+            tuple(_group_signature(c) for c in group.children))
+
+
+def _group_snapshot(groups):
+    tree = tuple(_group_signature(g) for g in groups)
+    encoded = repr(tree).encode("utf-8")
+    mesh_ordinals = {}
+    sharing = []
+    def visit(nodes):
+        for group in nodes:
+            key = id(group.mesh)
+            sharing.append(mesh_ordinals.setdefault(key, len(mesh_ordinals)))
+            visit(group.children)
+    visit(groups)
+    return {"sha256": hashlib.sha256(encoded).hexdigest(),
+            "total": len(sharing), "top_level": len(groups),
+            "nested": len(sharing) - len(groups),
+            "shared_mesh_pattern": sharing}
 
 
 def setup(app):
@@ -41,7 +92,7 @@ def setup(app):
             window = app.window
             assert window.open_path(source), "window.open_path failed"
             before = len(app.scene.mesh.faces)
-            groups_before = len(app.scene.groups)
+            groups_before = _group_snapshot(app.scene.groups)
             result.update(faces_before=before, groups_before=groups_before)
             face = [QVector3D(1000, 1000, 0), QVector3D(1001, 1000, 0),
                     QVector3D(1001, 1001, 0), QVector3D(1000, 1001, 0)]
@@ -53,7 +104,8 @@ def setup(app):
             assert window._current_path == saved, "save did not update document"
             assert window.open_path(saved), "saved document did not reopen"
             assert len(app.scene.mesh.faces) == before + 1, "reopen lost edit"
-            assert len(app.scene.groups) == groups_before, "reopen lost groups"
+            assert _group_snapshot(app.scene.groups) == groups_before, (
+                "reopen changed nested group geometry or hierarchy")
             assert not app.viewport.history.undo_stack, "reopen retained old history"
 
             second = [QVector3D(1002, 1000, 0), QVector3D(1003, 1000, 0),
@@ -68,9 +120,10 @@ def setup(app):
             window._do_save(saved)
             assert window.open_path(saved), "final saved document did not reopen"
             assert len(app.scene.mesh.faces) == before + 2, "final reopen lost redo"
-            assert len(app.scene.groups) == groups_before, "final reopen lost groups"
+            assert _group_snapshot(app.scene.groups) == groups_before, (
+                "final reopen changed nested group geometry or hierarchy")
             result.update(status="passed", faces_after=before + 2,
-                          groups_after=groups_before)
+                          groups_after=_group_snapshot(app.scene.groups))
             code = 0
         except BaseException:
             result.update(status="failed", error=traceback.format_exc())
@@ -92,7 +145,7 @@ def sha256(path: Path) -> str:
 
 
 def run(bundle: Path, source: Path, output_dir: Path, timeout: int,
-        platform: str = "windows") -> dict:
+        platform: str = "windows", require_nested: bool = False) -> dict:
     exe = bundle / "ingetrazo.exe"
     if not exe.is_file():
         raise FileNotFoundError(exe)
@@ -142,6 +195,8 @@ def run(bundle: Path, source: Path, output_dir: Path, timeout: int,
             raise RuntimeError(json.dumps(report, indent=2))
         if not report["source_unchanged"] or report["saved_sha256"] is None:
             raise RuntimeError(json.dumps(report, indent=2))
+        if require_nested and report.get("groups_before", {}).get("nested", 0) < 1:
+            raise RuntimeError("input has no nested groups: " + json.dumps(report))
         return report
 
 
@@ -153,11 +208,13 @@ if __name__ == "__main__":
     parser.add_argument("--timeout", type=int, default=120)
     parser.add_argument("--platform", choices=("windows", "offscreen"),
                         default="windows")
+    parser.add_argument("--require-nested", action="store_true",
+                        help="fail unless the input exercises nested groups")
     parser.add_argument("--report", type=Path,
                         help="also write the JSON result to this path")
     args = parser.parse_args()
     result = run(args.bundle, args.source_igz, args.output_dir,
-                 args.timeout, args.platform)
+                 args.timeout, args.platform, args.require_nested)
     output = json.dumps(result, indent=2)
     if args.report is not None:
         args.report.parent.mkdir(parents=True, exist_ok=True)
