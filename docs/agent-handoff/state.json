@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-09",
-    "pull_requests_total": 87,
-    "open": 87,
+    "pull_requests_total": 88,
+    "open": 88,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -693,6 +693,8 @@
   "frozen_document_workflow_candidate": {
     "branch": "test/frozen-document-workflow",
     "base_pull_request": 89,
+    "pull_request": 90,
+    "implementation_commit": "b99a9ad8e5fa2ac467af13ebff6b0fcbd81c8620",
     "staged_bundle": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-version-final\\ingetrazo",
     "validation": "Disposable user plugin ran inside the frozen GUI: open, add face, save, reopen, add face, Undo, Redo, save and reopen. Native Windows examples retained 30/30 and 39/39 top-level groups; offscreen sofa retained 1/1; all original hashes unchanged.",
     "reports": [

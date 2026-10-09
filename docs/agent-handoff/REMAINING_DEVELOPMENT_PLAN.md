@@ -1,7 +1,7 @@
 # Remaining development and release plan
 
-Snapshot: 2026-10-09. This plan follows draft PR #89 on the fork's stacked
-branch. GitHub showed 87 open PRs and zero merged PRs. The last verified
+Snapshot: 2026-10-09. This plan follows draft PR #90 on the fork's stacked
+branch. GitHub showed 88 open PRs and zero merged PRs. The last verified
 installed Windows build was made from `3815ef8`, not the current stack.
 Percentages in `DEVELOPMENT_SUMMARY.md` estimate implementation in the stack;
 they are neither test coverage nor release readiness. Recheck GitHub and the

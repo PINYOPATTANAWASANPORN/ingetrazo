@@ -1,6 +1,7 @@
 # Frozen Windows document workflow gate — 2026-10-09
 
-Branch `test/frozen-document-workflow` builds on draft PR #89. The previous
+[Draft PR #90](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/90)
+on `test/frozen-document-workflow` builds on draft PR #89. The previous
 release check showed that a staged GUI could open a copied document and stay
 responsive, but it did not save, reopen or edit a document inside the frozen
 process. `packaging/smoke_frozen_document.py` now exercises those paths using
