@@ -1,6 +1,7 @@
 # Frozen nested-document round-trip gate — 2026-10-09
 
-Branch `test/frozen-nested-roundtrip` builds on the frozen open/edit/save
+[Draft PR #91](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/91)
+on `test/frozen-nested-roundtrip` builds on the frozen open/edit/save
 probe in draft PR #90. The original probe counted only top-level groups; a
 document could pass after losing a child group, changing its face geometry,
 or breaking mesh sharing between component copies.
