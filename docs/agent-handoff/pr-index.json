@@ -916,6 +916,17 @@
       "draft": true,
       "updated_at": "2026-10-09T00:15:32Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/89"
+    },
+    {
+      "number": 90,
+      "state": "open",
+      "title": "Gate frozen Windows document editing and reopen workflow",
+      "base": "fix/windows-exe-version-info",
+      "head": "test/frozen-document-workflow",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-09T02:21:40Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/90"
     }
   ]
 }

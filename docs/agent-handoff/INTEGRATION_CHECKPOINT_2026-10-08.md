@@ -342,3 +342,17 @@ MCP executable
 This changes Windows metadata only. The staged executable has not been
 installed. Fork publisher/version policy, Qt binary notices and interactive
 frozen editing remain release gates.
+
+## Follow-up: frozen GUI document workflow
+
+PR #89 final-head CI [37864181051](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37864181051)
+passed Ubuntu non-slow and Windows Qt offscreen jobs. The successor
+`test/frozen-document-workflow` adds a disposable user-plugin probe which runs
+*inside* the staged frozen GUI. Native Windows trials on `arco-yanque.igz` and
+`pileta-fuente-yanque.igz`, plus an offscreen trial on `sofa.igz`, opened a
+copy, added geometry, saved, reopened, edited again, undid/redid, saved and
+reopened. Group counts stayed 30/30, 39/39 and 1/1 respectively; the original
+files' hashes were unchanged. The Windows release workflow now runs the
+offscreen case after building. See [FROZEN_DOCUMENT_WORKFLOW_GATE.md](FROZEN_DOCUMENT_WORKFLOW_GATE.md)
+for exact evidence and limits. The hosted release-workflow run and manual
+pointer/viewport checks remain open; nothing was installed.

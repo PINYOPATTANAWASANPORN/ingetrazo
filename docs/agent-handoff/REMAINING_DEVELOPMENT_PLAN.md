@@ -1,7 +1,7 @@
 # Remaining development and release plan
 
-Snapshot: 2026-10-09. This plan follows draft PR #89 on the fork's stacked
-branch. GitHub showed 87 open PRs and zero merged PRs. The last verified
+Snapshot: 2026-10-09. This plan follows draft PR #90 on the fork's stacked
+branch. GitHub showed 88 open PRs and zero merged PRs. The last verified
 installed Windows build was made from `3815ef8`, not the current stack.
 Percentages in `DEVELOPMENT_SUMMARY.md` estimate implementation in the stack;
 they are neither test coverage nor release readiness. Recheck GitHub and the
@@ -147,8 +147,11 @@ quantities/schedules agree with the model after edits.
 2. The staged #87 bundle passed notices, hashes, `--check`, MCP `tools/list`
    and an offscreen sample-file open. Review it, then exercise frozen GUI
    save/reopen and editing workflows on representative project copies. A
-   native staged app opened a copied sofa document, but interactive actions
-   could not be driven in this session. Complete the Qt notice and
+   native staged app opened a copied sofa document. The successor
+   `test/frozen-document-workflow` also exercised open/edit/save/reopen and
+   Undo/Redo inside the frozen process on disposable copies; its automated
+   scope and remaining manual checks are recorded in
+   `FROZEN_DOCUMENT_WORKFLOW_GATE.md`. Complete the Qt notice and
    fork-branding review documented in the frozen-package audit. Test the
    real update path and rollback only after those checks. The successor
    `fix/windows-exe-version-info` candidate now has checked PE version

@@ -8,7 +8,7 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-08**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **87 open PRs in the 2026-10-09 snapshot**; check GitHub
+- PR inventory: **88 open PRs in the 2026-10-09 snapshot**; check GitHub
   before treating that count as current.
 - Local installation: **verified on Windows 10** from code commit `3815ef8`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
@@ -58,6 +58,8 @@ and the engineering knowledge extracted from the work.
     branch-chain audit, hosted CI, native Windows regression and open gates.
 23. [`FROZEN_NOTICE_AND_BRANDING_AUDIT_2026-10-09.md`](FROZEN_NOTICE_AND_BRANDING_AUDIT_2026-10-09.md) —
     staged Windows Qt notice and version-identifier inventory.
+24. [`FROZEN_DOCUMENT_WORKFLOW_GATE.md`](FROZEN_DOCUMENT_WORKFLOW_GATE.md) —
+    disposable frozen-GUI open/edit/save/reopen and Undo/Redo validation.
 
 The handoff pack itself is delivered by
 [#33](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/33), stacked on
@@ -328,3 +330,10 @@ on `perf/vbo-changed-tail` avoids copying an unchanged CPU buffer prefix
 before a small GPU-tail write. See
 [MOVE_VBO_CHANGED_TAIL.md](MOVE_VBO_CHANGED_TAIL.md) for the isolated benchmark,
 test scope, real-model limit and next profiler target.
+
+Windows preview packaging continues through
+[draft PR #90](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/90),
+stacked on #89. A frozen-process probe now verifies open, edit, save, reopen,
+Undo and Redo on disposable document copies. See
+[FROZEN_DOCUMENT_WORKFLOW_GATE.md](FROZEN_DOCUMENT_WORKFLOW_GATE.md) for the
+local results and remaining release checks. The installed build is unchanged.

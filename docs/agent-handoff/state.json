@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-09",
-    "pull_requests_total": 87,
-    "open": 87,
+    "pull_requests_total": 88,
+    "open": 88,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -120,8 +120,8 @@
     "implement deterministic checking of specialist field claims against the snapshot; prompt-only clarification did not prevent unsupported claims in local runs",
     "collect independent human judgments on public specialist findings and reference-fact coverage; current developer-agent labels are preliminary and overall quality remains unscored",
     "compare additional named local and cloud models on a larger public corpus with response mode, reported tokens, and independently judged coverage kept separate",
-    "reproduce the full Windows Qt suite in CI and verify the staged frozen GUI against representative live workflows; the local 421-file single-process gate passed at 2.55 GB peak private memory",
-    "verify staged frozen GUI and representative live workflows before installing or merging the stacked PRs",
+    "reproduce the full Windows Qt suite in CI and complete physical pointer, viewport and nested-geometry checks on the frozen GUI; the local 421-file single-process gate passed at 2.55 GB peak private memory",
+    "run the new frozen document smoke in the hosted Windows build workflow before installing or merging the stacked PRs",
     "verify provider-reported usage and response-mode compatibility for additional local and cloud providers; current measured baseline covers one Ollama model pairing",
     "consider signed or independently anchored audit evidence; current saved history is unsigned",
     "design independently authenticated specialist identities if external agents need trust separation",
@@ -686,7 +686,23 @@
     "validation": "Both frozen executables report IngeTrazo 0.5.7 string and fixed numeric PE metadata; --check exit 0; 43 wheel metadata/license files and project/OpenSKP notices match; verifier rejects older bundle without metadata and a wrong expected version",
     "app_sha256": "4ED1B83CA591DA2B89936890161EE6A07DBDFD46C253C943DDD8D8B78C9AB3AF",
     "mcp_sha256": "96F58037A28138D47D6A92C532E2B2C90784C306994895A7D7CDF62955FF1F5B",
+    "hosted_ci": "run 37864181051: Ubuntu non-slow and Windows Qt offscreen smoke passed",
     "installed": false,
     "remaining": "Fork publisher/name/version policy, Qt binary notices, frozen interactive editing and production update remain open"
+  },
+  "frozen_document_workflow_candidate": {
+    "branch": "test/frozen-document-workflow",
+    "base_pull_request": 89,
+    "pull_request": 90,
+    "implementation_commit": "b99a9ad8e5fa2ac467af13ebff6b0fcbd81c8620",
+    "staged_bundle": "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\dist-version-final\\ingetrazo",
+    "validation": "Disposable user plugin ran inside the frozen GUI: open, add face, save, reopen, add face, Undo, Redo, save and reopen. Native Windows examples retained 30/30 and 39/39 top-level groups; offscreen sofa retained 1/1; all original hashes unchanged.",
+    "reports": [
+      "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\frozen-workflow-pr90-final-offscreen.json",
+      "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\frozen-workflow-pr90-final-arco.json",
+      "C:\\Users\\Lenovo\\Desktop\\IngeTrazoTest\\frozen-workflow-pr90-final-pileta.json"
+    ],
+    "installed": false,
+    "remaining": "Hosted Windows build workflow, physical pointer and viewport checks, nested geometry fidelity, Qt notices, fork identity and production update remain open"
   }
 }
