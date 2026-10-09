@@ -40,3 +40,7 @@ decode/hydration; `scripts/bench_igz_first_frame.py` measures native Open to
 Qt's first model-frame submission and a coarse event-loop gap. Their dated raw
 results in `results/` are local baselines, not release thresholds or a claim
 about the much larger Plaza model.
+Pass `--profile-phases` to the first-frame runner for matching-paint viewport
+phase and chunk-build timings. It enables diagnostic telemetry only in each
+child process and records it in the report; compare speed with unprofiled
+runs, since profiling itself changes the workload.

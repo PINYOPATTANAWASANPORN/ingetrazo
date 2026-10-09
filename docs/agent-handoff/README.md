@@ -355,3 +355,6 @@ The follow-up [draft PR #93](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/
 on `perf/igz-first-frame-baseline` extends that corpus to native
 `MainWindow.open_path` and the first model `frameSwapped`, including a coarse
 event-loop gap. See [IGZ_FIRST_FRAME_BASELINE.md](IGZ_FIRST_FRAME_BASELINE.md).
+The opt-in first-paint phase follow-up identifies cold group chunk preparation
+as the main measured paint cost on pileta and arco. See
+[IGZ_FIRST_PAINT_PHASES.md](IGZ_FIRST_PAINT_PHASES.md).

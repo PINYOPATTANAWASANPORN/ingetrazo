@@ -26,6 +26,9 @@ large-model or progressive-paint gate, so its 70% estimate is unchanged.
 Draft PR #93's native first-frame baseline identifies model painting as a
 substantial part of open-to-frame time on the bundled examples; see
 `IGZ_FIRST_FRAME_BASELINE.md`. This evidence also leaves 70% unchanged.
+The opt-in native phase profile in `IGZ_FIRST_PAINT_PHASES.md` narrows the
+first-paint cost to cold `_group_chunk` preparation on pileta and arco; it
+does not yet deliver a renderer speedup or change the 70% estimate.
 
 | Workstream | Estimated implementation in stack | Delivered slices | Important remaining work |
 | --- | ---: | --- | --- |

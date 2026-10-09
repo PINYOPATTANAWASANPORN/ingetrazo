@@ -739,6 +739,16 @@
     "baseline": "benchmarks/results/igz-windows-first-frame-2026-10-09.json",
     "validation": "Three fresh native Windows processes per bundled IGZ; first model frameSwapped observed after sceneVersionChanged; source hashes unchanged",
     "installed": false,
-    "remaining": "Profile first-paint phases, add real large nested-project fixture, implement bounded render improvement and rerun native benchmark"
+    "remaining": "First-paint phase profile follows in successor; add real large nested-project fixture, implement bounded render improvement and rerun unprofiled native benchmark"
+  },
+  "igz_first_paint_phases_candidate": {
+    "branch": "perf/igz-first-paint-phases",
+    "base_pull_request": 93,
+    "status": "draft prepared",
+    "script": "scripts/bench_igz_first_frame.py --profile-phases",
+    "profile": "benchmarks/results/igz-windows-first-paint-phases-2026-10-09.json",
+    "validation": "Three fresh native Windows processes per bundled IGZ; matching-paint viewport telemetry captured in memory; 23 chunk/instance/corpus tests passed",
+    "installed": false,
+    "remaining": "Implement bounded cold render-chunk optimization, then rerun unprofiled first-frame baseline and test a genuinely large nested project"
   }
 }

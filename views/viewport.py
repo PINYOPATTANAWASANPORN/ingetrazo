@@ -2321,7 +2321,8 @@ class Viewport(QOpenGLWidget):
             _plog("paintGL", _dt)
             # P0 breakdown: per-section CPU ms + cull counters + the
             # input→paint latency of the gesture that triggered this frame.
-            if _dt >= 25.0:
+            if (_dt >= 25.0 or
+                    os.environ.get("INGETRAZO_PERF_ALL_FRAMES") == "1"):
                 cf, tf, ce = getattr(self, "_cull_stats", (0, 0, 0))
                 it = getattr(self, "_input_t", None)
                 lat = (f" lat={( _time_mod.monotonic() - it) * 1000.0:.0f}ms"
@@ -4975,6 +4976,11 @@ class Viewport(QOpenGLWidget):
         if _cache_ver(self) == self._edges_version:
             return
         _st0 = _time_mod.perf_counter() if _PERF else 0.0
+        _sync_marks = [] if _PERF else None
+
+        def _sync_mark(name):
+            if _sync_marks is not None:
+                _sync_marks.append((name, _time_mod.perf_counter()))
 
         # The scene changed: purge hover/selection references to entities that
         # no longer exist, or deleted geometry keeps ghost-rendering (blue
@@ -5115,6 +5121,7 @@ class Viewport(QOpenGLWidget):
         self._edge_spans = edge_spans
         self._edges_count = self._upload_vbo(
             self._edges_vbo, "edges", edge_parts) // 12
+        _sync_mark("edge_blocks")
 
         # The selection set is heterogeneous (edges, faces and/or whole
         # groups). A selected GROUP highlights via its cached chunk — walking
@@ -5173,6 +5180,7 @@ class Viewport(QOpenGLWidget):
         self._sel_faces_count = self._upload_vbo(
             self._sel_faces_vbo, "sel_faces",
             [buf.tobytes() for buf in sel_face_runs.values()]) // 12
+        _sync_mark("selection")
 
         # Faces: triangulate each face (fan when simple, hole-aware when the
         # face has been divided) into one VBO, but grouped by material colour
@@ -5350,6 +5358,7 @@ class Viewport(QOpenGLWidget):
                 back_ttex_runs.setdefault(key, []).append(raw)
             if chunk.get("fvcol"):
                 fcull_vcol_parts.append(chunk["fvcol"])
+        _sync_mark("face_blocks")
 
         # Kept as a part LIST (not one concatenated blob) so the upload can
         # tell which pieces changed; the trailing runs below append to it.
@@ -5475,9 +5484,16 @@ class Viewport(QOpenGLWidget):
             start += count
         self._tex_faces_count = self._upload_vbo(
             self._tex_faces_vbo, "tex", tex_parts, empty=40) // 20
+        _sync_mark("face_uploads")
 
         if _PERF:
-            _plog("sync_edges", (_time_mod.perf_counter() - _st0) * 1000.0)
+            prev = _st0
+            segments = []
+            for name, stamp in _sync_marks:
+                segments.append(f"{name}={(stamp - prev) * 1000.0:.0f}ms")
+                prev = stamp
+            _plog("sync_edges", (_time_mod.perf_counter() - _st0) * 1000.0,
+                  extra=" ".join(segments), floor=0.0)
         self._edges_version = _cache_ver(self)
         self.sceneVersionChanged.emit(self._edges_version)
 
