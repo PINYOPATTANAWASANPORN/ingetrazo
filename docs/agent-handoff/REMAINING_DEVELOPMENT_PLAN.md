@@ -158,7 +158,11 @@ quantities/schedules agree with the model after edits.
    resources for both Windows executables; publisher/name policy and Qt
    notices remain open. The installed application remains at `3815ef8`.
 3. Establish the real-model performance corpus and capture baseline numbers;
-   use it to choose the next renderer or progressive-paint slice.
+   use it to choose the next renderer or progressive-paint slice. The
+   `perf/igz-real-model-corpus` candidate records fresh-process `load_scene`
+   timing for three SHA-256-pinned examples; see
+   `IGZ_REAL_MODEL_CORPUS.md`. Its first-paint and truly large nested-project
+   coverage remain open, so keep the performance estimate at 70%.
 4. In parallel with performance measurement, start one bounded Outliner
    Face/Edge or nested-selection slice with a real-model UX check.
 5. Start the deterministic AI finding-grounding gate and human evaluation
