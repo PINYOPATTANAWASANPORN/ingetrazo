@@ -905,6 +905,17 @@
       "draft": true,
       "updated_at": "2026-10-08T18:39:22Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/88"
+    },
+    {
+      "number": 89,
+      "state": "open",
+      "title": "Add Windows version resources to frozen executables",
+      "base": "docs/gate0-pr87-checkpoint",
+      "head": "fix/windows-exe-version-info",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-09T00:15:32Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/89"
     }
   ]
 }

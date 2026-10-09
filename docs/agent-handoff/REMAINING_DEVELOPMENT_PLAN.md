@@ -1,7 +1,7 @@
 # Remaining development and release plan
 
-Snapshot: 2026-10-09. This plan follows draft PR #88 on the fork's stacked
-branch. GitHub showed 86 open PRs and zero merged PRs. The last verified
+Snapshot: 2026-10-09. This plan follows draft PR #89 on the fork's stacked
+branch. GitHub showed 87 open PRs and zero merged PRs. The last verified
 installed Windows build was made from `3815ef8`, not the current stack.
 Percentages in `DEVELOPMENT_SUMMARY.md` estimate implementation in the stack;
 they are neither test coverage nor release readiness. Recheck GitHub and the
@@ -150,8 +150,10 @@ quantities/schedules agree with the model after edits.
    native staged app opened a copied sofa document, but interactive actions
    could not be driven in this session. Complete the Qt notice and
    fork-branding review documented in the frozen-package audit. Test the
-   real update path and rollback only after those checks; the installed
-   application remains at `3815ef8`.
+   real update path and rollback only after those checks. The successor
+   `fix/windows-exe-version-info` candidate now has checked PE version
+   resources for both Windows executables; publisher/name policy and Qt
+   notices remain open. The installed application remains at `3815ef8`.
 3. Establish the real-model performance corpus and capture baseline numbers;
    use it to choose the next renderer or progressive-paint slice.
 4. In parallel with performance measurement, start one bounded Outliner

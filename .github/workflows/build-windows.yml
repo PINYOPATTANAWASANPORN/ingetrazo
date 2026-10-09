@@ -122,6 +122,12 @@ jobs:
           ./dist/ingetrazo/ingetrazo.exe --check
           echo "bundle OK"
 
+      - name: Verificar versión de ambos ejecutables
+        shell: pwsh
+        run: |
+          $version = (python -c "from core.version import __version__; print(__version__)").Trim()
+          ./packaging/verify_windows_exe_version.ps1 -Bundle dist/ingetrazo -ExpectedVersion $version
+
       - name: Incluir LEEME en el bundle
         shell: bash
         run: |
