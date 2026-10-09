@@ -169,6 +169,9 @@ quantities/schedules agree with the model after edits.
    The opt-in first-paint phase profile (`IGZ_FIRST_PAINT_PHASES.md`) identifies
    cold `_group_chunk` preparation on pileta and arco as the next bounded
    renderer target; repeat the unprofiled baseline after any optimization.
+   `IGZ_FLAT_PICK_TRIANGLES.md` records one bounded cold-chunk change and a
+   cache-isolated native comparison. Follow it with a genuinely large nested
+   model and visual/picking checks before changing the 70% estimate.
 4. In parallel with performance measurement, start one bounded Outliner
    Face/Edge or nested-selection slice with a real-model UX check.
 5. Start the deterministic AI finding-grounding gate and human evaluation

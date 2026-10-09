@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "boundary": "MainWindow.open_path to model frameSwapped on visible native Qt; excludes process startup and monitor scanout",
+  "environment": {
+    "os": "Windows-10-10.0.19045-SP0",
+    "machine": "AMD64",
+    "python": "3.12.15",
+    "cpu_count": 8
+  },
+  "repeats": 3,
+  "profile_phases": false,
+  "cases": [
+    {
+      "id": "banca-pergola",
+      "path": "examples/banca-pergola-yanque.igz",
+      "sha256": "24b814ee07c6bc0178e2ce4c4d739d54ff98457e1ae8fcacedf595d0c3988d6c",
+      "samples_ms": [
+        {
+          "open_to_ready_ms": 238.633,
+          "open_to_return_ms": 255.522,
+          "ready_to_paint_ms": 25.141,
+          "paint_ms": 90.492,
+          "paint_to_swap_ms": 9.938,
+          "open_to_swap_ms": 364.204,
+          "max_load_event_gap_ms": 141.842,
+          "max_open_to_swap_event_gap_ms": 157.837,
+          "heartbeat_ticks_before_ready": 2
+        },
+        {
+          "open_to_ready_ms": 222.122,
+          "open_to_return_ms": 241.21,
+          "ready_to_paint_ms": 26.6,
+          "paint_ms": 105.546,
+          "paint_to_swap_ms": 10.373,
+          "open_to_swap_ms": 364.641,
+          "max_load_event_gap_ms": 118.97,
+          "max_open_to_swap_event_gap_ms": 177.795,
+          "heartbeat_ticks_before_ready": 2
+        },
+        {
+          "open_to_ready_ms": 231.798,
+          "open_to_return_ms": 252.22,
+          "ready_to_paint_ms": 32.85,
+          "paint_ms": 131.564,
+          "paint_to_swap_ms": 9.6,
+          "open_to_swap_ms": 405.812,
+          "max_load_event_gap_ms": 125.996,
+          "max_open_to_swap_event_gap_ms": 210.277,
+          "heartbeat_ticks_before_ready": 2
+        }
+      ],
+      "median_ms": {
+        "open_to_ready_ms": 231.798,
+        "open_to_return_ms": 252.22,
+        "ready_to_paint_ms": 26.6,
+        "paint_ms": 105.546,
+        "paint_to_swap_ms": 9.938,
+        "open_to_swap_ms": 364.641,
+        "max_load_event_gap_ms": 125.996,
+        "max_open_to_swap_event_gap_ms": 177.795,
+        "heartbeat_ticks_before_ready": 2
+      }
+    },
+    {
+      "id": "pileta-fuente",
+      "path": "examples/pileta-fuente-yanque.igz",
+      "sha256": "b09df79be7caa0dbfb5467588b28ddc84dd41ff5fa6843f0673ba8ead36a9bc1",
+      "samples_ms": [
+        {
+          "open_to_ready_ms": 1320.678,
+          "open_to_return_ms": 1380.222,
+          "ready_to_paint_ms": 70.621,
+          "paint_ms": 1750.304,
+          "paint_to_swap_ms": 12.245,
+          "open_to_swap_ms": 3153.848,
+          "max_load_event_gap_ms": 404.936,
+          "max_open_to_swap_event_gap_ms": 1872.157,
+          "heartbeat_ticks_before_ready": 13
+        },
+        {
+          "open_to_ready_ms": 1335.003,
+          "open_to_return_ms": 1397.523,
+          "ready_to_paint_ms": 72.511,
+          "paint_ms": 1689.4,
+          "paint_to_swap_ms": 12.134,
+          "open_to_swap_ms": 3109.048,
+          "max_load_event_gap_ms": 429.129,
+          "max_open_to_swap_event_gap_ms": 1813.998,
+          "heartbeat_ticks_before_ready": 13
+        },
+        {
+          "open_to_ready_ms": 1361.167,
+          "open_to_return_ms": 1422.301,
+          "ready_to_paint_ms": 70.871,
+          "paint_ms": 1712.007,
+          "paint_to_swap_ms": 11.385,
+          "open_to_swap_ms": 3155.43,
+          "max_load_event_gap_ms": 430.636,
+          "max_open_to_swap_event_gap_ms": 1835.407,
+          "heartbeat_ticks_before_ready": 13
+        }
+      ],
+      "median_ms": {
+        "open_to_ready_ms": 1335.003,
+        "open_to_return_ms": 1397.523,
+        "ready_to_paint_ms": 70.871,
+        "paint_ms": 1712.007,
+        "paint_to_swap_ms": 12.134,
+        "open_to_swap_ms": 3153.848,
+        "max_load_event_gap_ms": 429.129,
+        "max_open_to_swap_event_gap_ms": 1835.407,
+        "heartbeat_ticks_before_ready": 13
+      }
+    },
+    {
+      "id": "arco",
+      "path": "examples/arco-yanque.igz",
+      "sha256": "a0b400068b1d39907bc798d30513bca6bab8d5d320a999090c3107654b59457a",
+      "samples_ms": [
+        {
+          "open_to_ready_ms": 674.788,
+          "open_to_return_ms": 710.405,
+          "ready_to_paint_ms": 45.062,
+          "paint_ms": 711.562,
+          "paint_to_swap_ms": 13.98,
+          "open_to_swap_ms": 1445.391,
+          "max_load_event_gap_ms": 184.088,
+          "max_open_to_swap_event_gap_ms": 805.994,
+          "heartbeat_ticks_before_ready": 8
+        },
+        {
+          "open_to_ready_ms": 717.809,
+          "open_to_return_ms": 753.784,
+          "ready_to_paint_ms": 45.357,
+          "paint_ms": 668.127,
+          "paint_to_swap_ms": 13.342,
+          "open_to_swap_ms": 1444.634,
+          "max_load_event_gap_ms": 294.814,
+          "max_open_to_swap_event_gap_ms": 816.02,
+          "heartbeat_ticks_before_ready": 6
+        },
+        {
+          "open_to_ready_ms": 736.127,
+          "open_to_return_ms": 771.698,
+          "ready_to_paint_ms": 44.418,
+          "paint_ms": 679.7,
+          "paint_to_swap_ms": 12.049,
+          "open_to_swap_ms": 1472.294,
+          "max_load_event_gap_ms": 306.398,
+          "max_open_to_swap_event_gap_ms": 845.265,
+          "heartbeat_ticks_before_ready": 6
+        }
+      ],
+      "median_ms": {
+        "open_to_ready_ms": 717.809,
+        "open_to_return_ms": 753.784,
+        "ready_to_paint_ms": 45.062,
+        "paint_ms": 679.7,
+        "paint_to_swap_ms": 13.342,
+        "open_to_swap_ms": 1445.391,
+        "max_load_event_gap_ms": 294.814,
+        "max_open_to_swap_event_gap_ms": 816.02,
+        "heartbeat_ticks_before_ready": 6
+      }
+    }
+  ]
+}

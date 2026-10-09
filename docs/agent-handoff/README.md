@@ -359,3 +359,5 @@ The follow-up [draft PR #94](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/
 adds an opt-in first-paint phase profile and identifies cold group chunk preparation
 as the main measured paint cost on pileta and arco. See
 [IGZ_FIRST_PAINT_PHASES.md](IGZ_FIRST_PAINT_PHASES.md).
+The subsequent flat pick-triangle change and cache-isolated native comparison
+are in [IGZ_FLAT_PICK_TRIANGLES.md](IGZ_FLAT_PICK_TRIANGLES.md).

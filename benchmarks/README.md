@@ -44,3 +44,7 @@ Pass `--profile-phases` to the first-frame runner for matching-paint viewport
 phase and chunk-build timings. It enables diagnostic telemetry only in each
 child process and records it in the report; compare speed with unprofiled
 runs, since profiling itself changes the workload.
+The runner now gives each child a fresh texture/chunk cache directory, so
+before/after cold first-frame measurements cannot accidentally reuse a chunk
+from the user's persistent cache. Older first-frame results were measured
+without this explicit cache isolation and are a different baseline.

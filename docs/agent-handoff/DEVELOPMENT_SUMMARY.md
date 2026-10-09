@@ -29,6 +29,10 @@ substantial part of open-to-frame time on the bundled examples; see
 The opt-in native phase profile in `IGZ_FIRST_PAINT_PHASES.md` narrows the
 first-paint cost to cold `_group_chunk` preparation on pileta and arco; it
 does not yet deliver a renderer speedup or change the 70% estimate.
+A following cold-chunk candidate stores pick triangles in a flat double
+buffer; its three-run native comparison and cache-isolation limits are in
+`IGZ_FLAT_PICK_TRIANGLES.md`. The 70% estimate remains unchanged pending a
+large nested-project gate and progressive painting.
 
 | Workstream | Estimated implementation in stack | Delivered slices | Important remaining work |
 | --- | ---: | --- | --- |
