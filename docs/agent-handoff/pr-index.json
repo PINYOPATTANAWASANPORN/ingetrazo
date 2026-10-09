@@ -949,6 +949,17 @@
       "draft": true,
       "updated_at": "2026-10-09T03:58:55Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/92"
+    },
+    {
+      "number": 93,
+      "state": "open",
+      "title": "Benchmark native IGZ open to first Qt model frame",
+      "base": "perf/igz-real-model-corpus",
+      "head": "perf/igz-first-frame-baseline",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-09T04:36:57Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/93"
     }
   ]
 }

@@ -1,6 +1,6 @@
 # Native IGZ first-frame baseline
 
-Branch `perf/igz-first-frame-baseline` follows draft PR #92. The preceding
+Draft PR #93 on `perf/igz-first-frame-baseline` follows draft PR #92. The preceding
 `load_scene` corpus measured decode/hydration only. This slice uses the same
 three SHA-256-pinned example documents and exercises the real
 `MainWindow.open_path` path in a visible native Qt window. Every sample gets a

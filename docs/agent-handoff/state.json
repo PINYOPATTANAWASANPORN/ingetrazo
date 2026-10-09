@@ -733,8 +733,8 @@
   "igz_first_frame_candidate": {
     "branch": "perf/igz-first-frame-baseline",
     "base_pull_request": 92,
-    "pull_request": null,
-    "status": "candidate",
+    "pull_request": 93,
+    "status": "draft",
     "script": "scripts/bench_igz_first_frame.py",
     "baseline": "benchmarks/results/igz-windows-first-frame-2026-10-09.json",
     "validation": "Three fresh native Windows processes per bundled IGZ; first model frameSwapped observed after sceneVersionChanged; source hashes unchanged",
