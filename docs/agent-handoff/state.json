@@ -14,8 +14,8 @@
   },
   "delivery": {
     "github_snapshot_date": "2026-10-09",
-    "pull_requests_total": 92,
-    "open": 92,
+    "pull_requests_total": 93,
+    "open": 93,
     "merged": 0,
     "missing_numbers": [
       18,
@@ -755,7 +755,8 @@
   "igz_flat_pick_triangles_candidate": {
     "branch": "perf/igz-flat-pick-triangles",
     "base_pull_request": 94,
-    "status": "draft prepared",
+    "pull_request": 95,
+    "status": "draft",
     "before": "benchmarks/results/igz-windows-cold-chunk-before-2026-10-09.json",
     "after": "benchmarks/results/igz-windows-cold-chunk-after-2026-10-09.json",
     "validation": "Three fresh native Windows processes per bundled IGZ before and after, each with isolated texture/chunk cache; 94 targeted tests passed and 1 skipped; Python compile and diff checks passed",

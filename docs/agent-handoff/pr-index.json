@@ -971,6 +971,17 @@
       "draft": true,
       "updated_at": "2026-10-09T04:52:41Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/94"
+    },
+    {
+      "number": 95,
+      "state": "open",
+      "title": "Reduce cold chunk pick-triangle allocations",
+      "base": "perf/igz-first-paint-phases",
+      "head": "perf/igz-flat-pick-triangles",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-09T05:35:43Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/95"
     }
   ]
 }

@@ -1,6 +1,6 @@
 # Cold IGZ chunk: flat pick triangles
 
-This bounded follow-up to `IGZ_FIRST_PAINT_PHASES.md` changes the cold
+Draft PR #95, stacked on #94, changes the cold
 `_group_chunk` build. Pick triangles previously became a nested Python list
 (`triangle → three vertices → three coordinates`) before NumPy converted the
 whole list to `float64`. They now accumulate in a flat `array('d')`; NumPy
