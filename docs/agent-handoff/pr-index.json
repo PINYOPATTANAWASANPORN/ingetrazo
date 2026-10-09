@@ -960,6 +960,17 @@
       "draft": true,
       "updated_at": "2026-10-09T04:36:57Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/93"
+    },
+    {
+      "number": 94,
+      "state": "open",
+      "title": "Profile first IGZ model paint and cold chunk preparation",
+      "base": "perf/igz-first-frame-baseline",
+      "head": "perf/igz-first-paint-phases",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-09T04:52:41Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/94"
     }
   ]
 }

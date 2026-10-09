@@ -1,6 +1,6 @@
 # Native IGZ first-paint phase profile
 
-This follow-up to `IGZ_FIRST_FRAME_BASELINE.md` adds an opt-in
+Draft PR #94, stacked on #93, adds an opt-in
 `--profile-phases` mode to the same fresh-process benchmark. It captures
 existing viewport telemetry in memory for the **matching first model paint**
 and adds four subphases inside `_sync_edges`. No document is saved. Normal
