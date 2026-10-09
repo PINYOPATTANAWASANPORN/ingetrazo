@@ -26,15 +26,17 @@
   "installed_build": {
     "platform": "Windows 10 x64",
     "path": "C:\\Program Files\\IngeTrazo",
-    "source_commit": "3815ef8c672ada7f086eee1bcf1bba1e96d75449",
-    "installed_at_utc": "2026-10-05T23:07:03.629272Z",
-    "main_sha256": "0F6B8364DA2084D67A374F1A318E2116913995D4732C85D88BC80846BA6D4937",
-    "mcp_sha256": "141905CFE38CC9545610EBBE3DB9308D9C6D52867EEDB414CE40601F5710AE66",
+    "source_commit": "7e4becf7473e2de30f02e40d21913b40a24d3b76",
+    "installed_at_utc": "2026-10-09T09:15:15.9497458Z",
+    "main_sha256": "C2A50CECD8053BB7FC8C425E28F50D02CB59A94B25426A24A726FEC2C9B60B22",
+    "mcp_sha256": "57D7B6AD96F84F23C9DFDC2A9575BE80DF924A9BAB5C2BA66A06F2C802A7E81A",
     "checks": [
       "installed executable --check exit 0",
-      "installed GUI was closed for the update; launch not rechecked after this installation",
+      "installed native frozen document workflow on arco passed open/edit/save/reopen/Undo/Redo",
+      "installed native QOpenGLWidget framebuffer shows the arco model; physical pointer and monitor scanout remain unverified",
       "installed MCP tools/list returned 22 tools",
-      "installed executable hashes match the build manifest"
+      "installed executable hashes match the build manifest",
+      "updater Program Files report returned updated; the complete 832-file prior snapshot matches an independent preflight copy"
     ]
   },
   "staged_build": {
@@ -49,7 +51,7 @@
     "native_framebuffer_review": "arco and pileta 1448x934 QOpenGLWidget captures show expected geometry and textures; physical pointer and monitor scanout remain unverified",
     "updater_fixture": "rollback injection restored installed 3815ef8 hash; normal copied-target update passed",
     "file_count": 874,
-    "installed": false
+    "installed": true
   },
   "validation": {
     "scope": "selected review benchmark, cross-provider review, audit file, audit, export, external review, Assistant, task, bridge, context and changes regression suite",
@@ -57,7 +59,7 @@
     "failed": 0,
     "python_compile": "passed",
     "git_diff_check": "passed",
-    "broad_local_suite": "421 test files in one native-Windows process: 4594 passed, 11 skipped, 1 xfailed, 0 failed, exit 0 in 21m38s, peak private memory 2.55 GB under a 4 GB watchdog; the same counts were previously verified in 43 isolated processes",
+    "broad_local_suite": "PR #95 source at documentation head 92bb9ee: native Windows single-process pytest -q tests, 4635 passed, 11 skipped, 1 xfailed, 0 failed in 18m44s; see workspace native-pr95-full.log. Earlier 421-file memory gate: 4594 passed, 11 skipped, 1 xfailed, 0 failed, 2.55 GB peak private memory",
     "windows_qt_gate": "Outliner native access violation fixed by deferred itemChanged rebuild; Qt-lifetime follow-up releases test windows at module boundaries and binds delayed UI callbacks to owner lifetime; full 421-file single-process native Windows suite passed locally; first hosted native Windows CI exited 1 at 4% without traceback; revised hosted offscreen smoke passed 116 tests; Ubuntu fast job had one platform-width assertion failure (3773 passed); baseline-relative regression correction passed all 14 sheet-tab tests on native and offscreen Qt; hosted revalidation pending; exploratory full offscreen run hung at 22%, then a 123-file prefix had five font/pixel failures; logs in local memory-fix-full-final-* and ci-offscreen-*"
   },
   "windows_qt_lifetime_delivery": {
@@ -123,7 +125,7 @@
     "collect independent human judgments on public specialist findings and reference-fact coverage; current developer-agent labels are preliminary and overall quality remains unscored",
     "compare additional named local and cloud models on a larger public corpus with response mode, reported tokens, and independently judged coverage kept separate",
     "reproduce the full Windows Qt suite in CI and complete physical pointer, viewport and nested-geometry checks on the frozen GUI; the local 421-file single-process gate passed at 2.55 GB peak private memory",
-    "run the hosted Windows release build at the intended SHA, complete visible pointer/viewport and Qt/framework notice review, then rehearse an elevated Program Files update only after the installed app and MCP clients are closed",
+    "the local PR #95 preview is installed and verified; before external distribution register the hosted Windows release workflow, complete physical pointer/monitor scanout and Qt/framework notice review, and choose accurate fork name/publisher/version identifiers",
     "verify provider-reported usage and response-mode compatibility for additional local and cloud providers; current measured baseline covers one Ollama model pairing",
     "consider signed or independently anchored audit evidence; current saved history is unsigned",
     "design independently authenticated specialist identities if external agents need trust separation",

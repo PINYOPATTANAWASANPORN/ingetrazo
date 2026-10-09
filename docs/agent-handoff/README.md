@@ -10,7 +10,7 @@ and the engineering knowledge extracted from the work.
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
 - PR inventory: **93 open PRs through #95 in the 2026-10-09 snapshot**; check GitHub
   before treating that count as current.
-- Local installation: **verified on Windows 10** from code commit `3815ef8`;
+- Local installation: **verified on Windows 10** from code commit `7e4becf`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
 
 ## Read in this order
@@ -95,8 +95,9 @@ The detailed design documents remain authoritative for their domains:
   the recorded targeted validation.
 - **Merged** means GitHub reports a non-null merge time into the intended base.
 - **Installed** means a build containing the commit was deployed on the local
-  machine and checked at the installed path. The Windows installation now
-  contains code through `3815ef8`; subsequent staged bundles are not installed.
+  machine and checked at the installed path. The Windows preview installation
+  now contains code through `7e4becf`; see `INSTALLATION.md` for the exact
+  hashes, frozen workflow evidence and rollback snapshot.
 - Percentages are planning estimates derived from acceptance targets. They are
   not test coverage or proof of release readiness.
 

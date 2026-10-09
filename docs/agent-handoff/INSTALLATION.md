@@ -152,3 +152,37 @@ arch/person and textured fountain respectively; their JSON reports contain
 verifies the application's rendered framebuffer, not monitor scanout,
 physical pointer interaction or pixel-perfect agreement with a baseline.
 The temporary probe is `smoke-pr95-viewport.py` in the workspace root.
+
+## PR #95 local preview installed (2026-10-09)
+
+The native Windows one-process `pytest -q tests` run on the PR #95 tree at
+documentation head `92bb9ee` passed: **4,635 passed, 11 skipped, 1 xfailed**
+in 1,124.45 seconds, exit 0. The log is `native-pr95-full.log` in the
+workspace root. The application source matches the frozen bundle's
+`7e4becf` commit; later commits through `92bb9ee` changed only handoff files.
+The [final-head CI run](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37894937495)
+passed both Ubuntu non-slow and Windows Qt offscreen jobs.
+
+After closing the installed GUI and Codex-spawned MCP processes, the verified
+updater was run elevated with `-AllowProgramFiles`. Its report at
+`preview-pr95-live-20261009/backup/report.json` says `updated`, prior commit
+`3815ef8`, new commit `7e4becf`, 874 source files, and activated `--check`
+exit 0. `C:\Program Files\IngeTrazo\BUILD-INFO.json` records installation at
+`2026-10-09T09:15:15.9497458Z`. The installed GUI hash is
+`C2A50CECD8053BB7FC8C425E28F50D02CB59A94B25426A24A726FEC2C9B60B22`;
+installed MCP hash is
+`57D7B6AD96F84F23C9DFDC2A9575BE80DF924A9BAB5C2BA66A06F2C802A7E81A`.
+Both match the staged build manifest. Independent checks at the installed
+path found `--check` exit 0, 22 MCP tools, and a passing native frozen
+open/edit/save/reopen/Undo/Redo probe on a disposable arco copy. A native
+framebuffer capture from the installed path shows the expected arch model;
+`smoke-installed-pr95-arco.json` and `viewport-installed-pr95-arco.json`
+record these outcomes in the workspace root.
+
+The updater retains a full prior-version snapshot at
+`preview-pr95-live-20261009/backup/snapshot`. Its 832 files matched an
+independent pre-install copy in `preview-pr95-live-20261009/preflight-copy`
+by relative path and SHA-256, with zero differences. This is a **local
+preview installation**, not a merged or externally distributed fork release.
+Physical pointer interaction, monitor scanout, exact Qt/framework binary
+notices, and fork name/publisher/version policy remain open release checks.
