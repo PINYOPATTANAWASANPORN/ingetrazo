@@ -161,8 +161,11 @@ quantities/schedules agree with the model after edits.
    use it to choose the next renderer or progressive-paint slice. The
    `perf/igz-real-model-corpus` candidate records fresh-process `load_scene`
    timing for three SHA-256-pinned examples; see
-   `IGZ_REAL_MODEL_CORPUS.md`. Its first-paint and truly large nested-project
-   coverage remain open, so keep the performance estimate at 70%.
+   `IGZ_REAL_MODEL_CORPUS.md`. The successor
+   `perf/igz-first-frame-baseline` measures actual native `open_path` to the
+   first model `frameSwapped` and a timer-based event gap; see
+   `IGZ_FIRST_FRAME_BASELINE.md`. A truly large nested-project fixture and a
+   measured renderer improvement remain open, so keep the estimate at 70%.
 4. In parallel with performance measurement, start one bounded Outliner
    Face/Edge or nested-selection slice with a real-model UX check.
 5. Start the deterministic AI finding-grounding gate and human evaluation

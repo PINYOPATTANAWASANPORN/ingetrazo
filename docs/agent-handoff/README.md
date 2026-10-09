@@ -350,3 +350,8 @@ bundled documents by SHA-256 and measures fresh-process IGZ decode/hydration.
 See [IGZ_REAL_MODEL_CORPUS.md](IGZ_REAL_MODEL_CORPUS.md) for the local baseline,
 measurement boundary and remaining first-paint/large-model work. This does not
 change the installed build or the eight workstream completion estimates.
+
+The follow-up [draft PR #93](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/93)
+on `perf/igz-first-frame-baseline` extends that corpus to native
+`MainWindow.open_path` and the first model `frameSwapped`, including a coarse
+event-loop gap. See [IGZ_FIRST_FRAME_BASELINE.md](IGZ_FIRST_FRAME_BASELINE.md).

@@ -33,3 +33,10 @@ long before — every New/Open kept the previous document's render chunks
 The reference document so far is the Plaza Yanque model
 (`plaza.igz`, 23 MB: 1035 groups, 48 000 faces drawn), kept outside the
 repository.
+
+The independent IGZ corpus in `models/corpus-v1.json` pins three bundled
+examples by SHA-256. `scripts/bench_igz_corpus.py` measures fresh-process
+decode/hydration; `scripts/bench_igz_first_frame.py` measures native Open to
+Qt's first model-frame submission and a coarse event-loop gap. Their dated raw
+results in `results/` are local baselines, not release thresholds or a claim
+about the much larger Plaza model.

@@ -23,6 +23,9 @@ below describe features in the open stack, not merge or release readiness.
 PR #92 adds a fresh-process load baseline for
 three bundled examples (see `IGZ_REAL_MODEL_CORPUS.md`). It does not close the
 large-model or progressive-paint gate, so its 70% estimate is unchanged.
+Draft PR #93's native first-frame baseline identifies model painting as a
+substantial part of open-to-frame time on the bundled examples; see
+`IGZ_FIRST_FRAME_BASELINE.md`. This evidence also leaves 70% unchanged.
 
 | Workstream | Estimated implementation in stack | Delivered slices | Important remaining work |
 | --- | ---: | --- | --- |

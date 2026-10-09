@@ -726,8 +726,19 @@
     "status": "draft",
     "manifest": "benchmarks/models/corpus-v1.json",
     "baseline": "benchmarks/results/igz-windows-baseline-2026-10-09.json",
-    "validation": "Three bundled IGZ files pinned by SHA-256; five fresh-process load_scene samples per file on Windows 10 and Python 3.12.15; 2 runner tests passed",
+    "validation": "Three bundled IGZ files pinned by SHA-256; five fresh-process load_scene samples per file on Windows 10 and Python 3.12.15; 2 runner tests passed; final-head CI run 37881799562 passed Ubuntu non-slow and Windows Qt offscreen jobs",
     "installed": false,
-    "remaining": "No nested or genuinely large project in corpus; GUI first paint, load responsiveness, renderer chunking and installed-build validation remain open"
+    "remaining": "No nested or genuinely large project in corpus; native first-frame baseline follows in successor, but renderer chunking and installed-build validation remain open"
+  },
+  "igz_first_frame_candidate": {
+    "branch": "perf/igz-first-frame-baseline",
+    "base_pull_request": 92,
+    "pull_request": 93,
+    "status": "draft",
+    "script": "scripts/bench_igz_first_frame.py",
+    "baseline": "benchmarks/results/igz-windows-first-frame-2026-10-09.json",
+    "validation": "Three fresh native Windows processes per bundled IGZ; first model frameSwapped observed after sceneVersionChanged; source hashes unchanged",
+    "installed": false,
+    "remaining": "Profile first-paint phases, add real large nested-project fixture, implement bounded render improvement and rerun native benchmark"
   }
 }
