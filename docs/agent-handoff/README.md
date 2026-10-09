@@ -344,7 +344,8 @@ geometry and shared component meshes after both frozen save/reopen cycles.
 See [FROZEN_NESTED_ROUNDTRIP_GATE.md](FROZEN_NESTED_ROUNDTRIP_GATE.md) for
 the generated fixture, local results and remaining limits.
 
-The candidate `perf/igz-real-model-corpus`, stacked after #91, pins three
+The follow-up [draft PR #92](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/92)
+on `perf/igz-real-model-corpus`, stacked after #91, pins three
 bundled documents by SHA-256 and measures fresh-process IGZ decode/hydration.
 See [IGZ_REAL_MODEL_CORPUS.md](IGZ_REAL_MODEL_CORPUS.md) for the local baseline,
 measurement boundary and remaining first-paint/large-model work. This does not

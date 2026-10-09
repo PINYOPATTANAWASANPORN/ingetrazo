@@ -927,6 +927,28 @@
       "draft": true,
       "updated_at": "2026-10-09T02:21:40Z",
       "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/90"
+    },
+    {
+      "number": 91,
+      "state": "open",
+      "title": "Gate frozen nested document round trips",
+      "base": "test/frozen-document-workflow",
+      "head": "test/frozen-nested-roundtrip",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-09T03:26:27Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/91"
+    },
+    {
+      "number": 92,
+      "state": "open",
+      "title": "Benchmark hash-pinned IGZ real-model load corpus",
+      "base": "test/frozen-nested-roundtrip",
+      "head": "perf/igz-real-model-corpus",
+      "merged": false,
+      "draft": true,
+      "updated_at": "2026-10-09T03:58:55Z",
+      "url": "https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/92"
     }
   ]
 }

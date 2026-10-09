@@ -1,6 +1,6 @@
 # IGZ real-model load corpus (candidate)
 
-Branch `perf/igz-real-model-corpus` follows draft PR #91. This slice adds a
+Draft PR #92 on `perf/igz-real-model-corpus` follows draft PR #91. This slice adds a
 hash-pinned, reproducible baseline for `formats.igz.load_scene` before changing
 the renderer. It does **not** demonstrate progressive paint or large-project
 performance.

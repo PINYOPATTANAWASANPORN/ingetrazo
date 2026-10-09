@@ -8,8 +8,8 @@ PR numbers 18 and 27 are absent from the pull list; do not invent them. The
 chain begins at fork `main` (`6be29fe`). Merging or rebasing a lower PR changes
 every PR above it, so preserve order and revalidate the affected stack. The
 latest documented PR layer is
-[#91](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/91);
-`perf/igz-real-model-corpus` is its candidate successor. PRs #83–#91 add
+[#92](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/92),
+stacked on #91. PRs #83–#91 add
 frozen-bundle verification, version metadata and an update/rollback transaction;
 they do not change the eight product-workstream percentages below. The
 2026-10-08 integration evidence and open release checks are in
@@ -20,7 +20,7 @@ they do not change the eight product-workstream percentages below. The
 The remaining implementation and release gates are prioritized in
 [`REMAINING_DEVELOPMENT_PLAN.md`](REMAINING_DEVELOPMENT_PLAN.md). The estimates
 below describe features in the open stack, not merge or release readiness.
-The candidate IGZ real-model corpus adds a fresh-process load baseline for
+PR #92 adds a fresh-process load baseline for
 three bundled examples (see `IGZ_REAL_MODEL_CORPUS.md`). It does not close the
 large-model or progressive-paint gate, so its 70% estimate is unchanged.
 

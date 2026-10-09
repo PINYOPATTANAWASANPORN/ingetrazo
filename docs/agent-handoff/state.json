@@ -722,8 +722,8 @@
   "igz_real_model_corpus_candidate": {
     "branch": "perf/igz-real-model-corpus",
     "base_pull_request": 91,
-    "pull_request": null,
-    "status": "candidate",
+    "pull_request": 92,
+    "status": "draft",
     "manifest": "benchmarks/models/corpus-v1.json",
     "baseline": "benchmarks/results/igz-windows-baseline-2026-10-09.json",
     "validation": "Three bundled IGZ files pinned by SHA-256; five fresh-process load_scene samples per file on Windows 10 and Python 3.12.15; 2 runner tests passed",
