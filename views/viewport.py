@@ -8738,7 +8738,9 @@ class Viewport(QOpenGLWidget):
         dback_faces: list = []        # face index → its back is the default
         faces: list = []
         areas: list = []
-        tris: list = []
+        # Flat doubles avoid allocating three nested Python lists per pick
+        # triangle. NumPy can view the completed buffer without copying it.
+        tris = array("d")
         tri_ent: list = []
         from core.materials import back_is_default
         for f in mesh.faces:
@@ -8806,9 +8808,9 @@ class Viewport(QOpenGLWidget):
                                  t1.x(), t1.y(), t1.z(), r, g, b,
                                  t2.x(), t2.y(), t2.z(), r, g, b])
             for t0, t1, t2 in tri_list:
-                tris.append([[t0.x(), t0.y(), t0.z()],
-                             [t1.x(), t1.y(), t1.z()],
-                             [t2.x(), t2.y(), t2.z()]])
+                tris.extend((t0.x(), t0.y(), t0.z(),
+                             t1.x(), t1.y(), t1.z(),
+                             t2.x(), t2.y(), t2.z()))
                 tri_ent.append(i)
             if tri_list and back_is_default(fattrs):
                 dback_faces.append(i)
@@ -8850,7 +8852,7 @@ class Viewport(QOpenGLWidget):
             soft_n1.append(n1)
             soft_c1.append(c1)
         if tris:
-            t = np.asarray(tris, dtype=np.float64)
+            t = np.frombuffer(tris, dtype=np.float64).reshape(-1, 3, 3)
             v0, e1, e2 = t[:, 0], t[:, 1] - t[:, 0], t[:, 2] - t[:, 0]
             tri_ent_a = np.asarray(tri_ent, dtype=np.int64)
             # The default-back tint triangles, cut from the pick triangles

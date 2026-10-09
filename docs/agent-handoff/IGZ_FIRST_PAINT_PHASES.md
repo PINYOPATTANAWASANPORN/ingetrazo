@@ -42,3 +42,8 @@ Next implementation slice: reduce cold `_group_chunk` preparation or build a
 bounded progressive render path, then repeat the **unprofiled** first-frame
 baseline and a visual/correctness gate on a large nested model. The large-model
 workstream remains at 70%; the installed application remains unchanged.
+
+The next slice, `IGZ_FLAT_PICK_TRIANGLES.md`, isolates the chunk cache per
+benchmark process and compares a flat pick-triangle representation against
+its preceding code. Those cold-cache numbers are not directly comparable to
+this earlier profile, which could reuse a persistent disk chunk.

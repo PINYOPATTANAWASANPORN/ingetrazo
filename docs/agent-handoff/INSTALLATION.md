@@ -95,3 +95,94 @@ offscreen GUI process stayed alive for ten seconds. Hashes and file count are
 recorded in the workspace-root `build-staged-pr82.json` and
 `INTEGRATION_CHECKPOINT_2026-10-08.md`. This remains a **staged test build**;
 the installed application is still the verified `3815ef8` build.
+
+## PR #95 staged preview and update rehearsal (2026-10-09)
+
+The clean `perf/igz-flat-pick-triangles` tree at `7e4becf` was frozen into
+`C:\Users\Lenovo\Desktop\IngeTrazoTest\dist-pr95-gate\ingetrazo` (874 files).
+The workspace-root `build-pr95-gate.json` records the exact source commit,
+file count and executable SHA-256 values. The app hash is
+`C2A50CECD8053BB7FC8C425E28F50D02CB59A94B25426A24A726FEC2C9B60B22`;
+the MCP hash is
+`57D7B6AD96F84F23C9DFDC2A9575BE80DF924A9BAB5C2BA66A06F2C802A7E81A`.
+Frozen `--check` exited 0, MCP `tools/list` returned 22 tools, both Windows
+executables reported version 0.5.7, and the notice verifier matched 43 wheel
+metadata/license files plus project/OpenSKP notices.
+
+The frozen document probe passed offscreen open/edit/save/reopen/Undo/Redo on
+`sofa.igz` and a generated six-group nested fixture. A native Windows probe
+passed the same workflow on `examples/arco-yanque.igz`, preserving all 30
+groups and the original document hash. Reports are
+`smoke-pr95-sofa.json`, `smoke-pr95-nested.json`, and
+`smoke-pr95-arco-native.json` in the workspace root. These probes do not
+validate visible pixels, physical pointer actions or every modelling/AI flow.
+
+The updater was exercised only against a copied 832-file installation under
+`updater-pr95-fixture`. A deliberate failure after cleanup returned
+`rolled_back`, restored the original `3815ef8` commit and main executable
+hash, and reported no rollback error. A following normal run returned
+`updated` and passed its activated frozen self-check. Reports and retained
+snapshots are under that fixture. The installed Program Files bundle is
+**unchanged**. Four installed MCP processes were still running and this
+session did not have an Administrator token. The hosted Windows release build,
+visible interaction/pixel review, Qt/framework binary notice and fork identity
+review, and actual elevated installation remain open gates.
+
+Follow-up: PR #95's documentation head `5bb2786` passed both hosted CI jobs
+([run 37892076694](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37892076694)).
+A further native Windows frozen-document probe on
+`examples/pileta-fuente-yanque.igz` passed and retained all 39 groups and the
+source hash; its report is `smoke-pr95-pileta-native.json`. The workspace-root
+`qt-pr95-binary-inventory.json` records paths, SHA-256 and PE file versions of
+44 bundled PySide6 DLLs (Qt 6.11.2). Qt's
+[6.11.2 third-party list](https://doc.qt.io/qt-6.11/licenses-used-in-qt.html)
+and [SBOM guidance](https://doc.qt.io/qt-6.11/sbom.html) are the upstream
+references for the remaining binary notice review. The inventory itself
+does not establish notice completeness. Computer Use could not capture the
+staged window: launching without `--new-window` forwarded to the installed
+application, and capture timed out twice. No staged visible-pixel or pointer
+claim follows from that attempt.
+
+A separate disposable frozen-GUI probe using `--new-window` and an isolated
+user profile captured `QOpenGLWidget.grabFramebuffer()` after opening the
+bundled arco and pileta examples on native Windows. The workspace-root
+`viewport-pr95-arco.png` and `viewport-pr95-pileta.png` show the expected
+arch/person and textured fountain respectively; their JSON reports contain
+1448x934 image dimensions, PNG SHA-256 and unchanged source hashes. This
+verifies the application's rendered framebuffer, not monitor scanout,
+physical pointer interaction or pixel-perfect agreement with a baseline.
+The temporary probe is `smoke-pr95-viewport.py` in the workspace root.
+
+## PR #95 local preview installed (2026-10-09)
+
+The native Windows one-process `pytest -q tests` run on the PR #95 tree at
+documentation head `92bb9ee` passed: **4,635 passed, 11 skipped, 1 xfailed**
+in 1,124.45 seconds, exit 0. The log is `native-pr95-full.log` in the
+workspace root. The application source matches the frozen bundle's
+`7e4becf` commit; later commits through `92bb9ee` changed only handoff files.
+The [final-head CI run](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/actions/runs/37894937495)
+passed both Ubuntu non-slow and Windows Qt offscreen jobs.
+
+After closing the installed GUI and Codex-spawned MCP processes, the verified
+updater was run elevated with `-AllowProgramFiles`. Its report at
+`preview-pr95-live-20261009/backup/report.json` says `updated`, prior commit
+`3815ef8`, new commit `7e4becf`, 874 source files, and activated `--check`
+exit 0. `C:\Program Files\IngeTrazo\BUILD-INFO.json` records installation at
+`2026-10-09T09:15:15.9497458Z`. The installed GUI hash is
+`C2A50CECD8053BB7FC8C425E28F50D02CB59A94B25426A24A726FEC2C9B60B22`;
+installed MCP hash is
+`57D7B6AD96F84F23C9DFDC2A9575BE80DF924A9BAB5C2BA66A06F2C802A7E81A`.
+Both match the staged build manifest. Independent checks at the installed
+path found `--check` exit 0, 22 MCP tools, and a passing native frozen
+open/edit/save/reopen/Undo/Redo probe on a disposable arco copy. A native
+framebuffer capture from the installed path shows the expected arch model;
+`smoke-installed-pr95-arco.json` and `viewport-installed-pr95-arco.json`
+record these outcomes in the workspace root.
+
+The updater retains a full prior-version snapshot at
+`preview-pr95-live-20261009/backup/snapshot`. Its 832 files matched an
+independent pre-install copy in `preview-pr95-live-20261009/preflight-copy`
+by relative path and SHA-256, with zero differences. This is a **local
+preview installation**, not a merged or externally distributed fork release.
+Physical pointer interaction, monitor scanout, exact Qt/framework binary
+notices, and fork name/publisher/version policy remain open release checks.

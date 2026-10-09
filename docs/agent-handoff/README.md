@@ -8,9 +8,9 @@ and the engineering knowledge extracted from the work.
 - Snapshot date: **2026-10-08**
 - Upstream/fork `main` baseline: **`6be29fe`**
 - Handoff base: **`feature/ai-project-memory` at `6c8364c`**
-- PR inventory: **92 open PRs through #94 in the 2026-10-09 snapshot**; check GitHub
+- PR inventory: **93 open PRs through #95 in the 2026-10-09 snapshot**; check GitHub
   before treating that count as current.
-- Local installation: **verified on Windows 10** from code commit `3815ef8`;
+- Local installation: **verified on Windows 10** from code commit `7e4becf`;
   see [`INSTALLATION.md`](INSTALLATION.md) for exact evidence and scope.
 
 ## Read in this order
@@ -95,8 +95,9 @@ The detailed design documents remain authoritative for their domains:
   the recorded targeted validation.
 - **Merged** means GitHub reports a non-null merge time into the intended base.
 - **Installed** means a build containing the commit was deployed on the local
-  machine and checked at the installed path. The Windows installation now
-  contains code through `3815ef8`; subsequent staged bundles are not installed.
+  machine and checked at the installed path. The Windows preview installation
+  now contains code through `7e4becf`; see `INSTALLATION.md` for the exact
+  hashes, frozen workflow evidence and rollback snapshot.
 - Percentages are planning estimates derived from acceptance targets. They are
   not test coverage or proof of release readiness.
 
@@ -359,3 +360,6 @@ The follow-up [draft PR #94](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/
 adds an opt-in first-paint phase profile and identifies cold group chunk preparation
 as the main measured paint cost on pileta and arco. See
 [IGZ_FIRST_PAINT_PHASES.md](IGZ_FIRST_PAINT_PHASES.md).
+The subsequent [draft PR #95](https://github.com/PINYOPATTANAWASANPORN/ingetrazo/pull/95)
+contains the flat pick-triangle change and cache-isolated native comparison
+are in [IGZ_FLAT_PICK_TRIANGLES.md](IGZ_FLAT_PICK_TRIANGLES.md).

@@ -211,6 +211,9 @@ def measure(corpus: Path = DEFAULT_CORPUS, repeats: int = 3,
                 env["APPDATA"] = scratch
                 env["LOCALAPPDATA"] = scratch
                 env["XDG_DATA_HOME"] = scratch
+                # GenericDataLocation may ignore the temporary profile on
+                # some Qt builds. Pin the chunk/texture cache to this sample.
+                env["INGETRAZO_TEXTURE_CACHE"] = str(Path(scratch) / "textures")
                 env["INGETRAZO_PERF"] = "1" if profile_phases else "0"
                 env["INGETRAZO_PERF_ALL_FRAMES"] = "1" if profile_phases else "0"
                 env["INGETRAZO_PERF_LOG"] = os.devnull
