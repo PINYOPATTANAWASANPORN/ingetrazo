@@ -23,6 +23,15 @@ at `3815ef8`.
   build time and currently names the upstream author as publisher. A fork
   preview must choose accurate publisher/product identifiers before packaging.
 
+The successor `fix/windows-exe-version-info` branch adds source-version PE
+resources to the GUI and MCP executables and checks them in the Windows build
+workflow. A local rebuild displays `FileVersion` and `ProductVersion` 0.5.7,
+`ProductName` IngeTrazo, the expected original filename, and a nonempty file
+description on both executables. The verifier rejects the older #87 bundle
+whose PE fields are empty. This resolves the missing executable metadata
+observation for that candidate build; it does not settle the fork's publisher,
+name or update-channel policy, or the Qt notice inventory.
+
 Qt's own [Qt for Python license inventory](https://doc.qt.io/qtforpython-6/licenses.html)
 distinguishes Qt for Python contributions from Qt's separate third-party
 source inventory. The current wheel-file verifier cannot establish which

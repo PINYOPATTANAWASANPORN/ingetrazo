@@ -358,10 +358,49 @@ if sys.platform == 'win32':
 pyz = PYZ(a.pure, a.zipped_data)
 
 icon = None
+app_version_resource = None
+mcp_version_resource = None
 if sys.platform == 'win32':
     win_ico = ROOT / 'resources' / 'icons' / 'ingetrazo.ico'
     if win_ico.exists():
         icon = str(win_ico)
+    from core.version import __version__ as _version
+    from PyInstaller.utils.win32.versioninfo import (
+        FixedFileInfo, StringFileInfo, StringStruct, StringTable,
+        VSVersionInfo, VarFileInfo, VarStruct,
+    )
+
+    # Explorer's Details tab reads the executable's PE resource, not the
+    # installer or About dialog. Keep both frozen executables on the same
+    # source version as the app. The fixed resource needs four numeric parts;
+    # any future prerelease-label policy must be handled explicitly here.
+    _parts = _version.split('.')
+    if len(_parts) > 4 or not all(p.isdecimal() for p in _parts):
+        raise ValueError(f'Windows file version must be numeric: {_version}')
+    _version_quad = tuple(map(int, _parts)) + (0,) * (4 - len(_parts))
+    if any(p > 65535 for p in _version_quad):
+        raise ValueError(f'Windows file version part exceeds 65535: {_version}')
+
+    def _version_resource(filename, description):
+        return VSVersionInfo(
+            ffi=FixedFileInfo(filevers=_version_quad, prodvers=_version_quad),
+            kids=[
+                StringFileInfo([StringTable('040904B0', [
+                    StringStruct('FileDescription', description),
+                    StringStruct('FileVersion', _version),
+                    StringStruct('InternalName', filename.removesuffix('.exe')),
+                    StringStruct('LegalCopyright',
+                                 'Copyright (C) 2026 Marco Sumari Tellez and IngeTrazo contributors'),
+                    StringStruct('OriginalFilename', filename),
+                    StringStruct('ProductName', 'IngeTrazo'),
+                    StringStruct('ProductVersion', _version),
+                ])]),
+                VarFileInfo([VarStruct('Translation', [1033, 1200])]),
+            ],
+        )
+
+    app_version_resource = _version_resource('ingetrazo.exe', 'IngeTrazo 3D modeler')
+    mcp_version_resource = _version_resource('ingetrazo-mcp.exe', 'IngeTrazo MCP bridge')
 
 exe = EXE(
     pyz,
@@ -379,6 +418,7 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon=icon,
+    version=app_version_resource,
 )
 
 # ── ingetrazo-mcp: a CONSOLE program for Claude Desktop / Claude Code ───────
@@ -408,6 +448,7 @@ mcp_exe = EXE(
     upx=False,
     console=True,
     icon=icon,
+    version=mcp_version_resource,
 )
 
 coll = COLLECT(
